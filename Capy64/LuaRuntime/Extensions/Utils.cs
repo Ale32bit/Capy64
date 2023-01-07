@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Capy64.LuaRuntime.Extensions;
-
 public static class Utils
 {
     public static void PushArray(this Lua state, object obj)
@@ -25,10 +24,10 @@ public static class Utils
         }
         state.SetTop(-1);
     }
-
+#nullable enable
     public static int PushValue(this Lua state, object? obj)
     {
-        var type = obj.GetType();
+        var type = obj?.GetType();
         switch (obj)
         {
             case string str:
@@ -74,7 +73,7 @@ public static class Utils
                 break;
 
             default:
-                if (type.IsArray)
+                if (type is not null && type.IsArray)
                 {
                     state.PushArray(obj);
                 }

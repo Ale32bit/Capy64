@@ -23,9 +23,9 @@ namespace Capy64.BIOS;
 public class Bios : IPlugin
 {
     private static IGame _game;
-    private EventEmitter _eventEmitter;
+    private readonly EventEmitter _eventEmitter;
     private RuntimeInputEvents _runtimeInputEvents;
-    private Drawing _drawing;
+    private readonly Drawing _drawing;
     private static bool CloseRuntime = false;
     private static bool OpenBios = false;
 
@@ -132,7 +132,7 @@ public class Bios : IPlugin
         }
     }
 
-    private void InitLuaPlugins()
+    private static void InitLuaPlugins()
     {
         var allPlugins = new List<IPlugin>(_game.NativePlugins);
         allPlugins.AddRange(_game.Plugins);
@@ -142,7 +142,7 @@ public class Bios : IPlugin
         }
     }
 
-    public void InstallOS(bool force = false)
+    public static void InstallOS(bool force = false)
     {
         var installedFilePath = Path.Combine(FileSystem.BasePath, ".installed");
         if (!File.Exists(installedFilePath) || force)

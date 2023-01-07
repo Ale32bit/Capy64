@@ -14,10 +14,6 @@ namespace Capy64.LuaRuntime;
 
 internal class Sandbox
 {
-    private struct CallData
-    {
-        public int Delta;
-    }
     internal static void OpenLibraries(Lua L)
     {
         L.OpenBase();
