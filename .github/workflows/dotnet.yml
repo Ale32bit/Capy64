@@ -26,3 +26,11 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name: Publish
+      run: dotnet publish Capy64/Capy64.csproj -c Release --no-self-contained -o publish
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v3.0.2
+      with:
+        name: publish
+        path: Capy64/publish/**
+        if-no-files-found: error
