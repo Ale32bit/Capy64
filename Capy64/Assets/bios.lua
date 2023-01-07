@@ -5,6 +5,10 @@ local bootSleep = 2000
 local bg = 0x0
 local fg = 0xffffff
 
+term.setForeground(fg)
+term.setBackground(bg)
+term.clear()
+
 local function sleep(n)
 	local timerId = timer.start(n)
 	repeat

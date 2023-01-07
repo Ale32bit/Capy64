@@ -26,7 +26,8 @@ public class Bios : IPlugin
     private EventEmitter _eventEmitter;
     private RuntimeInputEvents _runtimeInputEvents;
     private Drawing _drawing;
-    private bool CloseRuntime = false;
+    private static bool CloseRuntime = false;
+    private static bool OpenBios = false;
 
     public Bios(IGame game)
     {
@@ -47,12 +48,18 @@ public class Bios : IPlugin
         if (CloseRuntime)
         {
             _runtimeInputEvents.Unregister();
-
             _game.LuaRuntime.Close();
-
             CloseRuntime = false;
 
-            StartLuaOS();
+            if (OpenBios)
+            {
+                OpenBios = false;
+                RunBIOS();
+            }
+            else
+            {
+                StartLuaOS();
+            }
         }
 
         Resume();
@@ -148,6 +155,12 @@ public class Bios : IPlugin
     public static void Shutdown()
     {
         _game.Exit();
+    }
+
+    public static void Reboot()
+    {
+        CloseRuntime = true;
+        OpenBios = true;
     }
 
     private int L_OpenDataFolder(IntPtr state)

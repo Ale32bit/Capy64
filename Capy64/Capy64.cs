@@ -20,8 +20,8 @@ namespace Capy64;
 
 public class Capy64 : Game, IGame
 {
+    public const string Version = "Capy64 a0.0.1";
     public Game Game => this;
-    public string Version => "Capy64 a0.0.1";
     public IList<IPlugin> NativePlugins { get; private set; }
     public IList<IPlugin> Plugins { get; private set; }
     public int Width { get; set; } = 400;
@@ -102,6 +102,8 @@ public class Capy64 : Game, IGame
 
     protected override void Initialize()
     {
+        Window.Title = Version;
+
         UpdateSize();
 
         Window.AllowUserResizing = false;

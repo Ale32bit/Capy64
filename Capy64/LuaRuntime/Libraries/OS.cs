@@ -20,14 +20,43 @@ public class OS : IPlugin
     public void LuaInit(Lua state)
     {
         state.GetGlobal("os");
+
+        state.PushString("version");
+        state.PushCFunction(L_Version);
+        state.SetTable(-3);
+
         state.PushString("shutdown");
         state.PushCFunction(L_Shutdown);
         state.SetTable(-3);
     }
 
+    private static int L_Version(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        L.PushString(Capy64.Version);
+
+        return 1;
+    }
+
     private static int L_Shutdown(IntPtr state)
     {
-        BIOS.Bios.Shutdown();
+        var L = Lua.FromIntPtr(state);
+
+        var doReboot = false;
+        if (L.IsBoolean(1))
+        {
+            doReboot = L.ToBoolean(1);
+        }
+
+        if (doReboot)
+        {
+            BIOS.Bios.Reboot();
+        }
+        else
+        {
+            BIOS.Bios.Shutdown();
+        }
 
         return 0;
     }

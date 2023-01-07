@@ -46,6 +46,7 @@ public class Runtime
 
     public void Init()
     {
+        Parent.SetTop(0);
         var initContent = File.ReadAllText(Path.Combine(FileSystem.DataPath, "init.lua"));
         var status = Thread.LoadString(initContent, "=init.lua");
         if (status != LuaStatus.OK)

@@ -11,7 +11,6 @@ namespace Capy64;
 public interface IGame
 {
     Game Game { get; }
-    public string Version { get; }
     IList<IPlugin> NativePlugins { get; }
     IList<IPlugin> Plugins { get; }
     GameWindow Window { get; }
