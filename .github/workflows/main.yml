@@ -53,6 +53,7 @@ jobs:
     - name: Create Release
       uses: ncipollo/release-action@v1.12.0
       with:
+        commit: ${{ github.ref_name }}
         allowUpdates: true
         artifactErrorsFailBuild: true
         artifacts: "capy64-linux-x64.zip,capy64-windows-x64.zip"
