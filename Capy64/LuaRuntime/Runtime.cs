@@ -124,7 +124,7 @@ public class Runtime
         {
             foreach (var par in ev.Parameters)
             {
-                Thread.PushValue(par);
+                Thread.PushObject(par);
             }
         }
         return (ev.Parameters?.Length ?? 0) + 1;

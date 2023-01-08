@@ -11,6 +11,6 @@ namespace Capy64.API;
 public interface IPlugin
 {
     void ConfigureServices(IServiceCollection services) { }
-    void LuaInit(Lua state) { }
+    void LuaInit(Lua L) { }
 
 }

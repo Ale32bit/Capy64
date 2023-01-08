@@ -12,8 +12,7 @@ namespace Capy64.LuaRuntime.Libraries;
 
 public class FileSystem : IPlugin
 {
-    public static string BasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create), "Capy64");
-    public static string DataPath = Path.Combine(BasePath, "data");
+    public static string DataPath = Path.Combine(Capy64.AppDataPath, "data");
 
     public FileSystem()
     {
@@ -451,7 +450,7 @@ public class FileSystem : IPlugin
         foreach (var attribute in attributes)
         {
             L.PushString(attribute.Key);
-            L.PushValue(attribute.Value);
+            Extensions.Utils.PushObject(L, attribute.Value);
 
             L.SetTable(-3);
         }

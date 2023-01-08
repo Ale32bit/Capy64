@@ -11,31 +11,31 @@ using System.Threading.Tasks;
 namespace Capy64.LuaRuntime.Extensions;
 public static class Utils
 {
-    public static void PushArray(this Lua state, object obj)
+    public static void PushArray(this Lua L, object obj)
     {
         var iterable = obj as IEnumerable;
 
-        state.NewTable();
+        L.NewTable();
         long i = 1;
         foreach (var item in iterable)
         {
-            state.PushValue(item);
-            state.RawSetInteger(-2, i++);
+            L.PushObject(item);
+            L.RawSetInteger(-2, i++);
         }
-        state.SetTop(-1);
+        L.SetTop(-1);
     }
 #nullable enable
-    public static int PushValue(this Lua state, object? obj)
+    public static int PushObject(this Lua L, object? obj)
     {
         var type = obj?.GetType();
         switch (obj)
         {
             case string str:
-                state.PushString(str);
+                L.PushString(str);
                 break;
 
             case char:
-                state.PushString(obj.ToString());
+                L.PushString(obj.ToString());
                 break;
 
             case byte:
@@ -45,37 +45,37 @@ public static class Utils
             case int:
             case uint:
             case double:
-                state.PushNumber(Convert.ToDouble(obj));
+                L.PushNumber(Convert.ToDouble(obj));
                 break;
 
             case long l:
-                state.PushInteger(l);
+                L.PushInteger(l);
                 break;
 
             case bool b:
-                state.PushBoolean(b);
+                L.PushBoolean(b);
                 break;
 
             case null:
-                state.PushNil();
+                L.PushNil();
                 break;
 
             case byte[] b:
-                state.PushBuffer(b);
+                L.PushBuffer(b);
                 break;
-            
+
             case LuaFunction func:
-                state.PushCFunction(func);
+                L.PushCFunction(func);
                 break;
 
             case IntPtr ptr:
-                state.PushLightUserData(ptr);
+                L.PushLightUserData(ptr);
                 break;
 
             default:
                 if (type is not null && type.IsArray)
                 {
-                    state.PushArray(obj);
+                    L.PushArray(obj);
                 }
                 else
                 {
@@ -87,15 +87,16 @@ public static class Utils
         return 1;
     }
 
-    public static void PushManagedObject<T>(this Lua state, T obj)
+    [Obsolete("This method does not work as intended and requires more research")]
+    public static void PushManagedObject<T>(this Lua L, T obj)
     {
         var type = obj.GetType();
         var members = type.GetMembers().Where(m => m.MemberType == MemberTypes.Method);
-        state.CreateTable(0, members.Count());
+        L.CreateTable(0, members.Count());
         foreach (var m in members)
         {
-            state.PushCFunction(L => (int)type.InvokeMember(m.Name, BindingFlags.InvokeMethod, null, obj, new object[] { L }));
-            state.SetField(-2, m.Name);
+            L.PushCFunction(L => (int)type.InvokeMember(m.Name, BindingFlags.InvokeMethod, null, obj, new object[] { L }));
+            L.SetField(-2, m.Name);
         }
     }
 }

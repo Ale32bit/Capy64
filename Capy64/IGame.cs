@@ -10,6 +10,7 @@ namespace Capy64;
 
 public interface IGame
 {
+
     Game Game { get; }
     IList<IPlugin> NativePlugins { get; }
     IList<IPlugin> Plugins { get; }

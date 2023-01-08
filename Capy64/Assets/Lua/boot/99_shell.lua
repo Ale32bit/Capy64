@@ -10,4 +10,4 @@ term.setPos(1,1)
 
 print(os.version())
 
-dofile("/bin/shell.lua")
+dofile("/bin/lua.lua")

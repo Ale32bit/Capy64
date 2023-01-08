@@ -144,7 +144,7 @@ public class Bios : IPlugin
 
     public static void InstallOS(bool force = false)
     {
-        var installedFilePath = Path.Combine(FileSystem.BasePath, ".installed");
+        var installedFilePath = Path.Combine(Capy64.AppDataPath, ".installed");
         if (!File.Exists(installedFilePath) || force)
         {
             FileSystem.CopyDirectory("Assets/Lua", FileSystem.DataPath, true, true);

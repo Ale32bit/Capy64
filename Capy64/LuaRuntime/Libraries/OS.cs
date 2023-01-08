@@ -34,7 +34,7 @@ public class OS : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        L.PushString(Capy64.Version);
+        L.PushString("Capy64 " + Capy64.Version);
 
         return 1;
     }

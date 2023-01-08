@@ -15,12 +15,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using static Capy64.Utils;
+using System.IO;
 
 namespace Capy64;
 
 public class Capy64 : Game, IGame
 {
-    public const string Version = "Capy64 a0.0.1";
+    public const string Version = "a0.0.1";
+    public static string AppDataPath = Path.Combine(
+        Environment.GetFolderPath(
+            Environment.SpecialFolder.ApplicationData,
+            Environment.SpecialFolderOption.Create),
+        "Capy64");
     public Game Game => this;
     public IList<IPlugin> NativePlugins { get; private set; }
     public IList<IPlugin> Plugins { get; private set; }
@@ -102,7 +108,7 @@ public class Capy64 : Game, IGame
 
     protected override void Initialize()
     {
-        Window.Title = Version;
+        Window.Title = "Capy64 " + Version;
 
         UpdateSize();
 
