@@ -450,7 +450,7 @@ public class FileSystem : IPlugin
         foreach (var attribute in attributes)
         {
             L.PushString(attribute.Key);
-            Extensions.Utils.PushObject(L, attribute.Value);
+            L.PushValue(attribute.Value);
 
             L.SetTable(-3);
         }

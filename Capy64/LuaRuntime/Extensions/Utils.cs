@@ -19,13 +19,13 @@ public static class Utils
         long i = 1;
         foreach (var item in iterable)
         {
-            L.PushObject(item);
+            L.PushValue(item);
             L.RawSetInteger(-2, i++);
         }
         L.SetTop(-1);
     }
 #nullable enable
-    public static int PushObject(this Lua L, object? obj)
+    public static int PushValue(this Lua L, object? obj)
     {
         var type = obj?.GetType();
         switch (obj)
