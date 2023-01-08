@@ -26,11 +26,21 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Publish
-      run: dotnet publish Capy64/Capy64.csproj -c Release --no-self-contained -a x64 -o publish -p:PublishSingleFile=true
-    - name: Upload a Build Artifact
+      
+    - name: Publish for Linux x64
+      run: dotnet publish Capy64/Capy64.csproj -c Release --no-self-contained -a x64 --os linux -p:PublishSingleFile=true -o publish/linux-x64
+    - name: Publish for Windows x64
+      run: dotnet publish Capy64/Capy64.csproj -c Release --no-self-contained -a x64 --os win -p:PublishSingleFile=true -o publish/win-x64
+      
+    - name: Upload Linux x64 artifact
       uses: actions/upload-artifact@v3.1.2
       with:
-        name: Publish
-        path: publish/**
+        name: Linux-x64
+        path: publish/linux-x64/**
+        if-no-files-found: error
+    - name: Upload Windows x64 artifact
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: Windows-x64
+        path: publish/win-x64/**
         if-no-files-found: error
