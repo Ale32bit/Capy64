@@ -99,12 +99,12 @@ public class InputManager
 
         if (pos != mousePosition)
         {
+            mousePosition = pos + new Point(1, 1);
             _eventEmitter.RaiseMouseMove(new()
             {
-                Position = pos,
+                Position = mousePosition,
                 PressedButtons = mouseButtonStates.Where(q => q.Value == ButtonState.Pressed).Select(q => (int)q.Key).ToArray()
             });
-            mousePosition = pos;
         }
 
         int vValue = 0;

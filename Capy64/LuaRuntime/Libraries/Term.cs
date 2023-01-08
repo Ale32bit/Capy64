@@ -453,8 +453,8 @@ internal class Term : IPlugin
         var x = (int)L.CheckNumber(1);
         var y = (int)L.CheckNumber(2);
 
-        L.PushInteger(x * CharWidth);
-        L.PushInteger(y * CharHeight);
+        L.PushInteger(x * CharWidth - CharWidth + 1);
+        L.PushInteger(y * CharHeight - CharHeight + 1);
 
         return 2;
     }
@@ -463,11 +463,11 @@ internal class Term : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        var x = (int)L.CheckNumber(1);
-        var y = (int)L.CheckNumber(2);
+        var x = (int)L.CheckNumber(1) - 1;
+        var y = (int)L.CheckNumber(2) - 1;
 
-        L.PushInteger(x / CharWidth);
-        L.PushInteger(y / CharHeight);
+        L.PushInteger(x / CharWidth + 1);
+        L.PushInteger(y / CharHeight + 1);
 
         return 2;
     }
