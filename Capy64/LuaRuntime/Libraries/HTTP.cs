@@ -155,10 +155,7 @@ public class HTTP : IPlugin
             else
                 content = await response.Content.ReadAsStringAsync();
 
-            if (response.IsSuccessStatusCode)
-                _game.LuaRuntime.PushEvent("http_response", requestId, content, (int)response.StatusCode);
-            else
-                _game.LuaRuntime.PushEvent("http_failure", requestId, content, (int)response.StatusCode, response.ReasonPhrase);
+            _game.LuaRuntime.PushEvent("http_response", requestId, response.IsSuccessStatusCode, content, (int)response.StatusCode, response.ReasonPhrase);
         });
 
         L.PushInteger(requestId);
