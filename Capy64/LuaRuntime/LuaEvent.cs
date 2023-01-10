@@ -1,8 +1,8 @@
 ﻿namespace Capy64.LuaRuntime;
 
-public struct LuaEvent
+public class LuaEvent : ILuaEvent
 {
     public string Name { get; set; }
     public object[] Parameters { get; set; }
-    public bool BypassFilter { get; set; }
+    public bool BypassFilter { get; set; } = false;
 }
