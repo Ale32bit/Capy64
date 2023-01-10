@@ -70,6 +70,13 @@ public class Runtime
         eventQueue.Enqueue(ev);
     }
 
+    /// <summary>
+    /// Push a new event to the event queue.
+    /// </summary>
+    /// <param name="name">Event name</param>
+    /// <param name="handler">Event handler. Push any needed parameter from here. Return n as amount of parameters pushed, minus event name.
+    /// For example: I push an event with 3 parameters, then I return 3. 
+    /// </param>
     public void PushEvent(string name, Func<Lua, int> handler)
     {
         eventQueue.Enqueue(new LuaDelegateEvent {
