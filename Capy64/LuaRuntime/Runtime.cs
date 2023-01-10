@@ -13,7 +13,7 @@ namespace Capy64.LuaRuntime;
 
 public class Runtime
 {
-    private readonly ConcurrentQueue<LuaEvent> eventQueue = new(new LuaEvent[]
+    private readonly ConcurrentQueue<ILuaEvent> eventQueue = new(new LuaEvent[]
     {
         new()
         {
@@ -62,7 +62,27 @@ public class Runtime
 
     public void PushEvent(string name, params object[] pars)
     {
-        eventQueue.Enqueue(new() { Name = name, Parameters = pars });
+        eventQueue.Enqueue(new LuaEvent() { Name = name, Parameters = pars });
+    }
+
+    public void PushEvent(LuaDelegateEvent ev)
+    {
+        eventQueue.Enqueue(ev);
+    }
+
+    /// <summary>
+    /// Push a new event to the event queue.
+    /// </summary>
+    /// <param name="name">Event name</param>
+    /// <param name="handler">Event handler. Push any needed parameter from here. Return n as amount of parameters pushed, minus event name.
+    /// For example: I push an event with 3 parameters, then I return 3. 
+    /// </param>
+    public void PushEvent(string name, Func<Lua, int> handler)
+    {
+        eventQueue.Enqueue(new LuaDelegateEvent {
+            Name = name,
+            Handler = handler
+        });
     }
 
     /// <summary>
@@ -71,7 +91,7 @@ public class Runtime
     /// <returns>Whether it yielded</returns>
     public bool Resume()
     {
-        while (eventQueue.TryDequeue(out LuaEvent ev))
+        while (eventQueue.TryDequeue(out ILuaEvent ev))
         {
             if (!ResumeThread(ev))
                 return false;
@@ -80,7 +100,7 @@ public class Runtime
         return true;
     }
 
-    private bool ResumeThread(LuaEvent ev)
+    private bool ResumeThread(ILuaEvent ev)
     {
         
 
@@ -117,17 +137,32 @@ public class Runtime
         throw new LuaException($"Top thread exception:\n{error}\n{stacktrace}");
     }
 
-    private int PushEventToStack(LuaEvent ev)
+    private int PushEventToStack(ILuaEvent ev)
     {
         Thread.PushString(ev.Name);
-        if (ev.Parameters != null)
+
+        switch(ev)
         {
-            foreach (var par in ev.Parameters)
-            {
-                Thread.PushValue(par);
-            }
+            case LuaEvent e:
+
+                if (e.Parameters != null)
+                {
+                    foreach (var par in e.Parameters)
+                    {
+                        Thread.PushValue(par);
+                    }
+                }
+
+                return (e.Parameters?.Length ?? 0) + 1;
+
+            case LuaDelegateEvent e:
+
+                int n = e.Handler(Thread);
+                return n + 1;
+
+            default:
+                throw new NotImplementedException();
         }
-        return (ev.Parameters?.Length ?? 0) + 1;
     }
 
     public void Close()
