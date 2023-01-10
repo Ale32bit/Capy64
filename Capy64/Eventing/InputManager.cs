@@ -92,18 +92,21 @@ public class InputManager
             return;
 
         var rawPosition = state.Position;
-        var pos = new Point((int)(rawPosition.X / WindowScale), (int)(rawPosition.Y / WindowScale));
+        var pos = new Point((int)(rawPosition.X / WindowScale), (int)(rawPosition.Y / WindowScale)) + new Point(1, 1);
 
-        if (pos.X < 0 || pos.Y < 0 || pos.X >= Texture.Width || pos.Y >= Texture.Height)
+        if (pos.X < 1 || pos.Y < 1 || pos.X > Texture.Width || pos.Y > Texture.Height)
             return;
 
         if (pos != mousePosition)
         {
-            mousePosition = pos + new Point(1, 1);
+            mousePosition = pos;
             _eventEmitter.RaiseMouseMove(new()
             {
                 Position = mousePosition,
-                PressedButtons = mouseButtonStates.Where(q => q.Value == ButtonState.Pressed).Select(q => (int)q.Key).ToArray()
+                PressedButtons = mouseButtonStates
+                    .Where(q => q.Value == ButtonState.Pressed)
+                    .Select(q => (int)q.Key)
+                    .ToArray()
             });
         }
 
