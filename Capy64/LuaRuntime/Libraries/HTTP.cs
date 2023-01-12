@@ -1,7 +1,9 @@
 ﻿using Capy64.API;
+using Capy64.LuaRuntime.Extensions;
 using KeraLua;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 
 namespace Capy64.LuaRuntime.Libraries;
@@ -16,7 +18,7 @@ public class HTTP : IPlugin
     {
         new()
         {
-            name = "request",
+            name = "requestAsync",
             function = L_Request,
         },
         new()
@@ -155,22 +157,50 @@ public class HTTP : IPlugin
             else
                 content = await response.Content.ReadAsStringAsync();
 
-            // wip
-            /*
+
             _game.LuaRuntime.PushEvent("http_response", L =>
             {
+                // arg 1, request id
                 L.PushInteger(requestId);
 
+                // arg 2, response data
                 L.NewTable();
 
                 L.PushString("success");
                 L.PushBoolean(response.IsSuccessStatusCode);
                 L.SetTable(-3);
 
-                return 2;
-            });*/
+                L.PushString("statusCode");
+                L.PushNumber((int)response.StatusCode);
+                L.SetTable(-3);
 
-            _game.LuaRuntime.PushEvent("http_response", requestId, response.IsSuccessStatusCode, content, (int)response.StatusCode, response.ReasonPhrase);
+                L.PushString("reasonPhrase");
+                L.PushString(response.ReasonPhrase);
+                L.SetTable(-3);
+
+                L.PushString("content");
+                if ((bool)options["binary"])
+                    L.PushBuffer((byte[])content);
+                else
+                    L.PushString((string)content);
+                L.SetTable(-3);
+
+                L.PushString("headers");
+                L.NewTable();
+
+                foreach(var header in response.Headers)
+                {
+                    L.PushString(header.Key);
+                    L.PushArray(header.Value.ToArray());
+                    L.SetTable(-3);
+                }
+
+                L.SetTable(-3);
+
+                return 2;
+            });
+
+            //_game.LuaRuntime.PushEvent("http_response", requestId, response.IsSuccessStatusCode, content, (int)response.StatusCode, response.ReasonPhrase);
         });
 
         L.PushInteger(requestId);
