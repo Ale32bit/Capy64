@@ -1,5 +1,6 @@
 ﻿using Capy64.API;
 using Capy64.LuaRuntime.Extensions;
+using Capy64.LuaRuntime.Handlers;
 using KeraLua;
 using System;
 using System.Collections.Generic;
@@ -512,225 +513,18 @@ public class FileSystem : IPlugin
             }
         }
 
-        var handle = File.Open(path, fileMode, fileAccess, FileShare.ReadWrite);
-        bool isClosed = false;
+        var fileStream = File.Open(path, fileMode, fileAccess, FileShare.ReadWrite);
 
-
-        var functions = new Dictionary<string, Func<nint, int>>();
+        // todo: add binary mode
         if (fileAccess == FileAccess.Read)
         {
-            var reader = new StreamReader(handle);
-            functions["read"] = (IntPtr state) =>
-            {
-                var L = Lua.FromIntPtr(state);
-
-                var count = (int)L.OptNumber(1, 1);
-
-                if (isClosed)
-                {
-                    L.Error("file handle is closed");
-                    return 0;
-                }
-
-                if (reader.EndOfStream)
-                {
-                    L.PushNil();
-                    return 1;
-                }
-
-                if (binaryMode)
-                {
-                    var data = new byte[count];
-                    handle.Read(data, 0, count);
-                    L.PushBuffer(data);
-                }
-                else
-                {
-                    var data = new char[count];
-                    reader.ReadBlock(data, 0, count);
-                    L.PushString(new string(data));
-                }
-
-                return 1;
-            };
-
-            functions["readLine"] = (IntPtr state) =>
-            {
-                var L = Lua.FromIntPtr(state);
-
-                var count = (int)L.OptNumber(1, 1);
-
-                if (isClosed)
-                {
-                    L.Error("file handle is closed");
-                    return 0;
-                }
-
-                if (reader.EndOfStream)
-                {
-                    L.PushNil();
-                    return 1;
-                }
-
-                if (binaryMode)
-                {
-                    var line = reader.ReadLine();
-                    L.PushBuffer(Encoding.UTF8.GetBytes(line));
-                }
-                else
-                {
-                    var line = reader.ReadLine();
-                    L.PushString(line);
-                }
-
-                return 1;
-            };
-
-            functions["readAll"] = (IntPtr state) =>
-            {
-                var L = Lua.FromIntPtr(state);
-
-                var count = (int)L.OptNumber(1, 1);
-
-                if (isClosed)
-                {
-                    L.Error("file handle is closed");
-                    return 0;
-                }
-
-                if (reader.EndOfStream)
-                {
-                    L.PushNil();
-                    return 1;
-                }
-
-                if (binaryMode)
-                {
-                    var content = reader.ReadToEnd();
-                    L.PushBuffer(Encoding.UTF8.GetBytes(content));
-                }
-                else
-                {
-                    var content = reader.ReadToEnd();
-                    L.PushString(content);
-                }
-
-                return 1;
-            };
-
+            var handle = new ReadHandle(fileStream);
+            handle.Push(L);
         }
-        else
+        else if (fileAccess == FileAccess.Write)
         {
-            var writer = new StreamWriter(handle);
-            functions["write"] = (IntPtr state) =>
-            {
-                var L = Lua.FromIntPtr(state);
-
-                L.ArgumentCheck(L.IsStringOrNumber(1), 1, "string or number value expected");
-
-                if (isClosed)
-                {
-                    L.Error("file handle is closed");
-                    return 0;
-                }
-
-                if (L.IsString(1))
-                {
-                    if (binaryMode)
-                    {
-                        handle.Write(L.ToBuffer(1));
-                    }
-                    else
-                    {
-                        writer.Write(L.ToString(1));
-                    }
-                }
-                else
-                {
-                    handle.WriteByte((byte)L.ToInteger(1));
-                }
-
-                return 0;
-            };
-
-            functions["writeLine"] = (IntPtr state) =>
-            {
-                var L = Lua.FromIntPtr(state);
-
-                L.ArgumentCheck(L.IsStringOrNumber(1), 1, "string or number value expected");
-
-                if (isClosed)
-                {
-                    L.Error("file handle is closed");
-                    return 0;
-                }
-
-                if (L.IsString(1))
-                {
-                    if (binaryMode)
-                    {
-                        handle.Write(L.ToBuffer(1));
-                        handle.WriteByte((byte)'\n');
-                    }
-                    else
-                    {
-                        writer.WriteLine(L.ToString(1));
-                    }
-                }
-                else
-                {
-                    handle.WriteByte((byte)L.ToInteger(1));
-                    handle.WriteByte((byte)'\n');
-                }
-
-                return 0;
-            };
-
-            functions["flush"] = (IntPtr state) =>
-            {
-                var L = Lua.FromIntPtr(state);
-
-                if (isClosed)
-                {
-                    L.Error("file handle is closed");
-                    return 0;
-                }
-
-                handle.Flush();
-
-                return 0;
-            };
-        }
-
-
-        functions["close"] = (IntPtr state) =>
-        {
-            var L = Lua.FromIntPtr(state);
-
-            if (isClosed)
-            {
-                L.Error("file handle is closed");
-                return 0;
-            }
-
-            if (fileAccess != FileAccess.Read)
-            {
-                handle.Flush();
-            }
-            handle.Dispose();
-
-            isClosed = true;
-
-            return 0;
-        };
-
-
-        L.NewTable();
-        foreach (var pair in functions)
-        {
-            L.PushString(pair.Key);
-            L.PushCFunction(new LuaFunction(pair.Value));
-            L.SetTable(-3);
+            var handle = new WriteHandle(fileStream);
+            handle.Push(L);
         }
 
         return 1;

@@ -1,8 +1,10 @@
 ﻿using Capy64.API;
 using Capy64.LuaRuntime.Extensions;
+using Capy64.LuaRuntime.Handlers;
 using KeraLua;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 
@@ -13,6 +15,7 @@ public class HTTP : IPlugin
     private static IGame _game;
     private static HttpClient _client;
     private static long RequestId;
+    private static List<ReadHandle> ReadHandles = new();
 
     private readonly LuaRegister[] HttpLib = new LuaRegister[]
     {
@@ -151,12 +154,14 @@ public class HTTP : IPlugin
         reqTask.ContinueWith(async (task) =>
         {
             var response = await task;
-            object content;
+            /*object content;
             if ((bool)options["binary"])
                 content = await response.Content.ReadAsByteArrayAsync();
             else
-                content = await response.Content.ReadAsStringAsync();
+                content = await response.Content.ReadAsStringAsync();*/
 
+            var stream = await response.Content.ReadAsStreamAsync();
+            var handler = new ReadHandle(stream);
 
             _game.LuaRuntime.PushEvent("http_response", L =>
             {
@@ -178,17 +183,10 @@ public class HTTP : IPlugin
                 L.PushString(response.ReasonPhrase);
                 L.SetTable(-3);
 
-                L.PushString("content");
-                if ((bool)options["binary"])
-                    L.PushBuffer((byte[])content);
-                else
-                    L.PushString((string)content);
-                L.SetTable(-3);
-
                 L.PushString("headers");
                 L.NewTable();
 
-                foreach(var header in response.Headers)
+                foreach (var header in response.Headers)
                 {
                     L.PushString(header.Key);
                     L.PushArray(header.Value.ToArray());
@@ -196,6 +194,8 @@ public class HTTP : IPlugin
                 }
 
                 L.SetTable(-3);
+
+                handler.Push(L, false);
 
                 return 2;
             });
