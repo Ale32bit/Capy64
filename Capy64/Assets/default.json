@@ -1,0 +1,10 @@
+{
+
+  "HTTP": {
+    "Blacklist": [],
+    "WebSockets": {
+      "Enable": true,
+      "MaxActiveConnections": 5
+    }
+  }
+}
