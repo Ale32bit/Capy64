@@ -1,8 +1,10 @@
 ﻿using Capy64.API;
 using Capy64.LuaRuntime.Extensions;
+using Capy64.LuaRuntime.Handlers;
 using KeraLua;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 
@@ -13,6 +15,7 @@ public class HTTP : IPlugin
     private static IGame _game;
     private static HttpClient _client;
     private static long RequestId;
+    private static List<ReadHandle> ReadHandles = new();
 
     private readonly LuaRegister[] HttpLib = new LuaRegister[]
     {
@@ -151,12 +154,14 @@ public class HTTP : IPlugin
         reqTask.ContinueWith(async (task) =>
         {
             var response = await task;
-            object content;
+            /*object content;
             if ((bool)options["binary"])
                 content = await response.Content.ReadAsByteArrayAsync();
             else
-                content = await response.Content.ReadAsStringAsync();
+                content = await response.Content.ReadAsStringAsync();*/
 
+            var _stream = new StreamReader(await response.Content.ReadAsStreamAsync());
+            var isClosed = false;
 
             _game.LuaRuntime.PushEvent("http_response", L =>
             {
@@ -178,22 +183,104 @@ public class HTTP : IPlugin
                 L.PushString(response.ReasonPhrase);
                 L.SetTable(-3);
 
-                L.PushString("content");
-                if ((bool)options["binary"])
-                    L.PushBuffer((byte[])content);
-                else
-                    L.PushString((string)content);
-                L.SetTable(-3);
-
                 L.PushString("headers");
                 L.NewTable();
 
-                foreach(var header in response.Headers)
+                foreach (var header in response.Headers)
                 {
                     L.PushString(header.Key);
                     L.PushArray(header.Value.ToArray());
                     L.SetTable(-3);
                 }
+
+                L.SetTable(-3);
+
+                L.PushString("content");
+                L.NewTable();
+
+                L.PushString("readAll");
+                L.PushCFunction((IntPtr state) =>
+                {
+                    var L = Lua.FromIntPtr(state);
+
+                    if (isClosed)
+                        L.Error("handle is closed");
+
+                    if (_stream.EndOfStream)
+                    {
+                        L.PushNil();
+                        return 1;
+                    }
+
+                    var content = _stream.ReadToEnd();
+                    L.PushString(content);
+
+                    return 1;
+                });
+                L.SetTable(-3);
+
+                L.PushString("readLine");
+                L.PushCFunction((IntPtr state) =>
+                {
+                    var L = Lua.FromIntPtr(state);
+
+                    if (isClosed)
+                        L.Error("handle is closed");
+
+                    var line = _stream.ReadLine();
+
+                    if (line is null)
+                        L.PushNil();
+                    else
+                        L.PushString(line);
+
+                    return 1;
+                });
+                L.SetTable(-3);
+
+                L.PushString("read");
+                L.PushCFunction((IntPtr state) =>
+                {
+                    var L = Lua.FromIntPtr(state);
+                    var count = (int)L.OptNumber(1, 1);
+
+                    L.ArgumentCheck(count >= 1, 1, "count must be a positive integer");
+
+                    if (isClosed)
+                        L.Error("handle is closed");
+
+                    if (_stream.EndOfStream)
+                    {
+                        L.PushNil();
+                        return 1;
+                    }
+
+                    var chunk = new char[count];
+
+                    _stream.Read(chunk, 0, count);
+
+                    L.PushString(new string(chunk));
+
+                    return 1;
+                });
+                L.SetTable(-3);
+
+                L.PushString("close");
+                L.PushCFunction((IntPtr state) =>
+                {
+                    var L = Lua.FromIntPtr(state);
+
+                    if (isClosed)
+                        return 0;
+
+                    _stream.Close();
+
+                    isClosed = true;
+
+                    return 0;
+                });
+                L.SetTable(-3);
+
 
                 L.SetTable(-3);
 
