@@ -1,6 +1,6 @@
 {
-
   "HTTP": {
+    "Enable": true,
     "Blacklist": [],
     "WebSockets": {
       "Enable": true,

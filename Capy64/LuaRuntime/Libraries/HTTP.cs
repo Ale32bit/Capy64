@@ -2,6 +2,7 @@
 using Capy64.LuaRuntime.Extensions;
 using Capy64.LuaRuntime.Handlers;
 using KeraLua;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +16,6 @@ public class HTTP : IPlugin
     private static IGame _game;
     private static HttpClient _client;
     private static long RequestId;
-    private static List<ReadHandle> ReadHandles = new();
 
     private readonly LuaRegister[] HttpLib = new LuaRegister[]
     {
@@ -31,7 +31,7 @@ public class HTTP : IPlugin
         },
         new(),
     };
-    public HTTP(IGame game)
+    public HTTP(IGame game, IConfiguration configuration)
     {
         _game = game;
         RequestId = 0;
@@ -60,6 +60,7 @@ public class HTTP : IPlugin
     private static int L_Request(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
+
         var request = new HttpRequestMessage();
 
         var url = L.CheckString(1);
@@ -153,6 +154,13 @@ public class HTTP : IPlugin
         var reqTask = _client.SendAsync(request);
         reqTask.ContinueWith(async (task) =>
         {
+
+            if(task.IsFaulted || task.IsCanceled)
+            {
+                _game.LuaRuntime.PushEvent("http_failure", requestId, task.Exception?.Message);
+                return;
+            }
+
             var response = await task;
             /*object content;
             if ((bool)options["binary"])
