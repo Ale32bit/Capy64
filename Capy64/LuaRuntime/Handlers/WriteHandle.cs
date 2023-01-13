@@ -10,21 +10,22 @@ namespace Capy64.LuaRuntime.Handlers;
 
 public class WriteHandle
 {
-    private readonly StreamWriter _stream;
-    private bool isClosed = false;
+    public readonly StreamWriter Stream;
+    public bool IsClosed = false;
     public WriteHandle(Stream stream)
     {
-        _stream = new StreamWriter(stream);
+        Stream = new StreamWriter(stream);
     }
 
     public WriteHandle(StreamWriter stream)
     {
-        _stream = stream;
+        Stream = stream;
     }
 
-    public void Push(Lua L)
+    public void Push(Lua L, bool newTable = true)
     {
-        L.NewTable();
+        if (newTable)
+            L.NewTable();
 
         L.PushString("write");
         L.PushCFunction(L_Write);
@@ -33,7 +34,7 @@ public class WriteHandle
         L.PushString("writeLine");
         L.PushCFunction(L_WriteLine);
         L.SetTable(-3);
- 
+
         L.PushString("flush");
         L.PushCFunction(L_Flush);
         L.SetTable(-3);
@@ -41,61 +42,84 @@ public class WriteHandle
         L.PushString("close");
         L.PushCFunction(L_Close);
         L.SetTable(-3);
+
+        L.PushString("_handle");
+        L.PushObject(this);
+        L.SetTable(-3);
     }
 
-    private int L_Write(IntPtr state)
+    private static int L_Write(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
-        if (isClosed)
+        L.CheckType(1, LuaType.Table);
+        var content = L.CheckString(2);
+
+        L.PushString("_handle");
+        L.GetTable(1);
+        var h = L.ToObject<WriteHandle>(-1, false);
+
+        if (h is null || h.IsClosed)
             L.Error("handle is closed");
 
-        var content = L.CheckString(1);
 
-        _stream.Write(content);
+        h.Stream.Write(content);
 
         return 0;
     }
 
-    private int L_WriteLine(IntPtr state)
+    private static int L_WriteLine(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
-        if (isClosed)
+        L.CheckType(1, LuaType.Table);
+        var content = L.CheckString(2);
+
+        L.PushString("_handle");
+        L.GetTable(1);
+        var h = L.ToObject<WriteHandle>(-1, false);
+
+        if (h is null || h.IsClosed)
             L.Error("handle is closed");
 
-        var content = L.CheckString(1);
 
-        _stream.WriteLine(content);
+        h.Stream.WriteLine(content);
 
         return 0;
     }
 
-    private int L_Flush(IntPtr state)
+    private static int L_Flush(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-        var count = (int)L.OptNumber(1, 1);
 
-        L.ArgumentCheck(count < 1, 1, "count must be a positive integer");
+        L.CheckType(1, LuaType.Table);
+        L.PushString("_handle");
+        L.GetTable(1);
+        var h = L.ToObject<WriteHandle>(-1, false);
 
-        if (isClosed)
+        if (h is null || h.IsClosed)
             L.Error("handle is closed");
 
-        _stream.Flush();
+        h.Stream.Flush();
 
         return 0;
     }
 
-    private int L_Close(IntPtr state)
+    private static int L_Close(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
-        if (isClosed)
+        L.CheckType(1, LuaType.Table);
+        L.PushString("_handle");
+        L.GetTable(1);
+        var h = L.ToObject<WriteHandle>(-1, true);
+
+        if (h is null || h.IsClosed)
             return 0;
 
-        _stream.Close();
+        h.Stream.Close();
 
-        isClosed = true;
+        h.IsClosed = true;
 
         return 0;
     }

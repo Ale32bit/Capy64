@@ -160,8 +160,8 @@ public class HTTP : IPlugin
             else
                 content = await response.Content.ReadAsStringAsync();*/
 
-            var _stream = new StreamReader(await response.Content.ReadAsStreamAsync());
-            var isClosed = false;
+            var stream = await response.Content.ReadAsStreamAsync();
+            var handler = new ReadHandle(stream);
 
             _game.LuaRuntime.PushEvent("http_response", L =>
             {
@@ -195,94 +195,7 @@ public class HTTP : IPlugin
 
                 L.SetTable(-3);
 
-                L.PushString("content");
-                L.NewTable();
-
-                L.PushString("readAll");
-                L.PushCFunction((IntPtr state) =>
-                {
-                    var L = Lua.FromIntPtr(state);
-
-                    if (isClosed)
-                        L.Error("handle is closed");
-
-                    if (_stream.EndOfStream)
-                    {
-                        L.PushNil();
-                        return 1;
-                    }
-
-                    var content = _stream.ReadToEnd();
-                    L.PushString(content);
-
-                    return 1;
-                });
-                L.SetTable(-3);
-
-                L.PushString("readLine");
-                L.PushCFunction((IntPtr state) =>
-                {
-                    var L = Lua.FromIntPtr(state);
-
-                    if (isClosed)
-                        L.Error("handle is closed");
-
-                    var line = _stream.ReadLine();
-
-                    if (line is null)
-                        L.PushNil();
-                    else
-                        L.PushString(line);
-
-                    return 1;
-                });
-                L.SetTable(-3);
-
-                L.PushString("read");
-                L.PushCFunction((IntPtr state) =>
-                {
-                    var L = Lua.FromIntPtr(state);
-                    var count = (int)L.OptNumber(1, 1);
-
-                    L.ArgumentCheck(count >= 1, 1, "count must be a positive integer");
-
-                    if (isClosed)
-                        L.Error("handle is closed");
-
-                    if (_stream.EndOfStream)
-                    {
-                        L.PushNil();
-                        return 1;
-                    }
-
-                    var chunk = new char[count];
-
-                    _stream.Read(chunk, 0, count);
-
-                    L.PushString(new string(chunk));
-
-                    return 1;
-                });
-                L.SetTable(-3);
-
-                L.PushString("close");
-                L.PushCFunction((IntPtr state) =>
-                {
-                    var L = Lua.FromIntPtr(state);
-
-                    if (isClosed)
-                        return 0;
-
-                    _stream.Close();
-
-                    isClosed = true;
-
-                    return 0;
-                });
-                L.SetTable(-3);
-
-
-                L.SetTable(-3);
+                handler.Push(L, false);
 
                 return 2;
             });
