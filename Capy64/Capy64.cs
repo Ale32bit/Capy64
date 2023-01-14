@@ -17,7 +17,7 @@ namespace Capy64;
 
 public class Capy64 : Game, IGame
 {
-    public const string Version = "0.0.2-alpha";
+    public const string Version = "0.0.3-alpha";
     public static string AppDataPath = Path.Combine(
         Environment.GetFolderPath(
             Environment.SpecialFolder.ApplicationData,
