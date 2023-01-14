@@ -1,12 +1,8 @@
 ﻿using KeraLua;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Capy64.LuaRuntime.Extensions;
 public static class Utils

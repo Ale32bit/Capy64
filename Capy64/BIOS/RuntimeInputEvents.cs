@@ -1,10 +1,5 @@
-﻿using Capy64.Eventing.Events;
-using Capy64.Eventing;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Capy64.Eventing;
+using Capy64.Eventing.Events;
 using Capy64.LuaRuntime;
 using Microsoft.Xna.Framework.Input;
 
@@ -103,7 +98,7 @@ internal class RuntimeInputEvents
             e.IsHeld,
         });
 
-        if (e.Mods.HasFlag(InputManager.Modifiers.LCtrl) || e.Mods.HasFlag(InputManager.Modifiers.RCtrl) && !e.IsHeld)
+        if (e.Mods.HasFlag(InputManager.Modifiers.LCtrl) || (e.Mods.HasFlag(InputManager.Modifiers.RCtrl) && !e.IsHeld))
         {
             if (e.Key == Keys.C)
             {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Capy64;
+﻿namespace Capy64;
 
 public static class Utils
 {
@@ -15,7 +9,7 @@ public static class Utils
     public static void UnpackRGB(uint packed, out byte r, out byte g, out byte b)
     {
         b = (byte)(packed & 0xff);
-        g = (byte)(packed >> 8 & 0xff);
-        r = (byte)(packed >> 16 & 0xff);
+        g = (byte)((packed >> 8) & 0xff);
+        r = (byte)((packed >> 16) & 0xff);
     }
 }

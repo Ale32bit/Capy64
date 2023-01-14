@@ -85,7 +85,7 @@ public class EventEmitter
 
     public void RaiseTick(TickEvent ev)
     {
-        if(OnTick is not null)
+        if (OnTick is not null)
         {
             OnTick(this, ev);
         }
@@ -93,7 +93,7 @@ public class EventEmitter
 
     public void RaiseInit()
     {
-        if(OnInit is not null)
+        if (OnInit is not null)
         {
             OnInit(this, EventArgs.Empty);
         }
@@ -101,7 +101,7 @@ public class EventEmitter
 
     public void RaiseScreenSizeChange()
     {
-        if(OnScreenSizeChange is not null)
+        if (OnScreenSizeChange is not null)
         {
             OnScreenSizeChange(this, EventArgs.Empty);
         }

@@ -5,7 +5,6 @@ using KeraLua;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 
@@ -155,7 +154,7 @@ public class HTTP : IPlugin
         reqTask.ContinueWith(async (task) =>
         {
 
-            if(task.IsFaulted || task.IsCanceled)
+            if (task.IsFaulted || task.IsCanceled)
             {
                 _game.LuaRuntime.PushEvent("http_failure", requestId, task.Exception?.Message);
                 return;

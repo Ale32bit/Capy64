@@ -173,7 +173,7 @@ internal class Term : IPlugin
         if (!save)
             return;
 
-        CharGrid[(int)pos.X + (int)pos.Y * Width] = new Char
+        CharGrid[(int)pos.X + ((int)pos.Y * Width)] = new Char
         {
             Character = ch,
             Foreground = ForegroundColor,
@@ -186,7 +186,7 @@ internal class Term : IPlugin
         if (pos.X < 0 || pos.Y < 0 || pos.X >= Width || pos.Y >= Height)
             return;
 
-        var ch = CharGrid[(int)pos.X + (int)pos.Y * Width] ??
+        var ch = CharGrid[(int)pos.X + ((int)pos.Y * Width)] ??
             new Char
             {
                 Character = ' ',
@@ -199,9 +199,9 @@ internal class Term : IPlugin
 
     public static void RedrawAll()
     {
-        for(int y = 0; y < Height; y++)
+        for (int y = 0; y < Height; y++)
         {
-            for(int x = 0; x < Width; x++)
+            for (int x = 0; x < Width; x++)
             {
                 RedrawPos(new(x, y));
             }
@@ -210,7 +210,7 @@ internal class Term : IPlugin
 
     public static void DumpScreen(bool clear = false)
     {
-        if(clear)
+        if (clear)
             Console.Clear();
         Console.WriteLine("\n   /{0}", new string('-', Width));
         for (int i = 0; i < CharGrid.Length; i++)
@@ -244,7 +244,7 @@ internal class Term : IPlugin
         if (_cursorPosition.X < 0 || _cursorPosition.Y < 0 || _cursorPosition.X >= Width || _cursorPosition.Y >= Height)
             return;
 
-        var ch = CharGrid[(int)_cursorPosition.X + (int)_cursorPosition.Y * Width] ??
+        var ch = CharGrid[(int)_cursorPosition.X + ((int)_cursorPosition.Y * Width)] ??
             new Char
             {
                 Character = ' ',
@@ -453,8 +453,8 @@ internal class Term : IPlugin
         var x = (int)L.CheckNumber(1);
         var y = (int)L.CheckNumber(2);
 
-        L.PushInteger(x * CharWidth - CharWidth + 1);
-        L.PushInteger(y * CharHeight - CharHeight + 1);
+        L.PushInteger((x * CharWidth) - CharWidth + 1);
+        L.PushInteger((y * CharHeight) - CharHeight + 1);
 
         return 2;
     }
@@ -466,8 +466,8 @@ internal class Term : IPlugin
         var x = (int)L.CheckNumber(1) - 1;
         var y = (int)L.CheckNumber(2) - 1;
 
-        L.PushInteger(x / CharWidth + 1);
-        L.PushInteger(y / CharHeight + 1);
+        L.PushInteger((x / CharWidth) + 1);
+        L.PushInteger((y / CharHeight) + 1);
 
         return 2;
     }

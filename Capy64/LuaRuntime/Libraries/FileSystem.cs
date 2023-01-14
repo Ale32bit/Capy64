@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 
 namespace Capy64.LuaRuntime.Libraries;
 
@@ -487,7 +485,7 @@ public class FileSystem : IPlugin
                 fileAccess = FileAccess.Read;
                 break;
             case 'w':
-                fileMode = FileMode.CreateNew;
+                fileMode = FileMode.Create;
                 fileAccess = FileAccess.Write;
                 break;
             case 'a':
@@ -515,17 +513,27 @@ public class FileSystem : IPlugin
 
         var fileStream = File.Open(path, fileMode, fileAccess, FileShare.ReadWrite);
 
-        // todo: add binary mode
+        IHandle handle;
         if (fileAccess == FileAccess.Read)
         {
-            var handle = new ReadHandle(fileStream);
-            handle.Push(L);
+            if (binaryMode)
+                handle = new BinaryReadHandle(fileStream);
+            else
+                handle = new ReadHandle(fileStream);
         }
         else if (fileAccess == FileAccess.Write)
         {
-            var handle = new WriteHandle(fileStream);
-            handle.Push(L);
+            if (binaryMode)
+                handle = new BinaryWriteHandle(fileStream);
+            else
+                handle = new WriteHandle(fileStream);
         }
+        else
+        {
+            throw new InvalidOperationException();
+        }
+
+        handle.Push(L);
 
         return 1;
     }

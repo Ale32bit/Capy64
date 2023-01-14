@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.LuaRuntime.Handlers;
 
@@ -22,46 +19,49 @@ public class WriteHandle : IHandle
         Stream = stream;
     }
 
+    private static readonly Dictionary<string, LuaFunction> functions = new()
+    {
+        ["write"] = L_Write,
+        ["writeLine"] = L_WriteLine,
+        ["flush"] = L_Flush,
+        ["close"] = L_Close,
+    };
+
     public void Push(Lua L, bool newTable = true)
     {
         if (newTable)
             L.NewTable();
 
-        L.PushString("write");
-        L.PushCFunction(L_Write);
-        L.SetTable(-3);
-
-        L.PushString("writeLine");
-        L.PushCFunction(L_WriteLine);
-        L.SetTable(-3);
-
-        L.PushString("flush");
-        L.PushCFunction(L_Flush);
-        L.SetTable(-3);
-
-        L.PushString("close");
-        L.PushCFunction(L_Close);
-        L.SetTable(-3);
+        foreach (var pair in functions)
+        {
+            L.PushString(pair.Key);
+            L.PushCFunction(pair.Value);
+            L.SetTable(-3);
+        }
 
         L.PushString("_handle");
         L.PushObject(this);
         L.SetTable(-3);
     }
 
+    private static WriteHandle GetHandle(Lua L, bool gc = true)
+    {
+        L.CheckType(1, LuaType.Table);
+        L.PushString("_handle");
+        L.GetTable(1);
+        return L.ToObject<WriteHandle>(-1, gc);
+    }
+
     private static int L_Write(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
-        L.CheckType(1, LuaType.Table);
         var content = L.CheckString(2);
 
-        L.PushString("_handle");
-        L.GetTable(1);
-        var h = L.ToObject<WriteHandle>(-1, false);
+        var h = GetHandle(L, false);
 
         if (h is null || h.IsClosed)
             L.Error("handle is closed");
-
 
         h.Stream.Write(content);
 
@@ -72,16 +72,12 @@ public class WriteHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        L.CheckType(1, LuaType.Table);
         var content = L.CheckString(2);
 
-        L.PushString("_handle");
-        L.GetTable(1);
-        var h = L.ToObject<WriteHandle>(-1, false);
+        var h = GetHandle(L, false);
 
         if (h is null || h.IsClosed)
             L.Error("handle is closed");
-
 
         h.Stream.WriteLine(content);
 
@@ -92,10 +88,7 @@ public class WriteHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        L.CheckType(1, LuaType.Table);
-        L.PushString("_handle");
-        L.GetTable(1);
-        var h = L.ToObject<WriteHandle>(-1, false);
+        var h = GetHandle(L, false);
 
         if (h is null || h.IsClosed)
             L.Error("handle is closed");
@@ -109,10 +102,7 @@ public class WriteHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        L.CheckType(1, LuaType.Table);
-        L.PushString("_handle");
-        L.GetTable(1);
-        var h = L.ToObject<WriteHandle>(-1, true);
+        var h = GetHandle(L, true);
 
         if (h is null || h.IsClosed)
             return 0;

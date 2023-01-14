@@ -2,131 +2,372 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.LuaRuntime.Handlers;
 
-[Obsolete("Work in progress")]
 public class BinaryWriteHandle : IHandle
 {
-    private readonly BinaryWriter _stream;
-    private bool isClosed = false;
+    private readonly BinaryWriter Stream;
+    private bool IsClosed = false;
     public BinaryWriteHandle(Stream stream)
     {
-        _stream = new BinaryWriter(stream);
+        Stream = new BinaryWriter(stream, Encoding.ASCII);
     }
 
-    public BinaryWriteHandle(BinaryWriter stream)
+    private static readonly Dictionary<string, LuaFunction> functions = new()
     {
-        _stream = stream;
-    }
+        ["writeByte"] = L_WriteByte,
+        ["writeShort"] = L_WriteShort,
+        ["writeInt"] = L_WriteInt,
+        ["writeLong"] = L_WriteLong,
+        ["writeSByte"] = L_WriteSByte,
+        ["writeUShort"] = L_WriteUShort,
+        ["writeUInt"] = L_WriteUInt,
+        ["writeULong"] = L_WriteULong,
+        ["writeHalf"] = L_WriteHalf,
+        ["writeFloat"] = L_WriteFloat,
+        ["writeDouble"] = L_WriteDouble,
+        ["writeChar"] = L_WriteChar,
+        ["writeString"] = L_WriteString,
+        ["writeBoolean"] = L_WriteBoolean,
+        ["flush"] = L_Flush,
+        ["close"] = L_Close,
+    };
 
     public void Push(Lua L, bool newTable = true)
     {
-        throw new NotImplementedException();
+        if (newTable)
+            L.NewTable();
+
+        foreach (var pair in functions)
+        {
+            L.PushString(pair.Key);
+            L.PushCFunction(pair.Value);
+            L.SetTable(-3);
+        }
+
+        L.PushString("_handle");
+        L.PushObject(this);
+        L.SetTable(-3);
     }
 
-    /*public void Push(Lua L)
+    private static BinaryWriteHandle GetHandle(Lua L, bool gc = true)
     {
-        L.NewTable();
-
-        L.PushString("readAll");
-        L.PushCFunction(L_ReadAll);
-        L.SetTable(-3);
-
-        L.PushString("readLine");
-        L.PushCFunction(L_ReadLine);
-        L.SetTable(-3);
- 
-        L.PushString("read");
-        L.PushCFunction(L_Read);
-        L.SetTable(-3);
-
-        L.PushString("close");
-        L.PushCFunction(L_Close);
-        L.SetTable(-3);
+        L.CheckType(1, LuaType.Table);
+        L.PushString("_handle");
+        L.GetTable(1);
+        return L.ToObject<BinaryWriteHandle>(-1, gc);
     }
 
-    private int L_ReadAll(IntPtr state)
+    private static int L_WriteByte(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
-        if (isClosed)
-            L.Error("handle is closed");
-
-        if (ended)
+        byte[] buffer;
+        if (L.IsInteger(2))
         {
-            L.PushNil();
-            return 1;
+            buffer = new[]
+            {
+                (byte)L.ToInteger(2),
+            };
         }
-
-        //var content = _stream.read;
-        L.PushString(content);
-
-        return 1;
-    }
-
-    private int L_ReadLine(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        if (isClosed)
-            L.Error("handle is closed");
-
-        if (ended)
+        else if (L.IsTable(2))
         {
-            L.PushNil();
-            return 1;
+            var len = L.RawLen(2);
+            buffer = new byte[len];
+
+            for (int i = 1; i <= len; i++)
+            {
+                L.PushInteger(i);
+                L.GetTable(2);
+                var b = L.CheckInteger(-1);
+                L.Pop(1);
+                buffer[i - 1] = (byte)b;
+            }
         }
-
-        var line = _stream.ReadLine();
-
-        if (line is null)
-            L.PushNil();
         else
-            L.PushString(line);
-
-        return 1;
-    }
-
-    private int L_Read(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-        var count = (int)L.OptNumber(1, 1);
-
-        L.ArgumentCheck(count < 1, 1, "count must be a positive integer");
-
-        if (ended)
-            L.Error("handle is closed");
-
-        if (_stream.EndOfStream)
         {
-            L.PushNil();
-            return 1;
+            L.ArgumentError(2, "integer or table expected, got " + L.Type(2));
+            return 0;
         }
 
-        var chunk = new char[count];
+        var h = GetHandle(L, false);
 
-        _stream.Read(chunk, 0, count);
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
 
-        L.PushString(new string(chunk));
-
-        return 1;
-    }
-
-    private int L_Close(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        if (isClosed)
-            return 0;
-
-        _stream.Close();
-
-        isClosed = true;
+        h.Stream.Write(buffer);
 
         return 0;
-    }*/
+    }
+
+    private static int L_WriteShort(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckInteger(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write((short)b);
+
+        return 0;
+    }
+
+    private static int L_WriteInt(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckInteger(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write((int)b);
+
+        return 0;
+    }
+
+    private static int L_WriteLong(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckInteger(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write(b);
+
+        return 0;
+    }
+
+    private static int L_WriteSByte(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckInteger(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write((sbyte)b);
+
+        return 0;
+    }
+
+    private static int L_WriteUShort(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckInteger(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write((ushort)b);
+
+        return 0;
+    }
+
+    private static int L_WriteUInt(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckInteger(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write((uint)b);
+
+        return 0;
+    }
+
+    private static int L_WriteULong(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckInteger(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write((ulong)b);
+
+        return 0;
+    }
+
+    private static int L_WriteHalf(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckNumber(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write((Half)b);
+
+        return 0;
+    }
+
+    private static int L_WriteFloat(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckNumber(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write((float)b);
+
+        return 0;
+    }
+
+    private static int L_WriteDouble(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckNumber(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write((double)b);
+
+        return 0;
+    }
+
+    private static int L_WriteChar(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        byte[] buffer;
+        if (L.IsString(2))
+        {
+            var str = L.ToString(2);
+            buffer = Encoding.ASCII.GetBytes(str);
+        }
+        else if (L.IsTable(2))
+        {
+            var len = L.RawLen(2);
+            var tmpBuffer = new List<byte>();
+
+            for (int i = 1; i <= len; i++)
+            {
+                L.PushInteger(i);
+                L.GetTable(2);
+                var b = L.CheckString(-1);
+                L.Pop(1);
+                var chunk = Encoding.ASCII.GetBytes(b);
+                foreach (var c in chunk)
+                {
+                    tmpBuffer.Add(c);
+                }
+            }
+
+            buffer = tmpBuffer.ToArray();
+        }
+        else
+        {
+            L.ArgumentError(2, "integer or table expected, got " + L.Type(2));
+            return 0;
+        }
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write(buffer);
+
+        return 0;
+    }
+
+    private static int L_WriteString(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var b = L.CheckString(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write(b);
+
+        return 0;
+    }
+
+    private static int L_WriteBoolean(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        L.CheckType(2, LuaType.Boolean);
+        var b = L.ToBoolean(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write(b);
+
+        return 0;
+    }
+
+    private static int L_Flush(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Flush();
+
+        return 0;
+    }
+
+    private static int L_Close(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var h = GetHandle(L, true);
+
+        if (h is null || h.IsClosed)
+            return 0;
+
+        h.Stream.Close();
+
+        h.IsClosed = true;
+
+        return 0;
+    }
 }

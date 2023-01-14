@@ -5,18 +5,10 @@ using Capy64.Eventing.Events;
 using Capy64.LuaRuntime;
 using Capy64.LuaRuntime.Libraries;
 using KeraLua;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Xml.Linq;
 using System.Diagnostics;
+using System.IO;
 
 namespace Capy64.BIOS;
 

@@ -2,20 +2,16 @@
 using Capy64.Core;
 using Capy64.Eventing;
 using Capy64.Extensions;
-using Capy64.Eventing.Events;
 using Capy64.LuaRuntime;
 using Capy64.PluginManager;
-using KeraLua;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using static Capy64.Utils;
 using System.IO;
+using System.Linq;
+using static Capy64.Utils;
 
 namespace Capy64;
 

@@ -2,10 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.LuaRuntime.Handlers;
 
@@ -18,40 +14,44 @@ public class ReadHandle : IHandle
         Stream = new StreamReader(stream);
     }
 
+    private static readonly Dictionary<string, LuaFunction> functions = new()
+    {
+        ["readAll"] = L_ReadAll,
+        ["readLine"] = L_ReadLine,
+        ["read"] = L_Read,
+        ["close"] = L_Close,
+    };
+
     public void Push(Lua L, bool newTable = true)
     {
         if (newTable)
             L.NewTable();
 
-        L.PushString("readAll");
-        L.PushCFunction(L_ReadAll);
-        L.SetTable(-3);
-
-        L.PushString("readLine");
-        L.PushCFunction(L_ReadLine);
-        L.SetTable(-3);
-
-        L.PushString("read");
-        L.PushCFunction(L_Read);
-        L.SetTable(-3);
-
-        L.PushString("close");
-        L.PushCFunction(L_Close);
-        L.SetTable(-3);
+        foreach (var pair in functions)
+        {
+            L.PushString(pair.Key);
+            L.PushCFunction(pair.Value);
+            L.SetTable(-3);
+        }
 
         L.PushString("_handle");
         L.PushObject(this);
         L.SetTable(-3);
     }
 
+    private static ReadHandle GetHandle(Lua L, bool gc = true)
+    {
+        L.CheckType(1, LuaType.Table);
+        L.PushString("_handle");
+        L.GetTable(1);
+        return L.ToObject<ReadHandle>(-1, gc);
+    }
+
     private static int L_ReadAll(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
-        L.CheckType(1, LuaType.Table);
-        L.PushString("_handle");
-        L.GetTable(1);
-        var h = L.ToObject<ReadHandle>(-1, false);
+        var h = GetHandle(L, false);
 
         if (h is null || h.IsClosed)
             L.Error("handle is closed");
@@ -72,10 +72,7 @@ public class ReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        L.CheckType(1, LuaType.Table);
-        L.PushString("_handle");
-        L.GetTable(1);
-        var h = L.ToObject<ReadHandle>(-1, false);
+        var h = GetHandle(L, false);
 
         if (h is null || h.IsClosed)
             L.Error("handle is closed");
@@ -94,15 +91,10 @@ public class ReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        L.CheckType(1, LuaType.Table);
         var count = (int)L.OptNumber(2, 1);
-
-        L.PushString("_handle");
-        L.GetTable(1);
-        var h = L.ToObject<ReadHandle>(-1, false);
-
-
         L.ArgumentCheck(count >= 1, 2, "count must be a positive integer");
+
+        var h = GetHandle(L, false);
 
         if (h is null || h.IsClosed)
             L.Error("handle is closed");
@@ -126,10 +118,7 @@ public class ReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        L.CheckType(1, LuaType.Table);
-        L.PushString("_handle");
-        L.GetTable(1);
-        var h = L.ToObject<ReadHandle>(-1, true);
+        var h = GetHandle(L, true);
 
         if (h is null || h.IsClosed)
             return 0;

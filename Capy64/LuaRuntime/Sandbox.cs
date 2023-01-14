@@ -2,13 +2,9 @@
 using Capy64.LuaRuntime.Libraries;
 using KeraLua;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.LuaRuntime;
 
@@ -278,7 +274,7 @@ internal class Sandbox
             L.Error(L.ToString(-1));
             return 0;
         }
-        
+
         L.PushCopy(-2);
         L.Insert(1);
         L.SetTop(1);

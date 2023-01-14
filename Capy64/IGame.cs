@@ -20,7 +20,7 @@ public interface IGame
     EventEmitter EventEmitter { get; }
     void ConfigureServices(IServiceProvider serviceProvider);
 
-    int Width { get; set;  }
+    int Width { get; set; }
     int Height { get; set; }
     float Scale { get; set; }
     void UpdateSize();

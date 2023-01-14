@@ -1,11 +1,6 @@
 ﻿using Capy64.Extensions.Bindings;
 using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.Extensions;
 
@@ -29,7 +24,7 @@ public static class GameWindowExtensions
         SDL_WINDOW_INPUT_FOCUS = 0x00000200,
         SDL_WINDOW_MOUSE_FOCUS = 0x00000400,
         SDL_WINDOW_FULLSCREEN_DESKTOP =
-            (SDL_WINDOW_FULLSCREEN | 0x00001000),
+            SDL_WINDOW_FULLSCREEN | 0x00001000,
         SDL_WINDOW_FOREIGN = 0x00000800,
         SDL_WINDOW_ALLOW_HIGHDPI = 0x00002000,
         SDL_WINDOW_MOUSE_CAPTURE = 0x00004000,

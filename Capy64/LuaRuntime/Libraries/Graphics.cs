@@ -1,5 +1,4 @@
 ﻿using Capy64.API;
-using Capy64.Core;
 using KeraLua;
 using Microsoft.Xna.Framework;
 using System;
@@ -81,7 +80,7 @@ public class Graphics : IPlugin
             L.ArgumentCheck(L.IsNumber(-1), 1, "expected number at index " + (i + 1));
             var y = (int)L.ToNumber(-1) - 1;
             L.Pop(1);
-            
+
             pts.Add(new Point(x, y));
         }
 

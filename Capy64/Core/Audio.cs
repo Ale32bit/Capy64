@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using System;
-using System.Threading.Channels;
 
 namespace Capy64.Core;
 
@@ -30,11 +29,12 @@ public class Audio
     {
         var outBuffer = new byte[SamplesPerBuffer * bytesPerSample];
 
-        for (int i = 0; i < from.Length; i++) {
+        for (int i = 0; i < from.Length; i++)
+        {
             var floatSample = MathHelper.Clamp(from[i], -1.0f, 1.0f);
             var shortSample = (short)(floatSample * short.MaxValue);
 
-            int index = i * bytesPerSample + bytesPerSample;
+            int index = (i * bytesPerSample) + bytesPerSample;
 
             if (!BitConverter.IsLittleEndian)
             {

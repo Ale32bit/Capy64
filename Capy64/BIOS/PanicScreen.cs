@@ -1,12 +1,6 @@
 ﻿using Capy64.Core;
 using Capy64.LuaRuntime.Libraries;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.BIOS;
 
@@ -30,8 +24,8 @@ public class PanicScreen
         Term.Clear();
 
         var title = " Capy64 ";
-        var halfX = Term.Width / 2 + 1;
-        Term.SetCursorPosition(halfX - title.Length / 2, 2);
+        var halfX = (Term.Width / 2) + 1;
+        Term.SetCursorPosition(halfX - (title.Length / 2), 2);
         Term.ForegroundColor = BackgroundColor;
         Term.BackgroundColor = ForegroundColor;
         Term.Write(title);
@@ -41,7 +35,8 @@ public class PanicScreen
         Term.SetCursorPosition(1, 4);
         Print(error + '\n');
 
-        if (details is not null) {
+        if (details is not null)
+        {
             Print(details);
         }
     }
@@ -51,7 +46,7 @@ public class PanicScreen
         foreach (var ch in txt)
         {
             Term.Write(ch.ToString());
-            if(Term.CursorPosition.X >= Term.Width || ch == '\n')
+            if (Term.CursorPosition.X >= Term.Width || ch == '\n')
             {
                 Term.SetCursorPosition(1, (int)Term.CursorPosition.Y + 1);
             }

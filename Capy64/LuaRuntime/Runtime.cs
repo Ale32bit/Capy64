@@ -5,9 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Threading;
 
 namespace Capy64.LuaRuntime;
 
@@ -79,7 +77,8 @@ public class Runtime
     /// </param>
     public void PushEvent(string name, Func<Lua, int> handler)
     {
-        eventQueue.Enqueue(new LuaDelegateEvent {
+        eventQueue.Enqueue(new LuaDelegateEvent
+        {
             Name = name,
             Handler = handler
         });
@@ -102,7 +101,7 @@ public class Runtime
 
     private bool ResumeThread(ILuaEvent ev)
     {
-        
+
 
         if (filters.Length > 0 && !filters.Contains(ev.Name))
         {
@@ -119,7 +118,7 @@ public class Runtime
         var status = Thread.Resume(null, evpars, out int pars);
         if (status is LuaStatus.OK or LuaStatus.Yield)
         {
-            if(Disposing)
+            if (Disposing)
                 return false;
             filters = new string[pars];
             for (int i = 0; i < pars; i++)
@@ -141,7 +140,7 @@ public class Runtime
     {
         Thread.PushString(ev.Name);
 
-        switch(ev)
+        switch (ev)
         {
             case LuaEvent e:
 

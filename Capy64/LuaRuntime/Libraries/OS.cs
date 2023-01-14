@@ -1,10 +1,6 @@
 ﻿using Capy64.API;
 using KeraLua;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.LuaRuntime.Libraries;
 

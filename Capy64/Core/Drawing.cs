@@ -81,7 +81,7 @@ public class Drawing : IDisposable
 
         if (point.X < 0 || point.Y < 0) return;
         if (point.X >= _canvas.Width || point.Y >= _canvas.Height) return;
-        grid[point.X + point.Y * _canvas.Width] = color;
+        grid[point.X + (point.Y * _canvas.Width)] = color;
 
         _canvas.SetData(grid);
     }
@@ -94,7 +94,7 @@ public class Drawing : IDisposable
         {
             if (point.X < 0 || point.Y < 0) continue;
             if (point.X >= _canvas.Width || point.Y >= _canvas.Height) continue;
-            grid[point.X + point.Y * _canvas.Width] = color;
+            grid[point.X + (point.Y * _canvas.Width)] = color;
         }
         _canvas.SetData(grid);
     }
@@ -103,7 +103,7 @@ public class Drawing : IDisposable
     {
         var grid = new Color[_canvas.Width * _canvas.Height];
         _canvas.GetData(grid);
-        grid[point.X + point.Y * _canvas.Width] = color;
+        grid[point.X + (point.Y * _canvas.Width)] = color;
         _canvas.SetData(grid);
     }
 
@@ -113,7 +113,7 @@ public class Drawing : IDisposable
         _canvas.GetData(grid);
         foreach (var point in points)
         {
-            grid[point.X + point.Y * _canvas.Width] = color;
+            grid[point.X + (point.Y * _canvas.Width)] = color;
         }
         _canvas.SetData(grid);
     }
