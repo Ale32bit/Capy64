@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace Capy64.LuaRuntime.Handlers;
 
-public class WriteHandle
+public class WriteHandle : IHandle
 {
-    public readonly StreamWriter Stream;
-    public bool IsClosed = false;
+    private readonly StreamWriter Stream;
+    private bool IsClosed = false;
     public WriteHandle(Stream stream)
     {
         Stream = new StreamWriter(stream);

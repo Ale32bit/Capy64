@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Capy64.LuaRuntime.Handlers;
 
 [Obsolete("Work in progress")]
-public class BinaryWriteHandle
+public class BinaryWriteHandle : IHandle
 {
     private readonly BinaryWriter _stream;
     private bool isClosed = false;
@@ -21,6 +21,11 @@ public class BinaryWriteHandle
     public BinaryWriteHandle(BinaryWriter stream)
     {
         _stream = stream;
+    }
+
+    public void Push(Lua L, bool newTable = true)
+    {
+        throw new NotImplementedException();
     }
 
     /*public void Push(Lua L)

@@ -162,14 +162,14 @@ public class HTTP : IPlugin
             }
 
             var response = await task;
-            /*object content;
-            if ((bool)options["binary"])
-                content = await response.Content.ReadAsByteArrayAsync();
-            else
-                content = await response.Content.ReadAsStringAsync();*/
 
             var stream = await response.Content.ReadAsStreamAsync();
-            var handler = new ReadHandle(stream);
+
+            IHandle handler;
+            if ((bool)options["binary"])
+                handler = new BinaryReadHandle(stream);
+            else
+                handler = new ReadHandle(stream);
 
             _game.LuaRuntime.PushEvent("http_response", L =>
             {

@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace Capy64.LuaRuntime.Handlers;
 
-public class ReadHandle
+public class ReadHandle : IHandle
 {
-    public readonly StreamReader Stream;
-    public bool IsClosed = false;
+    private readonly StreamReader Stream;
+    private bool IsClosed = false;
     public ReadHandle(Stream stream)
     {
         Stream = new StreamReader(stream);
