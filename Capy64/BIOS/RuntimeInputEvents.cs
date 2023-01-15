@@ -1,4 +1,5 @@
-﻿using Capy64.Eventing;
+﻿using Capy64.Core;
+using Capy64.Eventing;
 using Capy64.Eventing.Events;
 using Capy64.LuaRuntime;
 using Microsoft.Xna.Framework.Input;
@@ -108,6 +109,20 @@ internal class RuntimeInputEvents
                     Parameters = { },
                     BypassFilter = true,
                 });
+            }
+            else if (e.Key == Keys.V)
+            {
+                if (SDL.HasClipboardText())
+                {
+                    var text = SDL.GetClipboardText();
+                    _runtime.PushEvent(new LuaEvent()
+                    {
+                        Name = "paste",
+                        Parameters = new[] {
+                            text,
+                        },
+                    });
+                }
             }
         }
     }

@@ -117,7 +117,16 @@ public class FileSystem : IPlugin
         var absolutePath = Path.GetFullPath(path, rootPath);
 
         // Trim root from path
-        return absolutePath.Remove(0, rootPath.Length);
+        string localPath;
+        try
+        {
+            localPath = absolutePath.Remove(0, rootPath.Length);
+        }
+        catch
+        {
+            localPath = absolutePath;
+        }
+        return Path.Join("/", localPath);
     }
 
     public static string Resolve(string path)
@@ -210,7 +219,7 @@ public class FileSystem : IPlugin
             parts.Add(pathPart);
         }
 
-        var result = Path.Join(parts.ToArray());
+        var result = Path.Combine(parts.ToArray());
         if (string.IsNullOrEmpty(result))
         {
             L.PushString("");

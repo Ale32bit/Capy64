@@ -16,6 +16,7 @@ public class HTTP : IPlugin
     private static HttpClient _client;
     private static long RequestId;
 
+    private readonly IConfiguration _configuration;
     private readonly LuaRegister[] HttpLib = new LuaRegister[]
     {
         new()
@@ -36,11 +37,13 @@ public class HTTP : IPlugin
         RequestId = 0;
         _client = new();
         _client.DefaultRequestHeaders.Add("User-Agent", $"Capy64/{Capy64.Version}");
+        _configuration = configuration;
     }
 
     public void LuaInit(Lua L)
     {
-        L.RequireF("http", Open, false);
+        if (_configuration.GetValue<bool>("HTTP:Enable"))
+            L.RequireF("http", Open, false);
     }
 
     private int Open(IntPtr state)

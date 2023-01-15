@@ -120,10 +120,13 @@ public class Runtime
         {
             if (Disposing)
                 return false;
-            filters = new string[pars];
-            for (int i = 0; i < pars; i++)
+            if (status == LuaStatus.Yield)
             {
-                filters[i] = Thread.OptString(i + 1, null);
+                filters = new string[pars];
+                for (int i = 0; i < pars; i++)
+                {
+                    filters[i] = Thread.OptString(i + 1, null);
+                }
             }
             Thread.Pop(pars);
             return status == LuaStatus.Yield;

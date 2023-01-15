@@ -30,13 +30,13 @@ for k, v in pairs(package.loaded) do
 end
 
 term.setForeground(colours.yellow)
-print("Interactive Lua prompt.")
+print(_VERSION .. " interactive prompt")
 print("Call exit() to exit.")
 term.setForeground(colours.white)
 
 while bRunning do
     term.setForeground( colours.yellow )
-    write("lua> ")
+    write("> ")
     term.setForeground( colours.white )
 
     local s = io.read(nil, tCommandHistory)
