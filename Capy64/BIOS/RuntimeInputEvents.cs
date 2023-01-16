@@ -3,6 +3,8 @@ using Capy64.Eventing;
 using Capy64.Eventing.Events;
 using Capy64.LuaRuntime;
 using Microsoft.Xna.Framework.Input;
+using System.Linq;
+using static Capy64.Eventing.InputManager;
 
 namespace Capy64.BIOS;
 
@@ -10,6 +12,8 @@ internal class RuntimeInputEvents
 {
     private EventEmitter _eventEmitter;
     private Runtime _runtime;
+    private const int rebootDelay = 30;
+    private int heldReboot = 0;
 
     public RuntimeInputEvents(EventEmitter eventEmitter, Runtime runtime)
     {
@@ -27,6 +31,8 @@ internal class RuntimeInputEvents
         _eventEmitter.OnKeyUp += OnKeyUp;
         _eventEmitter.OnKeyDown += OnKeyDown;
         _eventEmitter.OnChar += OnChar;
+
+        _eventEmitter.OnTick += OnTick;
     }
 
     public void Unregister()
@@ -39,6 +45,37 @@ internal class RuntimeInputEvents
         _eventEmitter.OnKeyUp -= OnKeyUp;
         _eventEmitter.OnKeyDown -= OnKeyDown;
         _eventEmitter.OnChar -= OnChar;
+
+        _eventEmitter.OnTick -= OnTick;
+    }
+
+    private static Keys[] rebootKeys = new[]
+    {
+        Keys.Insert,
+        Keys.LeftAlt, Keys.RightAlt,
+        Keys.LeftControl, Keys.RightControl,
+    };
+    private void OnTick(object sender, TickEvent e)
+    {
+        var keyState = Keyboard.GetState();
+        var pressedKeys = keyState.GetPressedKeys();
+
+        if ((pressedKeys.Contains(Keys.LeftControl) || pressedKeys.Contains(Keys.RightControl))
+            && (pressedKeys.Contains(Keys.LeftAlt) || pressedKeys.Contains(Keys.RightAlt))
+            && pressedKeys.Contains(Keys.Insert))
+        {
+            heldReboot++;
+        }
+        else
+        {
+            heldReboot = 0;
+        }
+
+        if (heldReboot >= rebootDelay)
+        {
+            heldReboot = 0;
+            Bios.Reboot();
+        }
     }
 
     private void OnMouseUp(object sender, MouseButtonEvent e)
@@ -99,16 +136,19 @@ internal class RuntimeInputEvents
             e.IsHeld,
         });
 
-        if (e.Mods.HasFlag(InputManager.Modifiers.LCtrl) || (e.Mods.HasFlag(InputManager.Modifiers.RCtrl) && !e.IsHeld))
+        if ((e.Mods & Modifiers.Ctrl) != Modifiers.None && !e.IsHeld)
         {
-            if (e.Key == Keys.C)
+            if ((e.Mods & Modifiers.Alt) != Modifiers.None)
             {
-                _runtime.PushEvent(new LuaEvent()
+                if (e.Key == Keys.C)
                 {
-                    Name = "interrupt",
-                    Parameters = { },
-                    BypassFilter = true,
-                });
+                    _runtime.PushEvent(new LuaEvent()
+                    {
+                        Name = "interrupt",
+                        Parameters = { },
+                        BypassFilter = true,
+                    });
+                }
             }
             else if (e.Key == Keys.V)
             {

@@ -21,6 +21,8 @@ public class InputManager
     [Flags]
     public enum Modifiers
     {
+        None = 0,
+
         LShift = 1,
         RShift = 2,
 
@@ -29,6 +31,10 @@ public class InputManager
 
         LCtrl = 16,
         RCtrl = 32,
+
+        Shift = LShift | RShift,
+        Alt = LAlt | RAlt,
+        Ctrl = LCtrl | RCtrl,
     }
 
     private static Keys[] IgnoredTextInputKeys =
