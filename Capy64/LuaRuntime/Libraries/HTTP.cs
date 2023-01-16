@@ -7,18 +7,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.WebSockets;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Capy64.LuaRuntime.Libraries;
 #nullable enable
 public class HTTP : IPlugin
 {
     private static IGame _game;
-    private static HttpClient _client;
-    private static long RequestId;
+    private static HttpClient _httpClient;
+    private static long _requestId;
 
     private readonly IConfiguration _configuration;
     private readonly LuaRegister[] HttpLib = new LuaRegister[]
     {
+        new()
+        {
+            name = "checkURL",
+            function = L_CheckUrl,
+        },
         new()
         {
             name = "requestAsync",
@@ -26,17 +36,17 @@ public class HTTP : IPlugin
         },
         new()
         {
-            name = "checkURL",
-            function = L_CheckUrl,
+            name = "websocketAsync",
+            function = L_WebsocketAsync,
         },
         new(),
     };
     public HTTP(IGame game, IConfiguration configuration)
     {
         _game = game;
-        RequestId = 0;
-        _client = new();
-        _client.DefaultRequestHeaders.Add("User-Agent", $"Capy64/{Capy64.Version}");
+        _requestId = 0;
+        _httpClient = new();
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", $"Capy64/{Capy64.Version}");
         _configuration = configuration;
     }
 
@@ -53,10 +63,29 @@ public class HTTP : IPlugin
         return 1;
     }
 
-    public static bool TryGetUri(string url, out Uri? uri)
+    private static readonly string[] _allowedSchemes = new[]
     {
-        return (Uri.TryCreate(url, UriKind.Absolute, out uri)
-            && uri?.Scheme == Uri.UriSchemeHttp) || uri?.Scheme == Uri.UriSchemeHttps;
+        Uri.UriSchemeHttp,
+        Uri.UriSchemeHttps,
+        Uri.UriSchemeWs,
+        Uri.UriSchemeWss,
+    };
+    public static bool TryGetUri(string url, out Uri uri)
+    {
+        return Uri.TryCreate(url, UriKind.Absolute, out uri!) && _allowedSchemes.Contains(uri.Scheme);
+    }
+
+    private static int L_CheckUrl(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var url = L.CheckString(1);
+
+        var isValid = TryGetUri(url, out _);
+
+        L.PushBoolean(isValid);
+
+        return 1;
     }
 
     private static int L_Request(IntPtr state)
@@ -151,9 +180,9 @@ public class HTTP : IPlugin
                     ? new HttpMethod((string)value)
                     : request.Content is not null ? HttpMethod.Post : HttpMethod.Get;
 
-        var requestId = RequestId++;
+        var requestId = _requestId++;
 
-        var reqTask = _client.SendAsync(request);
+        var reqTask = _httpClient.SendAsync(request);
         reqTask.ContinueWith(async (task) =>
         {
 
@@ -218,15 +247,69 @@ public class HTTP : IPlugin
         return 1;
     }
 
-    private static int L_CheckUrl(IntPtr state)
+    private static int L_WebsocketAsync(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
         var url = L.CheckString(1);
+        if (!TryGetUri(url, out var uri))
+        {
+            L.ArgumentError(1, "invalid request url");
+            return 0;
+        }
 
-        var isValid = TryGetUri(url, out _);
+        var requestId = _requestId++;
 
-        L.PushBoolean(isValid);
+        var wsClient = new ClientWebSocket();
+        var connectTask = wsClient.ConnectAsync(uri, CancellationToken.None);
+        connectTask.ContinueWith(async task =>
+        {
+            if (task.IsFaulted || task.IsCanceled)
+            {
+                _game.LuaRuntime.PushEvent("websocket_failure", requestId, task.Exception?.Message);
+                return;
+            }
+
+            await task;
+
+            var handle = new WebSocketHandle(wsClient, requestId, _game);
+
+            _game.LuaRuntime.PushEvent("websocket_connect", L =>
+            {
+                L.PushInteger(requestId);
+
+                handle.Push(L, true);
+
+                return 2;
+            });
+
+            var buffer = new byte[4096];
+            var builder = new StringBuilder();
+            while (wsClient.State == WebSocketState.Open)
+            {
+                var result = await wsClient.ReceiveAsync(buffer, CancellationToken.None);
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    Console.WriteLine("Closing");
+                    await wsClient.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                    _game.LuaRuntime.PushEvent("websocket_close", requestId);
+                    return;
+                }
+                else
+                {
+                    var data = Encoding.ASCII.GetString(buffer, 0, result.Count);
+                    builder.Append(data);
+                }
+
+                if(result.EndOfMessage)
+                {
+                    _game.LuaRuntime.PushEvent("websocket_message", requestId, builder.ToString());
+                    builder.Clear();
+                }
+            }
+        });
+
+        L.PushInteger(requestId);
 
         return 1;
     }
