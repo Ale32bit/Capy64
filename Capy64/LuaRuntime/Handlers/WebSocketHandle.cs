@@ -1,4 +1,5 @@
-﻿using KeraLua;
+﻿using Capy64.LuaRuntime.Libraries;
+using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Capy64.LuaRuntime.Handlers;
 
-class WebSocketHandle : IHandle
+public class WebSocketHandle : IHandle
 {
     private ClientWebSocket _client;
     private long _requestId;
@@ -31,6 +32,16 @@ class WebSocketHandle : IHandle
     {
         if (newTable)
             L.NewTable();
+
+        // metatable
+        L.NewTable();
+        L.PushString("__close");
+        L.PushCFunction(L_CloseAsync);
+        L.SetTable(-3);
+        L.PushString("__gc");
+        L.PushCFunction(L_CloseAsync);
+        L.SetTable(-3);
+        L.SetMetaTable(-2);
 
         foreach (var pair in functions)
         {
@@ -83,6 +94,8 @@ class WebSocketHandle : IHandle
                 await task;
                 _game.LuaRuntime.PushEvent("websocket_close", h._requestId);
             });
+
+        HTTP.WebSocketConnections.Remove(h);
 
         return 0;
     }

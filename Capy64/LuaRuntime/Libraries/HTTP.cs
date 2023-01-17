@@ -18,10 +18,11 @@ public class HTTP : IPlugin
     private static IGame _game;
     private static HttpClient _httpClient;
     private static long _requestId;
+    public static readonly HashSet<WebSocketHandle> WebSocketConnections = new();
 
     public static readonly string UserAgent = $"Capy64/{Capy64.Version}";
 
-    private readonly IConfiguration _configuration;
+    private static IConfiguration _configuration;
     private readonly LuaRegister[] HttpLib = new LuaRegister[]
     {
         new()
@@ -251,6 +252,20 @@ public class HTTP : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
+        var wsSettings = _configuration.GetSection("HTTP:WebSockets");
+
+        if (!wsSettings.GetValue<bool>("Enable"))
+        {
+            L.Error("WebSockets are disabled");
+            return 0;
+        }
+
+        if (WebSocketConnections.Count >= wsSettings.GetValue<int>("MaxActiveConnections"))
+        {
+            L.Error("Max connections reached");
+            return 0;
+        }
+
         var url = L.CheckString(1);
         if (!TryGetUri(url, out var uri))
         {
@@ -308,6 +323,7 @@ public class HTTP : IPlugin
             await task;
 
             var handle = new WebSocketHandle(wsClient, requestId, _game);
+            WebSocketConnections.Add(handle);
 
             _game.LuaRuntime.PushEvent("websocket_connect", L =>
             {
@@ -325,7 +341,6 @@ public class HTTP : IPlugin
                 var result = await wsClient.ReceiveAsync(buffer, CancellationToken.None);
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    Console.WriteLine("Closing");
                     await wsClient.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
                     _game.LuaRuntime.PushEvent("websocket_close", requestId);
                     return;
