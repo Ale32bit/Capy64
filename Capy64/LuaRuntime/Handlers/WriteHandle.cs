@@ -32,6 +32,16 @@ public class WriteHandle : IHandle
         if (newTable)
             L.NewTable();
 
+        // metatable
+        L.NewTable();
+        L.PushString("__close");
+        L.PushCFunction(L_Close);
+        L.SetTable(-3);
+        L.PushString("__gc");
+        L.PushCFunction(L_Close);
+        L.SetTable(-3);
+        L.SetMetaTable(-2);
+
         foreach (var pair in functions)
         {
             L.PushString(pair.Key);
