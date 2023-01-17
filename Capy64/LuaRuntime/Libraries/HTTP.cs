@@ -10,8 +10,6 @@ using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Capy64.LuaRuntime.Libraries;
 #nullable enable
@@ -20,6 +18,8 @@ public class HTTP : IPlugin
     private static IGame _game;
     private static HttpClient _httpClient;
     private static long _requestId;
+
+    public static readonly string UserAgent = $"Capy64/{Capy64.Version}";
 
     private readonly IConfiguration _configuration;
     private readonly LuaRegister[] HttpLib = new LuaRegister[]
@@ -46,7 +46,7 @@ public class HTTP : IPlugin
         _game = game;
         _requestId = 0;
         _httpClient = new();
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", $"Capy64/{Capy64.Version}");
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgent);
         _configuration = configuration;
     }
 
@@ -261,6 +261,41 @@ public class HTTP : IPlugin
         var requestId = _requestId++;
 
         var wsClient = new ClientWebSocket();
+
+        wsClient.Options.SetRequestHeader("User-Agent", UserAgent);
+
+        if (L.IsTable(2)) // headers
+        {
+            L.PushCopy(2);
+            L.PushNil();
+
+            while (L.Next(-2))
+            {
+                L.PushCopy(-2);
+
+                var k = L.CheckString(-1);
+                if (L.IsStringOrNumber(-2))
+                {
+                    var v = L.ToString(-2);
+
+                    wsClient.Options.SetRequestHeader(k, v);
+                }
+                else if (L.IsNil(-2))
+                {
+                    wsClient.Options.SetRequestHeader(k, null);
+                }
+                else
+                {
+                    L.ArgumentError(3, "string, number or nil expected, got " + L.TypeName(L.Type(-2)) + " in field " + k);
+                }
+
+                L.Pop(2);
+            }
+
+            L.Pop(1);
+        }
+
+
         var connectTask = wsClient.ConnectAsync(uri, CancellationToken.None);
         connectTask.ContinueWith(async task =>
         {
@@ -301,7 +336,7 @@ public class HTTP : IPlugin
                     builder.Append(data);
                 }
 
-                if(result.EndOfMessage)
+                if (result.EndOfMessage)
                 {
                     _game.LuaRuntime.PushEvent("websocket_message", requestId, builder.ToString());
                     builder.Clear();

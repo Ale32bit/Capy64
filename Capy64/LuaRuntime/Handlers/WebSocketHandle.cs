@@ -56,14 +56,14 @@ class WebSocketHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var data = L.CheckString(2);
+        var data = L.CheckBuffer(2);
 
         var h = GetHandle(L, false);
 
         if (h is null || h._client.State == WebSocketState.Closed)
             L.Error("connection is closed");
 
-        h._client.SendAsync(Encoding.ASCII.GetBytes(data), WebSocketMessageType.Text, true, CancellationToken.None);
+        h._client.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
 
         return 0;
     }
