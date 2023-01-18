@@ -286,7 +286,9 @@ internal class Term : IPlugin
     private static int L_Write(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-        var str = L.ToString(1);
+        string str = "";
+        if(!L.IsNone(1))
+            str = L.ToString(1);
 
         Write(str);
 
