@@ -228,7 +228,7 @@ internal class Sandbox
 
         L.GetGlobal("load");
         L.PushBuffer(chunk);
-        L.PushString(filename);
+        L.PushString("@" + filename);
 
         var values = 2;
 
