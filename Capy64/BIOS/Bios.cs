@@ -155,7 +155,7 @@ public class Bios : IPlugin
         OpenBios = true;
     }
 
-    private int L_OpenDataFolder(IntPtr state)
+    private static int L_OpenDataFolder(IntPtr state)
     {
         var path = FileSystem.DataPath;
         switch (Environment.OSVersion.Platform)
@@ -171,13 +171,13 @@ public class Bios : IPlugin
         return 0;
     }
 
-    private int L_InstallOS(IntPtr state)
+    private static int L_InstallOS(IntPtr state)
     {
         InstallOS(true);
         return 0;
     }
 
-    private int L_Exit(IntPtr state)
+    private static int L_Exit(IntPtr state)
     {
         CloseRuntime = true;
         return 0;
