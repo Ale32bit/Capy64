@@ -28,12 +28,16 @@ public class Drawing : IDisposable
             _spriteBatch = new SpriteBatch(_canvas.GraphicsDevice);
             _graphicsDevice = _canvas.GraphicsDevice;
 
+            Grid = new Color[_canvas.Width * _canvas.Height];
+            _canvas.GetData(Grid);
+
             _whitePixel = new Texture2D(_spriteBatch.GraphicsDevice, 1, 1, mipmap: false, SurfaceFormat.Color);
             _whitePixel.SetData(new Color[1] { Color.White });
             if (isDrawing)
                 Begin();
         }
     }
+    public Color[] Grid;
 
     public Drawing()
     {
@@ -60,6 +64,7 @@ public class Drawing : IDisposable
         _spriteBatch.End();
         _graphicsDevice.SetRenderTarget(null);
         _isDrawing = false;
+        _canvas.GetData(Grid);
     }
 
     public void DrawString(Vector2 pos, string text, Color color, int size = 13)
@@ -76,27 +81,35 @@ public class Drawing : IDisposable
 
     public void Plot(Point point, Color color)
     {
-        var grid = new Color[_canvas.Width * _canvas.Height];
-        _canvas.GetData(grid);
+        //var grid = new Color[_canvas.Width * _canvas.Height];
+        _canvas.GetData(Grid);
 
         if (point.X < 0 || point.Y < 0) return;
         if (point.X >= _canvas.Width || point.Y >= _canvas.Height) return;
-        grid[point.X + (point.Y * _canvas.Width)] = color;
+        Grid[point.X + (point.Y * _canvas.Width)] = color;
 
-        _canvas.SetData(grid);
+        _canvas.SetData(Grid);
     }
 
     public void Plot(IEnumerable<Point> points, Color color)
     {
-        var grid = new Color[_canvas.Width * _canvas.Height];
-        _canvas.GetData(grid);
+        //var grid = new Color[_canvas.Width * _canvas.Height];
+        _canvas.GetData(Grid);
         foreach (var point in points)
         {
             if (point.X < 0 || point.Y < 0) continue;
             if (point.X >= _canvas.Width || point.Y >= _canvas.Height) continue;
-            grid[point.X + (point.Y * _canvas.Width)] = color;
+            Grid[point.X + (point.Y * _canvas.Width)] = color;
         }
-        _canvas.SetData(grid);
+        _canvas.SetData(Grid);
+    }
+
+    public Color GetPixel(Point point)
+    {
+        if (point.X < 0 || point.Y < 0) return Color.Black;
+        if (point.X >= _canvas.Width || point.Y >= _canvas.Height) return Color.Black;
+
+        return Grid[point.X + (point.Y * _canvas.Width)];
     }
 
     public void UnsafePlot(Point point, Color color)

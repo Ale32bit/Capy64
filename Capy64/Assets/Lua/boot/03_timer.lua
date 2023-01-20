@@ -1,4 +1,5 @@
 local timer = require("timer")
+local event = require("event")
 local expect = require("expect").expect
 local range = require("expect").range
 
@@ -8,6 +9,6 @@ function timer.sleep(n)
 
     local timerId = timer.start(n)
     repeat
-        local _, par = coroutine.yield("timer")
+        local _, par = event.pull("timer")
     until par == timerId
 end

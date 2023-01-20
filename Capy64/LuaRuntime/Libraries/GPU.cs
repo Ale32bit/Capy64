@@ -38,6 +38,11 @@ public class GPU : IPlugin
         },
         new()
         {
+            name = "getPixel",
+            function = L_GetPixel,
+        },
+        new()
+        {
             name = "plot",
             function = L_Plot,
         },
@@ -147,6 +152,20 @@ public class GPU : IPlugin
         return 0;
     }
 
+    private static int L_GetPixel(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var x = (int)L.CheckNumber(1) - 1;
+        var y = (int)L.CheckNumber(2) - 1;
+
+        var c = _game.Drawing.GetPixel(new(x, y));
+
+        L.PushInteger(Utils.PackRGB(c));
+
+        return 1;
+    }
+
     private static int L_Plot(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
@@ -231,10 +250,10 @@ public class GPU : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        var x1 = (int)L.CheckNumber(1) - 1;
-        var y1 = (int)L.CheckNumber(2) - 1;
-        var x2 = (int)L.CheckNumber(3) - 1;
-        var y2 = (int)L.CheckNumber(4) - 1;
+        var x1 = (int)L.CheckNumber(1);
+        var y1 = (int)L.CheckNumber(2);
+        var x2 = (int)L.CheckNumber(3);
+        var y2 = (int)L.CheckNumber(4);
         var c = L.CheckInteger(5);
         var s = (int)L.OptNumber(6, 1);
 
