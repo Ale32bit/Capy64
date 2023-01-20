@@ -9,6 +9,10 @@ using IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration((context, c) =>
     {
         var settingsPath = Path.Combine(Capy64.Capy64.AppDataPath, "settings.json");
+        if(!Directory.Exists(Capy64.Capy64.AppDataPath))
+        {
+            Directory.CreateDirectory(Capy64.Capy64.AppDataPath);
+        }
         if (!File.Exists(settingsPath))
         {
             File.Copy("Assets/default.json", settingsPath);
