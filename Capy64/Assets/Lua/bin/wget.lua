@@ -13,7 +13,7 @@ if #args == 0 then
 end
 
 local outputName =  args[2] or fs.getName(args[1])
-local outputPath = fs.combine(shell.getDir(), outputName)
+local outputPath = shell.resolve(outputName)
 
 if not http.checkURL(args[1]) then
     error("Invalid URL", 0)

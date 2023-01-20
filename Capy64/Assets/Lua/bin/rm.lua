@@ -6,5 +6,5 @@ if #args == 0 then
     return
 end
 
-local file = fs.combine(shell.getDir(), args[1])
+local file = shell.resolve(args[1])
 fs.delete(file, true)

@@ -80,8 +80,13 @@ public class FileSystem : IPlugin
         },
         new()
         {
-            name = "getAttributes",
+            name = "attributes",
             function = L_GetAttributes,
+        },
+        new()
+        {
+            name = "isDir",
+            function = L_IsDirectory,
         },
         new()
         {
@@ -462,6 +467,17 @@ public class FileSystem : IPlugin
 
             L.SetTable(-3);
         }
+
+        return 1;
+    }
+
+    private static int L_IsDirectory(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var path = Resolve(L.CheckString(1));
+
+        L.PushBoolean(Directory.Exists(path));
 
         return 1;
     }

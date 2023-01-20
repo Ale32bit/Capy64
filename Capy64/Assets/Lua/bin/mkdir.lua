@@ -6,7 +6,7 @@ if #args == 0 then
     return
 end
 
-local dir = fs.combine(shell.getDir(), args[1])
+local dir = shell.resolve(args[1])
 if fs.exists(dir) then
     error("Path already exists", 0)
 end

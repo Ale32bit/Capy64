@@ -5,24 +5,17 @@ local colors = require("colors")
 local dir = shell.getDir()
 
 if args[1] then
-    dir = fs.combine(shell.getDir(), args[1])
+    dir = shell.resolve(args[1])
 end
 
-if not fs.exists(dir) then
-    error("No such directory: " .. dir, 0)
-    return false
-end
-
-local attr = fs.getAttributes(dir)
-if not attr.isDirectory then
+if not fs.isDir(dir) then
     error("No such directory: " .. dir, 0)
     return false
 end
 
 local files = fs.list(dir)
 for k,v in ipairs(files) do
-    local attr = fs.getAttributes(fs.combine(dir, v))
-    if attr.isDirectory then
+    if fs.isDir(fs.combine(dir, v)) then
         term.setForeground(colors.lightBlue)
         print(v .. "/")
     else

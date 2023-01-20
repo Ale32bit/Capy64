@@ -6,7 +6,7 @@ local fs = require("fs")
 local exit = false
 local shell = {}
 
-shell.path = "./?.lua;./?;/bin/?.lua"
+shell.path = "./?;./?.lua;/bin/?.lua"
 shell.homePath = "/home"
 
 local currentDir = shell.homePath
@@ -55,12 +55,20 @@ end
 
 function shell.resolve(path)
     if path:sub(1, 1) == "/" then
-        return path
+        return fs.combine("", path)
+    end
+
+    return fs.combine(currentDir, path)
+end
+
+function shell.resolveProgram(path)
+    if path:sub(1, 1) == "/" then
+        return shell.resolve(path)
     end
 
     for seg in shell.path:gmatch("[^;]+") do
         local resolved = seg:gsub("%?", path)
-        if fs.exists(resolved) then
+        if fs.exists(resolved) and not fs.isDir(resolved) then
             return resolved
         end
     end
@@ -69,7 +77,7 @@ end
 function shell.run(...)
     local args = tokenise(...)
     local command = args[1]
-    local path = shell.resolve(command)
+    local path = shell.resolveProgram(command)
 
     if not path then
         printError("Command not found: " .. command)
