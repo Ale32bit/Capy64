@@ -27,6 +27,10 @@ public class GPUBuffer
             L.PushCFunction(LM_NewIndex);
             L.SetTable(-3);
 
+            L.PushString("__len");
+            L.PushCFunction(LM_Length);
+            L.SetTable(-3);
+
             L.PushString("__gc");
             L.PushCFunction(LM_GC);
             L.SetTable(-3);
@@ -113,5 +117,16 @@ public class GPUBuffer
         L.CheckObject<uint[]>(1, ObjectType, true);
 
         return 0;
+    }
+
+    private static int LM_Length(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var buffer = L.CheckObject<uint[]>(1, ObjectType, false);
+
+        L.PushInteger(buffer.LongLength);
+
+        return 1;
     }
 }
