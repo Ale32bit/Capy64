@@ -3,22 +3,27 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Capy64.LuaRuntime.Handlers;
+namespace Capy64.LuaRuntime.Objects.Handlers;
 
-public class ReadHandle : IHandle
+public class WriteHandle : IHandle
 {
-    private readonly StreamReader Stream;
+    private readonly StreamWriter Stream;
     private bool IsClosed = false;
-    public ReadHandle(Stream stream)
+    public WriteHandle(Stream stream)
     {
-        Stream = new StreamReader(stream);
+        Stream = new StreamWriter(stream);
+    }
+
+    public WriteHandle(StreamWriter stream)
+    {
+        Stream = stream;
     }
 
     private static readonly Dictionary<string, LuaFunction> functions = new()
     {
-        ["readAll"] = L_ReadAll,
-        ["readLine"] = L_ReadLine,
-        ["read"] = L_Read,
+        ["write"] = L_Write,
+        ["writeLine"] = L_WriteLine,
+        ["flush"] = L_Flush,
         ["close"] = L_Close,
     };
 
@@ -49,15 +54,47 @@ public class ReadHandle : IHandle
         L.SetTable(-3);
     }
 
-    private static ReadHandle GetHandle(Lua L, bool gc = true)
+    private static WriteHandle GetHandle(Lua L, bool gc = true)
     {
         L.CheckType(1, LuaType.Table);
         L.PushString("_handle");
         L.GetTable(1);
-        return L.ToObject<ReadHandle>(-1, gc);
+        return L.ToObject<WriteHandle>(-1, gc);
     }
 
-    private static int L_ReadAll(IntPtr state)
+    private static int L_Write(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var content = L.CheckString(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.Write(content);
+
+        return 0;
+    }
+
+    private static int L_WriteLine(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var content = L.CheckString(2);
+
+        var h = GetHandle(L, false);
+
+        if (h is null || h.IsClosed)
+            L.Error("handle is closed");
+
+        h.Stream.WriteLine(content);
+
+        return 0;
+    }
+
+    private static int L_Flush(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -66,62 +103,9 @@ public class ReadHandle : IHandle
         if (h is null || h.IsClosed)
             L.Error("handle is closed");
 
-        if (h.Stream.EndOfStream)
-        {
-            L.PushNil();
-            return 1;
-        }
+        h.Stream.Flush();
 
-        var content = h.Stream.ReadToEnd();
-        L.PushString(content);
-
-        return 1;
-    }
-
-    private static int L_ReadLine(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        var h = GetHandle(L, false);
-
-        if (h is null || h.IsClosed)
-            L.Error("handle is closed");
-
-        var line = h.Stream.ReadLine();
-
-        if (line is null)
-            L.PushNil();
-        else
-            L.PushString(line);
-
-        return 1;
-    }
-
-    private static int L_Read(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        var count = (int)L.OptNumber(2, 1);
-        L.ArgumentCheck(count >= 1, 2, "count must be a positive integer");
-
-        var h = GetHandle(L, false);
-
-        if (h is null || h.IsClosed)
-            L.Error("handle is closed");
-
-        if (h.Stream.EndOfStream)
-        {
-            L.PushNil();
-            return 1;
-        }
-
-        var chunk = new char[count];
-
-        h.Stream.Read(chunk, 0, count);
-
-        L.PushString(new string(chunk));
-
-        return 1;
+        return 0;
     }
 
     private static int L_Close(IntPtr state)

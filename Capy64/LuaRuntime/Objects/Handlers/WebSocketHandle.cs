@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Capy64.LuaRuntime.Handlers;
+namespace Capy64.LuaRuntime.Objects.Handlers;
 
 public class WebSocketHandle : IHandle
 {

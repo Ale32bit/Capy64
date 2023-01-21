@@ -1,4 +1,5 @@
 ﻿using Capy64.API;
+using Capy64.LuaRuntime.Objects;
 using KeraLua;
 using Microsoft.Xna.Framework;
 using System;
@@ -90,6 +91,21 @@ public class GPU : IPlugin
         {
             name = "measureString",
             function = L_MeasureString
+        },
+        new()
+        {
+            name = "getBuffer",
+            function = L_GetBuffer,
+        },
+        new()
+        {
+            name = "setBuffer",
+            function = L_SetBuffer,
+        },
+        new()
+        {
+            name = "newBuffer",
+            function = L_NewBuffer,
         },
         new(), // NULL
     };
@@ -360,5 +376,47 @@ public class GPU : IPlugin
         L.PushNumber((int)sizes.Y);
 
         return 2;
+    }
+
+    private static int L_GetBuffer(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var buffer = new uint[_game.Width * _game.Height];
+        _game.Drawing.Canvas.GetData(buffer);
+
+        var handle = new GPUBuffer(_game, buffer);
+
+        handle.Push(L);
+
+        return 1;
+    }
+
+    private static int L_SetBuffer(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var buffer = L.CheckObject<uint[]>(1, GPUBuffer.ObjectType, false);
+        if (buffer is null)
+        {
+            L.ArgumentError(1, GPUBuffer.ObjectType + " expected, got " + L.TypeName(L.Type(1)));
+        }
+
+        _game.Drawing.Canvas.SetData(buffer);
+
+        return 0;
+    }
+
+    private static int L_NewBuffer(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var buffer = new uint[_game.Width * _game.Height];
+
+        var handle = new GPUBuffer(_game, buffer);
+
+        handle.Push(L);
+
+        return 1;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Capy64.API;
 using Capy64.LuaRuntime.Extensions;
-using Capy64.LuaRuntime.Handlers;
+using Capy64.LuaRuntime.Objects.Handlers;
 using KeraLua;
 using Microsoft.Extensions.Configuration;
 using System;
