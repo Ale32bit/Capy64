@@ -2,7 +2,11 @@
 using Capy64.Eventing.Events;
 using KeraLua;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
 using System;
+using static Capy64.Utils;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Capy64.LuaRuntime.Libraries;
 
@@ -34,6 +38,7 @@ internal class Term : IPlugin
     private static IGame _game;
     private static bool cursorState = false;
     private static bool enableCursor = true;
+    private static Texture2D cursorTexture;
     public Term(IGame game)
     {
         _game = game;
@@ -42,9 +47,14 @@ internal class Term : IPlugin
         ForegroundColor = Color.White;
         BackgroundColor = Color.Black;
 
+        cursorTexture = new(_game.Game.GraphicsDevice, 1, CharHeight);
+        var textureData = new Color[CharHeight];
+        Array.Fill(textureData, Color.White);
+        cursorTexture.SetData(textureData);
+
         UpdateSize();
 
-        _game.EventEmitter.OnTick += OnTick;
+        _game.EventEmitter.OnOverlay += OnOverlay;
     }
 
     private LuaRegister[] TermLib = new LuaRegister[]
@@ -227,13 +237,13 @@ internal class Term : IPlugin
         Console.WriteLine("|\n   \\{0}", new string('-', Width));
     }
 
-    private void OnTick(object sender, TickEvent e)
+    private void OnOverlay(object sender, OverlayEvent e)
     {
         if (((int)e.TotalTicks % CursorDelay) == 0)
         {
             cursorState = !cursorState;
-            UpdateCursor();
         }
+        UpdateCursor();
     }
 
     private static void UpdateCursor()
@@ -244,28 +254,12 @@ internal class Term : IPlugin
         if (_cursorPosition.X < 0 || _cursorPosition.Y < 0 || _cursorPosition.X >= Width || _cursorPosition.Y >= Height)
             return;
 
-        var ch = CharGrid[(int)_cursorPosition.X + ((int)_cursorPosition.Y * Width)] ??
-            new Char
-            {
-                Character = ' ',
-                Foreground = ForegroundColor,
-                Background = BackgroundColor,
-            };
-
-        Color fg, bg;
-
         if (cursorState)
         {
-            fg = ch.Background;
-            bg = ch.Foreground;
+            var realpos = ToRealPos(CursorPosition - Vector2.One);
+            var charpos = realpos * _game.Scale + CharOffset;
+            _game.Game.SpriteBatch.Draw(cursorTexture, charpos, null, ForegroundColor, 0f, Vector2.Zero, _game.Scale, SpriteEffects.None, 0);
         }
-        else
-        {
-            fg = ch.Foreground;
-            bg = ch.Background;
-        }
-
-        PlotChar(_cursorPosition, ch.Character, fg, bg, false);
     }
 
     private static void ClearGrid()
@@ -297,10 +291,8 @@ internal class Term : IPlugin
 
     public static void SetCursorPosition(int x, int y)
     {
-        RedrawPos(_cursorPosition);
         cursorState = true;
         _cursorPosition = new(x - 1, y - 1);
-        UpdateCursor();
     }
 
     private static int L_GetPos(IntPtr state)

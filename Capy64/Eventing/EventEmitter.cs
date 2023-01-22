@@ -22,6 +22,7 @@ public class EventEmitter
     public event EventHandler<TickEvent> OnTick;
     public event EventHandler OnInit;
     public event EventHandler OnScreenSizeChange;
+    public event EventHandler<OverlayEvent> OnOverlay;
 
 
     public void RaiseMouseMove(MouseMoveEvent ev)
@@ -104,6 +105,13 @@ public class EventEmitter
         if (OnScreenSizeChange is not null)
         {
             OnScreenSizeChange(this, EventArgs.Empty);
+        }
+    }
+
+    public void RaiseOverlay(OverlayEvent ev)
+    {
+        if(OnOverlay is not null) {
+            OnOverlay(this, ev);
         }
     }
 }

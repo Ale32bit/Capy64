@@ -23,7 +23,7 @@ public class Capy64 : Game, IGame
             Environment.SpecialFolder.ApplicationData,
             Environment.SpecialFolderOption.Create),
         "Capy64");
-    public Game Game => this;
+    public Capy64 Game => this;
     public IList<IPlugin> NativePlugins { get; private set; }
     public IList<IPlugin> Plugins { get; private set; }
     public int Width { get; set; } = 400;
@@ -39,11 +39,12 @@ public class Capy64 : Game, IGame
         Left = 0,
         Right = 0,
     };
+    public SpriteBatch SpriteBatch;
+
 
     private readonly InputManager _inputManager;
     private RenderTarget2D renderTarget;
     private readonly GraphicsDeviceManager _graphics;
-    private SpriteBatch _spriteBatch;
     private IServiceProvider _serviceProvider;
     private ulong _totalTicks = 0;
 
@@ -139,12 +140,15 @@ public class Capy64 : Game, IGame
 
     protected override void LoadContent()
     {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
+        SpriteBatch = new SpriteBatch(GraphicsDevice);
     }
 
     protected override void Update(GameTime gameTime)
     {
         Drawing.Begin();
+
+        // Register user input
+        _inputManager.Update(IsActive);
 
         EventEmitter.RaiseTick(new()
         {
@@ -152,23 +156,25 @@ public class Capy64 : Game, IGame
             TotalTicks = _totalTicks
         });
 
-        // resume here
-
         Drawing.End();
 
-        // Register user input
-        _inputManager.Update(IsActive);
+        _totalTicks++;
 
         base.Update(gameTime);
-        _totalTicks++;
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
-        //GraphicsDevice.Clear(Color.Blue);
-        _spriteBatch.Draw(renderTarget, new(Borders.Left, Borders.Top), null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0);
-        _spriteBatch.End();
+        SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
+        SpriteBatch.Draw(renderTarget, new(Borders.Left, Borders.Top), null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0);
+
+        EventEmitter.RaiseOverlay(new()
+        {
+            GameTime = gameTime,
+            TotalTicks = _totalTicks,
+        });
+
+        SpriteBatch.End();
 
         base.Draw(gameTime);
     }
