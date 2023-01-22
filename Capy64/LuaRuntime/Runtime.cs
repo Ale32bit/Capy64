@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Timers;
 
 namespace Capy64.LuaRuntime;
 
@@ -23,7 +24,10 @@ public class Runtime
     private readonly Lua Parent;
     public Lua Thread { get; private set; }
     private string[] filters = Array.Empty<string>();
-    private bool Disposing = false;
+    private bool _disposing = false;
+    private static System.Timers.Timer yieldTimeoutTimer = new(TimeSpan.FromSeconds(3));
+    private static bool yieldTimedOut = false;
+
     public Runtime()
     {
         Parent = new(false)
@@ -35,6 +39,22 @@ public class Runtime
 
         Thread = Parent.NewThread();
 
+        Thread.SetHook(LH_YieldTimeout, LuaHookMask.Count, 7000);
+        yieldTimeoutTimer.Elapsed += (sender, ev) =>
+        {
+            yieldTimedOut = true;
+        };
+    }
+
+    private static void LH_YieldTimeout(IntPtr state, IntPtr ar)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        if (yieldTimedOut)
+        {
+            L.Error("no yield timeout");
+            Console.WriteLine("tick");
+        }
     }
 
     public void Patch()
@@ -113,12 +133,18 @@ public class Runtime
 
         filters = Array.Empty<string>();
         var evpars = PushEventToStack(ev);
-        if (Disposing)
+        if (_disposing)
             return false;
+
+        yieldTimeoutTimer.Start();
+        yieldTimedOut = false;
+
         var status = Thread.Resume(null, evpars, out int pars);
+
+        yieldTimeoutTimer.Stop();
         if (status is LuaStatus.OK or LuaStatus.Yield)
         {
-            if (Disposing)
+            if (_disposing)
                 return false;
             if (status == LuaStatus.Yield)
             {
@@ -169,7 +195,7 @@ public class Runtime
 
     public void Close()
     {
-        Disposing = true;
+        _disposing = true;
         Parent.Close();
     }
 }
