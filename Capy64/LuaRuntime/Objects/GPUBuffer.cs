@@ -7,11 +7,9 @@ public class GPUBuffer
 {
     public const string ObjectType = "GPUBuffer";
 
-    private static IGame _game;
     private uint[] _buffer;
-    public GPUBuffer(IGame game, uint[] buffer)
+    public GPUBuffer(uint[] buffer)
     {
-        _game = game;
         _buffer = buffer;
     }
 
@@ -32,6 +30,10 @@ public class GPUBuffer
             L.SetTable(-3);
 
             L.PushString("__gc");
+            L.PushCFunction(LM_GC);
+            L.SetTable(-3);
+
+            L.PushString("__close");
             L.PushCFunction(LM_GC);
             L.SetTable(-3);
         }
