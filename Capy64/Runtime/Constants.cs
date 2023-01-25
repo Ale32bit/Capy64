@@ -1,4 +1,4 @@
-﻿namespace Capy64.LuaRuntime;
+﻿namespace Capy64.Runtime;
 
 public class Constants
 {

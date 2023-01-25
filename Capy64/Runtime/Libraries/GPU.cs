@@ -1,11 +1,11 @@
 ﻿using Capy64.API;
-using Capy64.LuaRuntime.Objects;
+using Capy64.Runtime.Objects;
 using KeraLua;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 
-namespace Capy64.LuaRuntime.Libraries;
+namespace Capy64.Runtime.Libraries;
 
 public class GPU : IPlugin
 {

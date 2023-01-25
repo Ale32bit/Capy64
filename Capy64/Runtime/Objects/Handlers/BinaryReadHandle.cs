@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Capy64.LuaRuntime.Objects.Handlers;
+namespace Capy64.Runtime.Objects.Handlers;
 
 public class BinaryReadHandle : IHandle
 {

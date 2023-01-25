@@ -1,21 +1,22 @@
 ﻿using Capy64.Core;
-using Capy64.Eventing;
 using Capy64.Eventing.Events;
-using Capy64.LuaRuntime;
+using Capy64.Eventing;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Linq;
 using static Capy64.Eventing.InputManager;
+using Capy64.Runtime.Extensions;
 
-namespace Capy64.BIOS;
+namespace Capy64.Runtime;
 
-internal class RuntimeInputEvents
+internal class InputEmitter
 {
     private EventEmitter _eventEmitter;
-    private Runtime _runtime;
+    private LuaState _runtime;
     private const int rebootDelay = 30;
     private int heldReboot = 0;
 
-    public RuntimeInputEvents(EventEmitter eventEmitter, Runtime runtime)
+    public InputEmitter(EventEmitter eventEmitter, LuaState runtime)
     {
         _eventEmitter = eventEmitter;
         _runtime = runtime;
@@ -74,66 +75,84 @@ internal class RuntimeInputEvents
         if (heldReboot >= rebootDelay)
         {
             heldReboot = 0;
-            Bios.Reboot();
+            RuntimeManager.Reboot();
         }
     }
 
     private void OnMouseUp(object sender, MouseButtonEvent e)
     {
-        _runtime.PushEvent("mouse_up", new object[]
+        _runtime.QueueEvent("mouse_up", LK =>
         {
-            (int)e.Button,
-            e.Position.X,
-            e.Position.Y,
+            LK.PushInteger((int)e.Button);
+            LK.PushInteger(e.Position.X);
+            LK.PushInteger(e.Position.Y);
+
+            return 3;
         });
     }
     private void OnMouseDown(object sender, MouseButtonEvent e)
     {
-        _runtime.PushEvent("mouse_down", new object[]
+        _runtime.QueueEvent("mouse_down", LK =>
         {
-            (int)e.Button,
-            e.Position.X,
-            e.Position.Y,
+            LK.PushInteger((int)e.Button);
+            LK.PushInteger(e.Position.X);
+            LK.PushInteger(e.Position.Y);
+
+            return 3;
         });
     }
 
     private void OnMouseMove(object sender, MouseMoveEvent e)
     {
-        _runtime.PushEvent("mouse_move", new object[]
+        _runtime.QueueEvent("mouse_move", LK =>
         {
-            e.PressedButtons,
-            e.Position.X,
-            e.Position.Y,
+            LK.NewTable();
+            for (int i = 1; i <= e.PressedButtons.Length; i++)
+            {
+                LK.PushInteger(e.PressedButtons[i - 1]);
+                LK.SetInteger(-2, i);
+
+            }
+            LK.PushInteger(e.Position.X);
+            LK.PushInteger(e.Position.Y);
+
+            return 3;
         });
     }
     private void OnMouseWheel(object sender, MouseWheelEvent e)
     {
-        _runtime.PushEvent("mouse_scroll", new object[]
+        _runtime.QueueEvent("mouse_scroll", LK =>
         {
-            e.Position.X,
-            e.Position.Y,
-            e.VerticalValue,
-            e.HorizontalValue,
+            LK.PushInteger(e.Position.X);
+            LK.PushInteger(e.Position.Y);
+            LK.PushInteger(e.VerticalValue);
+            LK.PushInteger(e.HorizontalValue);
+
+            return 4;
         });
     }
 
     private void OnKeyUp(object sender, KeyEvent e)
     {
-        _runtime.PushEvent("key_up", new object[]
+        _runtime.QueueEvent("key_up", LK =>
         {
-            e.KeyCode,
-            e.KeyName,
-            (int)e.Mods
+            LK.PushInteger(e.KeyCode);
+            LK.PushString(e.KeyName);
+            LK.PushInteger((int)e.Mods);
+
+            return 3;
         });
     }
     private void OnKeyDown(object sender, KeyEvent e)
     {
-        _runtime.PushEvent("key_down", new object[]
+        _runtime.QueueEvent("key_down", LK =>
         {
-            e.KeyCode,
-            e.KeyName,
-            (int)e.Mods,
-            e.IsHeld,
+            LK.PushInteger(e.KeyCode);
+            LK.PushString(e.KeyName);
+            LK.PushInteger((int)e.Mods);
+            LK.PushBoolean(e.IsHeld);
+
+            return 4;
         });
 
         if ((e.Mods & Modifiers.Ctrl) != Modifiers.None && !e.IsHeld)
@@ -141,26 +160,17 @@ internal class RuntimeInputEvents
             if ((e.Mods & Modifiers.Alt) != Modifiers.None)
             {
                 if (e.Key == Keys.C)
-                {
-                    _runtime.PushEvent(new LuaEvent()
-                    {
-                        Name = "interrupt",
-                        Parameters = { },
-                        BypassFilter = true,
-                    });
-                }
+                    _runtime.QueueEvent("interrupt", LK => 0);
             }
             else if (e.Key == Keys.V)
             {
                 if (SDL.HasClipboardText())
                 {
                     var text = SDL.GetClipboardText();
-                    _runtime.PushEvent(new LuaEvent()
-                    {
-                        Name = "paste",
-                        Parameters = new[] {
-                            text,
-                        },
+                    _runtime.QueueEvent("paste", LK => {
+                        LK.PushString(text);
+
+                        return 1;
                     });
                 }
             }
@@ -169,9 +179,10 @@ internal class RuntimeInputEvents
 
     private void OnChar(object sender, CharEvent e)
     {
-        _runtime.PushEvent("char", new object[]
-        {
-            e.Character,
+        _runtime.QueueEvent("char", LK => {
+            LK.PushString(e.Character.ToString());
+
+            return 1;
         });
     }
 }

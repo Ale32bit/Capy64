@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Capy64.LuaRuntime;
+namespace Capy64.Runtime;
 
 public class LuaException : Exception
 {

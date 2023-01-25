@@ -1,12 +1,12 @@
-﻿using Capy64.LuaRuntime.Extensions;
-using Capy64.LuaRuntime.Libraries;
+﻿using Capy64.Runtime.Extensions;
+using Capy64.Runtime.Libraries;
 using KeraLua;
 using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Capy64.LuaRuntime;
+namespace Capy64.Runtime;
 
 internal class Sandbox
 {

@@ -8,7 +8,7 @@ using System;
 using static Capy64.Utils;
 using static System.Formats.Asn1.AsnWriter;
 
-namespace Capy64.LuaRuntime.Libraries;
+namespace Capy64.Runtime.Libraries;
 
 internal class Term : IPlugin
 {

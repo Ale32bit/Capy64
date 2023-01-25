@@ -1,7 +1,7 @@
 ﻿using Capy64.API;
 using Capy64.Core;
 using Capy64.Eventing;
-using Capy64.LuaRuntime;
+using Capy64.Runtime;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ public interface IGame
     IList<IPlugin> Plugins { get; }
     GameWindow Window { get; }
     Drawing Drawing { get; }
-    Runtime LuaRuntime { get; set; }
+    LuaState LuaRuntime { get; set; }
     EventEmitter EventEmitter { get; }
     void ConfigureServices(IServiceProvider serviceProvider);
 

@@ -2,7 +2,7 @@
 using KeraLua;
 using System;
 
-namespace Capy64.LuaRuntime.Libraries;
+namespace Capy64.Runtime.Libraries;
 
 public class OS : IPlugin
 {
@@ -47,11 +47,11 @@ public class OS : IPlugin
 
         if (doReboot)
         {
-            BIOS.Bios.Reboot();
+            RuntimeManager.Reboot();
         }
         else
         {
-            BIOS.Bios.Shutdown();
+            RuntimeManager.Shutdown();
         }
 
         return 0;

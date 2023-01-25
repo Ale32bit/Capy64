@@ -1,6 +1,6 @@
 ﻿using KeraLua;
 
-namespace Capy64.LuaRuntime.Objects.Handlers;
+namespace Capy64.Runtime.Objects.Handlers;
 
 public interface IHandle
 {

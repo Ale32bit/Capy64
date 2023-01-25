@@ -1,6 +1,6 @@
 ﻿using Capy64.API;
-using Capy64.LuaRuntime.Extensions;
-using Capy64.LuaRuntime.Objects.Handlers;
+using Capy64.Runtime.Extensions;
+using Capy64.Runtime.Objects.Handlers;
 using KeraLua;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -11,7 +11,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 
-namespace Capy64.LuaRuntime.Libraries;
+namespace Capy64.Runtime.Libraries;
 #nullable enable
 public class HTTP : IPlugin
 {
@@ -189,7 +189,13 @@ public class HTTP : IPlugin
 
             if (task.IsFaulted || task.IsCanceled)
             {
-                _game.LuaRuntime.PushEvent("http_failure", requestId, task.Exception?.Message);
+                _game.LuaRuntime.QueueEvent("http_failure", LK =>
+                {
+                    LK.PushInteger(requestId);
+                    LK.PushString(task.Exception?.Message);
+
+                    return 2;
+                });
                 return;
             }
 
@@ -203,41 +209,42 @@ public class HTTP : IPlugin
             else
                 handler = new ReadHandle(stream);
 
-            _game.LuaRuntime.PushEvent("http_response", L =>
+            _game.LuaRuntime.QueueEvent("http_response", LK =>
             {
                 // arg 1, request id
-                L.PushInteger(requestId);
+                LK.PushInteger(requestId);
 
                 // arg 2, response data
-                L.NewTable();
+                LK.NewTable();
 
-                L.PushString("success");
-                L.PushBoolean(response.IsSuccessStatusCode);
-                L.SetTable(-3);
+                LK.PushString("success");
+                LK.PushBoolean(response.IsSuccessStatusCode);
+                LK.SetTable(-3);
 
-                L.PushString("statusCode");
-                L.PushNumber((int)response.StatusCode);
-                L.SetTable(-3);
+                LK.PushString("statusCode");
+                LK.PushNumber((int)response.StatusCode);
+                LK.SetTable(-3);
 
-                L.PushString("reasonPhrase");
-                L.PushString(response.ReasonPhrase);
-                L.SetTable(-3);
+                LK.PushString("reasonPhrase");
+                LK.PushString(response.ReasonPhrase);
+                LK.SetTable(-3);
 
-                L.PushString("headers");
-                L.NewTable();
+                LK.PushString("headers");
+                LK.NewTable();
 
                 foreach (var header in response.Headers)
                 {
-                    L.PushString(header.Key);
-                    L.PushArray(header.Value.ToArray());
-                    L.SetTable(-3);
+                    LK.PushString(header.Key);
+                    LK.PushArray(header.Value.ToArray());
+                    LK.SetTable(-3);
                 }
 
-                L.SetTable(-3);
+                LK.SetTable(-3);
 
-                handler.Push(L, false);
+                handler.Push(LK, false);
 
                 return 2;
+
             });
 
             //_game.LuaRuntime.PushEvent("http_response", requestId, response.IsSuccessStatusCode, content, (int)response.StatusCode, response.ReasonPhrase);
@@ -316,7 +323,13 @@ public class HTTP : IPlugin
         {
             if (task.IsFaulted || task.IsCanceled)
             {
-                _game.LuaRuntime.PushEvent("websocket_failure", requestId, task.Exception?.Message);
+                _game.LuaRuntime.QueueEvent("websocket_failure", LK =>
+                {
+                    LK.PushInteger(requestId);
+                    LK.PushString(task.Exception?.Message);
+
+                    return 2;
+                });
                 return;
             }
 
@@ -325,11 +338,11 @@ public class HTTP : IPlugin
             var handle = new WebSocketHandle(wsClient, requestId, _game);
             WebSocketConnections.Add(handle);
 
-            _game.LuaRuntime.PushEvent("websocket_connect", L =>
+            _game.LuaRuntime.QueueEvent("websocket_connect", LK =>
             {
-                L.PushInteger(requestId);
+                LK.PushInteger(requestId);
 
-                handle.Push(L, true);
+                handle.Push(LK, true);
 
                 return 2;
             });
@@ -342,7 +355,12 @@ public class HTTP : IPlugin
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     await wsClient.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
-                    _game.LuaRuntime.PushEvent("websocket_close", requestId);
+                    _game.LuaRuntime.QueueEvent("websocket_close", LK =>
+                    {
+                        LK.PushInteger(requestId);
+
+                        return 1;
+                    });
                     return;
                 }
                 else
@@ -353,7 +371,13 @@ public class HTTP : IPlugin
 
                 if (result.EndOfMessage)
                 {
-                    _game.LuaRuntime.PushEvent("websocket_message", requestId, builder.ToString());
+                    _game.LuaRuntime.QueueEvent("websocket_message", LK =>
+                    {
+                        LK.PushInteger(requestId);
+                        LK.PushString(builder.ToString());
+
+                        return 2;
+                    });
                     builder.Clear();
                 }
             }

@@ -1,4 +1,4 @@
-﻿using Capy64.LuaRuntime.Libraries;
+﻿using Capy64.Runtime.Libraries;
 using KeraLua;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Capy64.LuaRuntime.Objects.Handlers;
+namespace Capy64.Runtime.Objects.Handlers;
 
 public class WebSocketHandle : IHandle
 {
@@ -92,7 +92,12 @@ public class WebSocketHandle : IHandle
             .ContinueWith(async task =>
             {
                 await task;
-                _game.LuaRuntime.PushEvent("websocket_close", h._requestId);
+                _game.LuaRuntime.QueueEvent("websocket_close", LK =>
+                {
+                    LK.PushInteger(h._requestId);
+
+                    return 1;
+                });
             });
 
         HTTP.WebSocketConnections.Remove(h);

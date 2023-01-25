@@ -2,7 +2,7 @@
 using Capy64.Core;
 using Capy64.Eventing;
 using Capy64.Extensions;
-using Capy64.LuaRuntime;
+using Capy64.Runtime;
 using Capy64.PluginManager;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
@@ -23,6 +23,7 @@ public class Capy64 : Game, IGame
             Environment.SpecialFolder.ApplicationData,
             Environment.SpecialFolderOption.Create),
         "Capy64");
+    public static Capy64 Instance;
     public Capy64 Game => this;
     public IList<IPlugin> NativePlugins { get; private set; }
     public IList<IPlugin> Plugins { get; private set; }
@@ -30,7 +31,7 @@ public class Capy64 : Game, IGame
     public int Height { get; set; } = 300;
     public float Scale { get; set; } = 2f;
     public Drawing Drawing { get; private set; }
-    public Runtime LuaRuntime { get; set; }
+    public LuaState LuaRuntime { get; set; }
     public EventEmitter EventEmitter { get; private set; }
     public Borders Borders = new()
     {
@@ -50,6 +51,8 @@ public class Capy64 : Game, IGame
 
     public Capy64()
     {
+        Instance = this;
+
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;

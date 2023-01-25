@@ -2,7 +2,7 @@
 using KeraLua;
 using System;
 
-namespace Capy64.LuaRuntime.Libraries;
+namespace Capy64.Runtime.Libraries;
 
 class Timer : IPlugin
 {
@@ -54,7 +54,12 @@ class Timer : IPlugin
 
         timer.Elapsed += (o, e) =>
         {
-            _game.LuaRuntime.PushEvent("timer", timerId);
+            _game.LuaRuntime.QueueEvent("timer", LK =>
+            {
+                LK.PushInteger(timerId);
+
+                return 1;
+            });
         };
 
         L.PushInteger(timerId);

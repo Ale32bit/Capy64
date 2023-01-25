@@ -1,6 +1,6 @@
 ﻿using KeraLua;
 
-namespace Capy64.LuaRuntime.Extensions
+namespace Capy64.Runtime.Extensions
 {
     static class LuaExtensions
     {

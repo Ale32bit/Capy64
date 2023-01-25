@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Capy64.LuaRuntime.Extensions
+namespace Capy64.Runtime.Extensions
 {
     internal static partial class NativeLibraries
     {

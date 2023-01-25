@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Capy64.LuaRuntime.Libraries;
+namespace Capy64.Runtime.Libraries;
 
 public class Event : IPlugin
 {
@@ -52,7 +52,7 @@ public class Event : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        if(L.ToString(1) == "interrupt")
+        if (L.ToString(1) == "interrupt")
         {
             L.Error("interrupt");
         }
@@ -67,7 +67,7 @@ public class Event : IPlugin
         var L = Lua.FromIntPtr(state);
 
         var nargs = L.GetTop();
-        for(int i = 1; i <= nargs; i++)
+        for (int i = 1; i <= nargs; i++)
         {
             L.CheckString(i);
         }
@@ -100,18 +100,14 @@ public class Event : IPlugin
 
         var nargs = L.GetTop();
 
-        var evParsState = L.NewThread();
-
-        for(int i = 2; i <= nargs; i++)
+        _game.LuaRuntime.QueueEvent(eventName, LK =>
         {
-            L.PushCopy(i);
-        }
+            for (int i = 2; i <= nargs; i++)
+            {
+                L.PushCopy(i);
+            }
 
-        L.XMove(evParsState, nargs - 1);
-
-        _game.LuaRuntime.PushEvent(eventName, LK =>
-        {
-            evParsState.XMove(LK, nargs - 1);
+            L.XMove(LK, nargs - 1);
 
             return nargs - 1;
         });

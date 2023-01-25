@@ -1,7 +1,7 @@
 ﻿using KeraLua;
 using System;
 
-namespace Capy64.LuaRuntime.Objects;
+namespace Capy64.Runtime.Objects;
 
 public class GPUBuffer
 {

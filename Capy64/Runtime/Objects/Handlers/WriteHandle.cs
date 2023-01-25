@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Capy64.LuaRuntime.Objects.Handlers;
+namespace Capy64.Runtime.Objects.Handlers;
 
 public class WriteHandle : IHandle
 {

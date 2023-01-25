@@ -4,7 +4,7 @@ using System.Collections;
 using System.Linq;
 using System.Reflection;
 
-namespace Capy64.LuaRuntime.Extensions;
+namespace Capy64.Runtime.Extensions;
 public static class Utils
 {
     public static void PushArray(this Lua L, object obj)

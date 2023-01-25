@@ -1,13 +1,13 @@
 ﻿using Capy64.API;
-using Capy64.LuaRuntime.Extensions;
-using Capy64.LuaRuntime.Objects.Handlers;
+using Capy64.Runtime.Objects.Handlers;
+using Capy64.Runtime.Extensions;
 using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Capy64.LuaRuntime.Libraries;
+namespace Capy64.Runtime.Libraries;
 
 public class FileSystem : IPlugin
 {
