@@ -538,27 +538,24 @@ public class FileSystem : IPlugin
 
         var fileStream = File.Open(path, fileMode, fileAccess, FileShare.ReadWrite);
 
-        IHandle handle;
         if (fileAccess == FileAccess.Read)
         {
             if (binaryMode)
-                handle = new BinaryReadHandle(fileStream);
+                BinaryReadHandle.Push(L, new(fileStream));
             else
-                handle = new ReadHandle(fileStream);
+                ReadHandle.Push(L, new(fileStream));
         }
         else if (fileAccess == FileAccess.Write)
         {
             if (binaryMode)
-                handle = new BinaryWriteHandle(fileStream);
+                BinaryWriteHandle.Push(L, new(fileStream));
             else
-                handle = new WriteHandle(fileStream);
+                WriteHandle.Push(L, new(fileStream));
         }
         else
         {
             throw new InvalidOperationException();
         }
-
-        handle.Push(L);
 
         return 1;
     }

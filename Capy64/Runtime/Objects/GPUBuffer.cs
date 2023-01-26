@@ -7,14 +7,10 @@ public class GPUBuffer
 {
     public const string ObjectType = "GPUBuffer";
 
-    private uint[] _buffer;
-    public GPUBuffer(uint[] buffer)
+    public static void Push(Lua L, uint[] buffer)
     {
-        _buffer = buffer;
-    }
+        L.PushObject(buffer);
 
-    public void Push(Lua L)
-    {
         if (L.NewMetaTable(ObjectType))
         {
             L.PushString("__index");
@@ -38,8 +34,7 @@ public class GPUBuffer
             L.SetTable(-3);
         }
 
-        L.PushObject(_buffer);
-        L.SetMetaTable(ObjectType);
+        L.SetMetaTable(-2);
     }
 
     private static int LM_Index(IntPtr state)

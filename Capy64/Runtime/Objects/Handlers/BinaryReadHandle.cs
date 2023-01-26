@@ -6,15 +6,9 @@ using System.Text;
 
 namespace Capy64.Runtime.Objects.Handlers;
 
-public class BinaryReadHandle : IHandle
+public class BinaryReadHandle
 {
-    private readonly BinaryReader Stream;
-    private bool IsClosed = false;
-    private bool EndOfStream => Stream.BaseStream.Position == Stream.BaseStream.Length;
-    public BinaryReadHandle(Stream stream)
-    {
-        Stream = new BinaryReader(stream, Encoding.ASCII);
-    }
+    public const string ObjectType = "BinaryReadHandle";
 
     private static readonly Dictionary<string, LuaFunction> functions = new()
     {
@@ -35,39 +29,31 @@ public class BinaryReadHandle : IHandle
         ["close"] = L_Close,
     };
 
-    public void Push(Lua L, bool newTable = true)
+    public static void Push(Lua L, BinaryReader stream)
     {
-        if (newTable)
-            L.NewTable();
+        L.PushObject(stream);
 
-        // metatable
-        L.NewTable();
-        L.PushString("__close");
-        L.PushCFunction(L_Close);
-        L.SetTable(-3);
-        L.PushString("__gc");
-        L.PushCFunction(L_Close);
-        L.SetTable(-3);
-        L.SetMetaTable(-2);
-
-        foreach (var pair in functions)
+        if (L.NewMetaTable(ObjectType))
         {
-            L.PushString(pair.Key);
-            L.PushCFunction(pair.Value);
+            L.PushString("__index");
+            L.NewTable();
+            foreach (var pair in functions)
+            {
+                L.PushString(pair.Key);
+                L.PushCFunction(pair.Value);
+                L.SetTable(-3);
+            }
+            L.SetTable(-3);
+
+            L.PushString("__close");
+            L.PushCFunction(L_Close);
+            L.SetTable(-3);
+            L.PushString("__gc");
+            L.PushCFunction(L_Close);
             L.SetTable(-3);
         }
 
-        L.PushString("_handle");
-        L.PushObject(this);
-        L.SetTable(-3);
-    }
-
-    private static BinaryReadHandle GetHandle(Lua L, bool gc = true)
-    {
-        L.CheckType(1, LuaType.Table);
-        L.PushString("_handle");
-        L.GetTable(1);
-        return L.ToObject<BinaryReadHandle>(-1, gc);
+        L.SetMetaTable(-2);
     }
 
     private static int L_NextByte(IntPtr state)
@@ -77,24 +63,24 @@ public class BinaryReadHandle : IHandle
         var count = (int)L.OptNumber(2, 1);
         L.ArgumentCheck(count >= 1, 2, "count must be a positive integer");
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
         if (count == 1)
         {
-            var b = h.Stream.ReadByte();
+            var b = stream.ReadByte();
             L.PushInteger(b);
             return 1;
 
         }
         else
         {
-            var bs = h.Stream.ReadBytes(count);
+            var bs = stream.ReadBytes(count);
             foreach (var b in bs)
             {
                 L.PushInteger(b);
@@ -107,15 +93,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadInt16();
+        var b = stream.ReadInt16();
         L.PushInteger(b);
         return 1;
     }
@@ -124,15 +110,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadInt32();
+        var b = stream.ReadInt32();
         L.PushInteger(b);
         return 1;
     }
@@ -141,15 +127,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadInt64();
+        var b = stream.ReadInt64();
         L.PushInteger(b);
         return 1;
     }
@@ -158,15 +144,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadSByte();
+        var b = stream.ReadSByte();
         L.PushInteger(b);
         return 1;
     }
@@ -175,15 +161,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadUInt16();
+        var b = stream.ReadUInt16();
         L.PushInteger(b);
         return 1;
     }
@@ -192,15 +178,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadUInt32();
+        var b = stream.ReadUInt32();
         L.PushInteger(b);
         return 1;
     }
@@ -209,15 +195,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadUInt64();
+        var b = stream.ReadUInt64();
         L.PushInteger((long)b);
         return 1;
     }
@@ -226,15 +212,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadHalf();
+        var b = stream.ReadHalf();
         L.PushNumber((double)b);
         return 1;
     }
@@ -243,15 +229,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadSingle();
+        var b = stream.ReadSingle();
         L.PushNumber((double)b);
         return 1;
     }
@@ -260,15 +246,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadDouble();
+        var b = stream.ReadDouble();
         L.PushNumber((double)b);
         return 1;
     }
@@ -277,27 +263,27 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
+
         var count = (int)L.OptNumber(2, 1);
         L.ArgumentCheck(count >= 1, 2, "count must be a positive integer");
 
-        var h = GetHandle(L, false);
-
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
         if (count == 1)
         {
-            var b = h.Stream.ReadChar();
+            var b = stream.ReadChar();
             L.PushString(b.ToString());
             return 1;
 
         }
         else
         {
-            var bs = h.Stream.ReadChars(count);
+            var bs = stream.ReadChars(count);
             foreach (var b in bs)
             {
                 L.PushString(b.ToString());
@@ -310,27 +296,27 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
+
         var count = (int)L.OptNumber(2, 1);
         L.ArgumentCheck(count >= 1, 2, "count must be a positive integer");
 
-        var h = GetHandle(L, false);
-
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
         if (count == 1)
         {
-            var b = h.Stream.ReadChar();
+            var b = stream.ReadChar();
             L.PushString(b.ToString());
             return 1;
 
         }
         else
         {
-            var bs = h.Stream.ReadBytes(count);
+            var bs = stream.ReadBytes(count);
             L.PushBuffer(bs);
             return 1;
         }
@@ -340,15 +326,15 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        if (h.EndOfStream)
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
             return 0;
 
-        var b = h.Stream.ReadBoolean();
+        var b = stream.ReadBoolean();
         L.PushBoolean(b);
         return 1;
     }
@@ -357,14 +343,12 @@ public class BinaryReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, true);
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, true);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             return 0;
 
-        h.Stream.Close();
-
-        h.IsClosed = true;
+        stream.Dispose();
 
         return 0;
     }

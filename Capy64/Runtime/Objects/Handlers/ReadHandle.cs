@@ -5,14 +5,9 @@ using System.IO;
 
 namespace Capy64.Runtime.Objects.Handlers;
 
-public class ReadHandle : IHandle
+public class ReadHandle
 {
-    private readonly StreamReader Stream;
-    private bool IsClosed = false;
-    public ReadHandle(Stream stream)
-    {
-        Stream = new StreamReader(stream);
-    }
+    public const string ObjectType = "ReadHandle";
 
     private static readonly Dictionary<string, LuaFunction> functions = new()
     {
@@ -22,57 +17,49 @@ public class ReadHandle : IHandle
         ["close"] = L_Close,
     };
 
-    public void Push(Lua L, bool newTable = true)
+    public static void Push(Lua L, StreamReader stream)
     {
-        if (newTable)
-            L.NewTable();
+        L.PushObject(stream);
 
-        // metatable
-        L.NewTable();
-        L.PushString("__close");
-        L.PushCFunction(L_Close);
-        L.SetTable(-3);
-        L.PushString("__gc");
-        L.PushCFunction(L_Close);
-        L.SetTable(-3);
-        L.SetMetaTable(-2);
-
-        foreach (var pair in functions)
+        if (L.NewMetaTable(ObjectType))
         {
-            L.PushString(pair.Key);
-            L.PushCFunction(pair.Value);
+            L.PushString("__index");
+            L.NewTable();
+            foreach (var pair in functions)
+            {
+                L.PushString(pair.Key);
+                L.PushCFunction(pair.Value);
+                L.SetTable(-3);
+            }
+            L.SetTable(-3);
+
+            L.PushString("__close");
+            L.PushCFunction(L_Close);
+            L.SetTable(-3);
+            L.PushString("__gc");
+            L.PushCFunction(L_Close);
             L.SetTable(-3);
         }
 
-        L.PushString("_handle");
-        L.PushObject(this);
-        L.SetTable(-3);
-    }
-
-    private static ReadHandle GetHandle(Lua L, bool gc = true)
-    {
-        L.CheckType(1, LuaType.Table);
-        L.PushString("_handle");
-        L.GetTable(1);
-        return L.ToObject<ReadHandle>(-1, gc);
+        L.SetMetaTable(-2);
     }
 
     private static int L_ReadAll(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var handle = L.CheckObject<StreamReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (handle is null)
             L.Error("handle is closed");
 
-        if (h.Stream.EndOfStream)
+        if (handle.EndOfStream)
         {
             L.PushNil();
             return 1;
         }
 
-        var content = h.Stream.ReadToEnd();
+        var content = handle.ReadToEnd();
         L.PushString(content);
 
         return 1;
@@ -82,12 +69,12 @@ public class ReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var handle = L.CheckObject<StreamReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (handle is null)
             L.Error("handle is closed");
 
-        var line = h.Stream.ReadLine();
+        var line = handle.ReadLine();
 
         if (line is null)
             L.PushNil();
@@ -104,12 +91,12 @@ public class ReadHandle : IHandle
         var count = (int)L.OptNumber(2, 1);
         L.ArgumentCheck(count >= 1, 2, "count must be a positive integer");
 
-        var h = GetHandle(L, false);
+        var handle = L.CheckObject<StreamReader>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (handle is null)
             L.Error("handle is closed");
 
-        if (h.Stream.EndOfStream)
+        if (handle.EndOfStream)
         {
             L.PushNil();
             return 1;
@@ -117,7 +104,7 @@ public class ReadHandle : IHandle
 
         var chunk = new char[count];
 
-        h.Stream.Read(chunk, 0, count);
+        handle.Read(chunk, 0, count);
 
         L.PushString(new string(chunk));
 
@@ -128,14 +115,12 @@ public class ReadHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, true);
+        var handle = L.CheckObject<StreamReader>(1, ObjectType, true);
 
-        if (h is null || h.IsClosed)
+        if (handle is null)
             return 0;
 
-        h.Stream.Close();
-
-        h.IsClosed = true;
+        handle.Dispose();
 
         return 0;
     }

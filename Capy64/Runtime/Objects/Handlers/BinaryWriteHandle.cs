@@ -6,14 +6,9 @@ using System.Text;
 
 namespace Capy64.Runtime.Objects.Handlers;
 
-public class BinaryWriteHandle : IHandle
+public class BinaryWriteHandle
 {
-    private readonly BinaryWriter Stream;
-    private bool IsClosed = false;
-    public BinaryWriteHandle(Stream stream)
-    {
-        Stream = new BinaryWriter(stream, Encoding.ASCII);
-    }
+    public const string ObjectType = "BinaryWriteHandle";
 
     private static readonly Dictionary<string, LuaFunction> functions = new()
     {
@@ -35,39 +30,31 @@ public class BinaryWriteHandle : IHandle
         ["close"] = L_Close,
     };
 
-    public void Push(Lua L, bool newTable = true)
+    public static void Push(Lua L, BinaryWriter stream)
     {
-        if (newTable)
-            L.NewTable();
+        L.PushObject(stream);
 
-        // metatable
-        L.NewTable();
-        L.PushString("__close");
-        L.PushCFunction(L_Close);
-        L.SetTable(-3);
-        L.PushString("__gc");
-        L.PushCFunction(L_Close);
-        L.SetTable(-3);
-        L.SetMetaTable(-2);
-
-        foreach (var pair in functions)
+        if (L.NewMetaTable(ObjectType))
         {
-            L.PushString(pair.Key);
-            L.PushCFunction(pair.Value);
+            L.PushString("__index");
+            L.NewTable();
+            foreach (var pair in functions)
+            {
+                L.PushString(pair.Key);
+                L.PushCFunction(pair.Value);
+                L.SetTable(-3);
+            }
+            L.SetTable(-3);
+
+            L.PushString("__close");
+            L.PushCFunction(L_Close);
+            L.SetTable(-3);
+            L.PushString("__gc");
+            L.PushCFunction(L_Close);
             L.SetTable(-3);
         }
 
-        L.PushString("_handle");
-        L.PushObject(this);
-        L.SetTable(-3);
-    }
-
-    private static BinaryWriteHandle GetHandle(Lua L, bool gc = true)
-    {
-        L.CheckType(1, LuaType.Table);
-        L.PushString("_handle");
-        L.GetTable(1);
-        return L.ToObject<BinaryWriteHandle>(-1, gc);
+        L.SetMetaTable(-2);
     }
 
     private static int L_WriteByte(IntPtr state)
@@ -102,12 +89,12 @@ public class BinaryWriteHandle : IHandle
             return 0;
         }
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write(buffer);
+        stream.Write(buffer);
 
         return 0;
     }
@@ -118,12 +105,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckInteger(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
-
-        h.Stream.Write((short)b);
+        
+        stream.Write((short)b);
 
         return 0;
     }
@@ -134,12 +121,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckInteger(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write((int)b);
+        stream.Write((int)b);
 
         return 0;
     }
@@ -150,12 +137,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckInteger(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write(b);
+        stream.Write(b);
 
         return 0;
     }
@@ -166,12 +153,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckInteger(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write((sbyte)b);
+        stream.Write((sbyte)b);
 
         return 0;
     }
@@ -182,12 +169,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckInteger(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write((ushort)b);
+        stream.Write((ushort)b);
 
         return 0;
     }
@@ -198,12 +185,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckInteger(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write((uint)b);
+        stream.Write((uint)b);
 
         return 0;
     }
@@ -214,12 +201,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckInteger(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write((ulong)b);
+        stream.Write((ulong)b);
 
         return 0;
     }
@@ -230,12 +217,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckNumber(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write((Half)b);
+        stream.Write((Half)b);
 
         return 0;
     }
@@ -246,12 +233,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckNumber(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write((float)b);
+        stream.Write((float)b);
 
         return 0;
     }
@@ -262,12 +249,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckNumber(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write((double)b);
+        stream.Write((double)b);
 
         return 0;
     }
@@ -308,12 +295,12 @@ public class BinaryWriteHandle : IHandle
             return 0;
         }
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write(buffer);
+        stream.Write(buffer);
 
         return 0;
     }
@@ -324,12 +311,12 @@ public class BinaryWriteHandle : IHandle
 
         var b = L.CheckString(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write(b);
+        stream.Write(b);
 
         return 0;
     }
@@ -341,12 +328,12 @@ public class BinaryWriteHandle : IHandle
         L.CheckType(2, LuaType.Boolean);
         var b = L.ToBoolean(2);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Write(b);
+        stream.Write(b);
 
         return 0;
     }
@@ -355,12 +342,12 @@ public class BinaryWriteHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, false);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
 
-        if (h is null || h.IsClosed)
+        if (stream is null)
             L.Error("handle is closed");
 
-        h.Stream.Flush();
+        stream.Flush();
 
         return 0;
     }
@@ -369,14 +356,12 @@ public class BinaryWriteHandle : IHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, true);
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, true);
 
-        if (h is null || h.IsClosed)
-            return 0;
+        if (stream is null)
+            L.Error("handle is closed");
 
-        h.Stream.Close();
-
-        h.IsClosed = true;
+        stream.Dispose();
 
         return 0;
     }

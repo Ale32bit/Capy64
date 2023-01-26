@@ -203,18 +203,18 @@ public class HTTP : IPlugin
 
             var stream = await response.Content.ReadAsStreamAsync();
 
-            IHandle handler;
-            if ((bool)options["binary"])
-                handler = new BinaryReadHandle(stream);
-            else
-                handler = new ReadHandle(stream);
-
             _game.LuaRuntime.QueueEvent("http_response", LK =>
             {
                 // arg 1, request id
                 LK.PushInteger(requestId);
 
                 // arg 2, response data
+                if ((bool)options["binary"])
+                    BinaryReadHandle.Push(LK, new(stream));
+                else
+                    ReadHandle.Push(LK, new(stream));
+
+                // arg 3, response info
                 LK.NewTable();
 
                 LK.PushString("success");
@@ -241,13 +241,10 @@ public class HTTP : IPlugin
 
                 LK.SetTable(-3);
 
-                handler.Push(LK, false);
-
-                return 2;
+                return 3;
 
             });
 
-            //_game.LuaRuntime.PushEvent("http_response", requestId, response.IsSuccessStatusCode, content, (int)response.StatusCode, response.ReasonPhrase);
         });
 
         L.PushInteger(requestId);
@@ -342,7 +339,7 @@ public class HTTP : IPlugin
             {
                 LK.PushInteger(requestId);
 
-                handle.Push(LK, true);
+                handle.Push(LK);
 
                 return 2;
             });

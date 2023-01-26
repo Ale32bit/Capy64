@@ -385,9 +385,7 @@ public class GPU : IPlugin
         var buffer = new uint[_game.Width * _game.Height];
         _game.Drawing.Canvas.GetData(buffer);
 
-        var handle = new GPUBuffer(buffer);
-
-        handle.Push(L);
+        GPUBuffer.Push(L, buffer);
 
         return 1;
     }
@@ -413,9 +411,7 @@ public class GPU : IPlugin
 
         var buffer = new uint[_game.Width * _game.Height];
 
-        var handle = new GPUBuffer(buffer);
-
-        handle.Push(L);
+        GPUBuffer.Push(L, buffer);
 
         return 1;
     }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Objects.Handlers;
 
-public class WebSocketHandle : IHandle
+public class WebSocketHandle
 {
     private ClientWebSocket _client;
     private long _requestId;
@@ -28,10 +28,9 @@ public class WebSocketHandle : IHandle
         ["closeAsync"] = L_CloseAsync,
     };
 
-    public void Push(Lua L, bool newTable = true)
+    public void Push(Lua L)
     {
-        if (newTable)
-            L.NewTable();
+        L.NewTable();
 
         // metatable
         L.NewTable();
