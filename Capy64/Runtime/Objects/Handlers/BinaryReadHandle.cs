@@ -12,6 +12,7 @@ public class BinaryReadHandle
 
     private static readonly Dictionary<string, LuaFunction> functions = new()
     {
+        ["readAll"] = L_ReadAll,
         ["nextByte"] = L_NextByte,
         ["nextShort"] = L_NextShort,
         ["nextInt"] = L_NextInt,
@@ -54,6 +55,25 @@ public class BinaryReadHandle
         }
 
         L.SetMetaTable(-2);
+    }
+
+    private static int L_ReadAll(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
+
+        if (stream is null)
+            L.Error("handle is closed");
+
+        if (stream.BaseStream.Position == stream.BaseStream.Length)
+            return 0;
+
+        var chars = stream.ReadChars((int)stream.BaseStream.Length);
+        var buffer = Encoding.ASCII.GetBytes(chars);
+
+        L.PushBuffer(buffer);
+        return 1;
     }
 
     private static int L_NextByte(IntPtr state)
