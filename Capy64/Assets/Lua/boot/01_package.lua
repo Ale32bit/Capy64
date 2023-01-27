@@ -1,1 +1,0 @@
-package.path = "/lib/?.lua;/lib/?/init.lua;" .. package.path

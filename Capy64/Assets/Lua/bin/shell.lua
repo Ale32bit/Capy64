@@ -1,6 +1,5 @@
 local term = require("term")
 local colors = require("colors")
-local io = require("io")
 local fs = require("fs")
 
 local exit = false
@@ -15,17 +14,6 @@ local function buildEnvironment()
     return setmetatable({
         shell = shell,
     }, { __index = _G })
-end
-
-local function printError(...)
-    local cfg = {term.getForeground()}
-    local cbg = {term.getBackground()}
-
-    term.setForeground(colors.red)
-    term.setBackground(colors.black)
-    print(...)
-    term.setForeground(table.unpack(cfg))
-    term.setBackground(table.unpack(cbg))
 end
 
 local function tokenise(...)
@@ -58,6 +46,10 @@ function shell.resolve(path)
         return fs.combine("", path)
     end
 
+    if path:sub(1, 1) == "~" then
+        return fs.combine(shell.homePath, path)
+    end
+
     return fs.combine(currentDir, path)
 end
 
@@ -67,7 +59,7 @@ function shell.resolveProgram(path)
     end
 
     for seg in shell.path:gmatch("[^;]+") do
-        local resolved = seg:gsub("%?", path)
+        local resolved = shell.resolve(seg:gsub("%?", path))
         if fs.exists(resolved) and not fs.isDir(resolved) then
             return resolved
         end
@@ -80,7 +72,7 @@ function shell.run(...)
     local path = shell.resolveProgram(command)
 
     if not path then
-        printError("Command not found: " .. command)
+        io.stderr.print("Command not found: " .. command)
         return false
     end
 
@@ -89,13 +81,13 @@ function shell.run(...)
     local func, err = loadfile(path, "t", env)
 
     if not func then
-        printError(err)
+        io.stderr.print(err)
         return false
     end
 
     local ok, err = pcall(func, table.unpack(args, 2))
     if not ok then
-        printError(err)
+        io.stderr.print(err)
         return false
     end
 
@@ -106,25 +98,29 @@ function shell.exit()
     exit = true
 end
 
+if not fs.exists(shell.homePath) then
+    fs.makeDir(shell.homePath)
+end
+
 local history = {}
 local lastExecSuccess = true
 while not exit do
+    term.setBackground(colors.black)
     term.setForeground(colors.white)
-    write(":")
+    io.write(":")
     term.setForeground(colors.lightBlue)
-    local currentDir = shell.getDir()
     if currentDir == shell.homePath then
-        write("~")
+        io.write("~")
     else
-        write(currentDir)
+        io.write(currentDir)
     end
-    
+
     if lastExecSuccess then
         term.setForeground(colors.yellow)
     else
         term.setForeground(colors.red)
     end
-    write("$ ")
+    io.write("$ ")
 
     term.setForeground(colors.white)
     local line = io.read(nil, history)

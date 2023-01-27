@@ -31,16 +31,16 @@ function http.request(url, body, headers, options)
     end
 
     local requestId = http.requestAsync(url, body, headers, options)
-    local ev, id, par
+    local ev, id, data, info
     repeat
-        ev, id, par = event.pull("http_response", "http_failure")
+        ev, id, data, info = event.pull("http_response", "http_failure")
     until id == requestId
 
     if ev == "http_failure" then
-        return nil, par
+        return nil, data
     end
 
-    return par
+    return data, info
 end
 
 function http.get(url, headers, options)

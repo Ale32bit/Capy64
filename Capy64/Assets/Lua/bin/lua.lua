@@ -19,9 +19,6 @@ local tEnv = {
         __tostring = function() return "Call exit() to exit." end,
         __call = function() bRunning = false end,
     }),
-    ["_echo"] = function(...)
-        return ...
-    end,
 }
 setmetatable(tEnv, { __index = _ENV })
 
@@ -35,9 +32,9 @@ print("Call exit() to exit.")
 term.setForeground(colours.white)
 
 while bRunning do
-    term.setForeground( colours.yellow )
-    write("> ")
-    term.setForeground( colours.white )
+    term.setForeground(colours.yellow)
+    io.write("> ")
+    term.setForeground(colours.white)
 
     local s = io.read(nil, tCommandHistory)
     if s:match("%S") and tCommandHistory[#tCommandHistory] ~= s then
@@ -46,7 +43,7 @@ while bRunning do
 
     local nForcePrint = 0
     local func, e = load(s, "=lua", "t", tEnv)
-    local func2 = load("return _echo(" .. s .. ");", "=lua", "t", tEnv)
+    local func2 = load("return " .. s, "=lua", "t", tEnv)
     if not func then
         if func2 then
             func = func2
@@ -69,10 +66,10 @@ while bRunning do
                 n = n + 1
             end
         else
-            print(tResults[2])
+            io.stderr.print(tResults[2])
         end
     else
-        print(e)
+        io.stderr.print(e)
     end
 
 end

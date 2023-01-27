@@ -1,7 +1,7 @@
 local expect = require "expect"
 
 local UTFString = {}
-local UTFString_mt = {__index = UTFString, __name = "UTFString"}
+local UTFString_mt = { __index = UTFString, __name = "UTFString" }
 
 local function toUTF8(s)
     -- convert from ANSI if the string is invalid in UTF-8
@@ -18,10 +18,10 @@ local function toUTF8(s)
 end
 
 function UTFString:new(s)
-    return setmetatable({str = toUTF8(s)}, UTFString_mt)
+    return setmetatable({ str = toUTF8(s) }, UTFString_mt)
 end
 
-setmetatable(UTFString, {__call = UTFString.new})
+setmetatable(UTFString, { __call = UTFString.new })
 
 local utf8_case_conv_utl, utf8_case_conv_ltu = nil, {} -- defined at bottom of file
 
@@ -40,10 +40,12 @@ function UTFString:find(pattern, init, plain)
     expect(1, pattern, "string", "table")
     expect(2, init, "number", "nil")
     if type(pattern) == "table" then
-        if getmetatable(pattern) ~= UTFString_mt then error("bad argument #1 (expected string or UTFString, got table)", 2) end
+        if getmetatable(pattern) ~= UTFString_mt then error("bad argument #1 (expected string or UTFString, got table)",
+            2) end
         pattern = pattern.str
     else pattern = toUTF8(pattern) end
-    pattern = string.gsub(string.gsub(pattern, "(.)%.", function(s) if s == "%" then return "%." else return s .. utf8.charpattern end end), "^%.", utf8.charpattern)
+    pattern = string.gsub(string.gsub(pattern, "(.)%.",
+        function(s) if s == "%" then return "%." else return s .. utf8.charpattern end end), "^%.", utf8.charpattern)
     local s, e = string.find(self.str, pattern, init and utf8.offset(self.str, init), plain)
     if not s then return nil end
     return utf8.len(string.sub(self.str, 1, s - 1)) + 1, utf8.len(string.sub(self.str, 1, e - 1)) + 1
@@ -61,10 +63,12 @@ end
 function UTFString:gmatch(pattern)
     expect(1, pattern, "string", "table")
     if type(pattern) == "table" then
-        if getmetatable(pattern) ~= UTFString_mt then error("bad argument #1 (expected string or UTFString, got table)", 2) end
+        if getmetatable(pattern) ~= UTFString_mt then error("bad argument #1 (expected string or UTFString, got table)",
+            2) end
         pattern = pattern.str
     else pattern = toUTF8(pattern) end
-    pattern = string.gsub(string.gsub(pattern, "(.)%.", function(s) if s == "%" then return "%." else return s .. utf8.charpattern end end), "^%.", utf8.charpattern)
+    pattern = string.gsub(string.gsub(pattern, "(.)%.",
+        function(s) if s == "%" then return "%." else return s .. utf8.charpattern end end), "^%.", utf8.charpattern)
     local iter = string.gmatch(self.str, pattern)
     return function()
         local matches = table.pack(iter())
@@ -82,12 +86,14 @@ function UTFString:gsub(pattern, repl, n)
     expect(2, repl, "string", "table", "function")
     expect(3, n, "number", "nil")
     if type(pattern) == "table" then
-        if getmetatable(pattern) ~= UTFString_mt then error("bad argument #1 (expected string or UTFString, got table)", 2) end
+        if getmetatable(pattern) ~= UTFString_mt then error("bad argument #1 (expected string or UTFString, got table)",
+            2) end
         pattern = pattern.str
-    else pattern = toUTF8(pattern)end
+    else pattern = toUTF8(pattern) end
     if type(repl) == "table" and getmetatable(repl) == UTFString_mt then repl = repl.str
     elseif type(repl) == "string" then repl = toUTF8(repl) end
-    pattern = string.gsub(string.gsub(pattern, "(.)%.", function(s) if s == "%" then return "%." else return s .. utf8.charpattern end end), "^%.", utf8.charpattern)
+    pattern = string.gsub(string.gsub(pattern, "(.)%.",
+        function(s) if s == "%" then return "%." else return s .. utf8.charpattern end end), "^%.", utf8.charpattern)
     local s, total = string.gsub(self.str, pattern, repl, n)
     return UTFString(s), total
 end
@@ -111,10 +117,12 @@ function UTFString:match(pattern, init)
     expect(1, pattern, "string", "table")
     expect(2, init, "number", "nil")
     if type(pattern) == "table" then
-        if getmetatable(pattern) ~= UTFString_mt then error("bad argument #1 (expected string or UTFString, got table)", 2) end
+        if getmetatable(pattern) ~= UTFString_mt then error("bad argument #1 (expected string or UTFString, got table)",
+            2) end
         pattern = pattern.str
     else pattern = toUTF8(pattern) end
-    pattern = string.gsub(string.gsub(pattern, "(.)%.", function(s) if s == "%" then return "%." else return s .. utf8.charpattern end end), "^%.", utf8.charpattern)
+    pattern = string.gsub(string.gsub(pattern, "(.)%.",
+        function(s) if s == "%" then return "%." else return s .. utf8.charpattern end end), "^%.", utf8.charpattern)
     local matches = table.pack(string.match(self.str, pattern, init and utf8.offset(self.str, init)))
     for i = 1, matches.n do
         local tt = type(matches[i])
@@ -143,7 +151,7 @@ function UTFString:rep(n, sep)
 end
 
 function UTFString:reverse()
-    local codes = {n = 0}
+    local codes = { n = 0 }
     for _, c in utf8.codes(self.str) do
         codes.n = codes.n + 1
         codes[codes.n] = c
@@ -191,8 +199,10 @@ function UTFString_mt.__concat(a, b)
     if type(a) == "string" then return UTFString(a .. b.str)
     elseif type(b) == "string" then return UTFString(a.str .. b)
     else
-        if type(a) ~= "table" or getmetatable(a) ~= UTFString_mt then error("attempt to concatenate " .. type(a) .. " and UTFString", 2)
-        elseif type(b) ~= "table" or getmetatable(b) ~= UTFString_mt then error("attempt to concatenate UTFString and " .. type(b), 2) end
+        if type(a) ~= "table" or getmetatable(a) ~= UTFString_mt then error("attempt to concatenate " ..
+            type(a) .. " and UTFString", 2)
+        elseif type(b) ~= "table" or getmetatable(b) ~= UTFString_mt then error("attempt to concatenate UTFString and "
+            .. type(b), 2) end
         return UTFString(a.str .. b.str)
     end
 end
@@ -208,8 +218,10 @@ function UTFString_mt.__lt(a, b)
     if type(a) == "string" then return a < b.str
     elseif type(b) == "string" then return a.str < b
     else
-        if type(a) ~= "table" or getmetatable(a) ~= UTFString_mt then error("attempt to compare " .. type(a) .. " and UTFString", 2)
-        elseif type(b) ~= "table" or getmetatable(b) ~= UTFString_mt then error("attempt to compare UTFString and " .. type(b), 2) end
+        if type(a) ~= "table" or getmetatable(a) ~= UTFString_mt then error("attempt to compare " ..
+            type(a) .. " and UTFString", 2)
+        elseif type(b) ~= "table" or getmetatable(b) ~= UTFString_mt then error("attempt to compare UTFString and " ..
+            type(b), 2) end
         return a.str < b.str
     end
 end
@@ -218,8 +230,10 @@ function UTFString_mt.__le(a, b)
     if type(a) == "string" then return a <= b.str
     elseif type(b) == "string" then return a.str <= b
     else
-        if type(a) ~= "table" or getmetatable(a) ~= UTFString_mt then error("attempt to compare " .. type(a) .. " and UTFString", 2)
-        elseif type(b) ~= "table" or getmetatable(b) ~= UTFString_mt then error("attempt to compare UTFString and " .. type(b), 2) end
+        if type(a) ~= "table" or getmetatable(a) ~= UTFString_mt then error("attempt to compare " ..
+            type(a) .. " and UTFString", 2)
+        elseif type(b) ~= "table" or getmetatable(b) ~= UTFString_mt then error("attempt to compare UTFString and " ..
+            type(b), 2) end
         return a.str <= b.str
     end
 end
@@ -245,7 +259,7 @@ utf8_case_conv_utl = {
     [0x0047] = 0x0067,
     [0x0048] = 0x0068,
     [0x0049] = 0x0069,
-    
+
     [0x004A] = 0x006A,
     [0x004B] = 0x006B,
     [0x004C] = 0x006C,
@@ -294,7 +308,7 @@ utf8_case_conv_utl = {
     [0x00DC] = 0x00FC,
     [0x00DD] = 0x00FD,
     [0x00DE] = 0x00FE,
-    [0x00DF] = {0x0073, 0x0073},
+    [0x00DF] = { 0x0073, 0x0073 },
     [0x0100] = 0x0101,
     [0x0102] = 0x0103,
     [0x0104] = 0x0105,
@@ -319,8 +333,8 @@ utf8_case_conv_utl = {
     [0x012A] = 0x012B,
     [0x012C] = 0x012D,
     [0x012E] = 0x012F,
-    [0x0130] = {0x0069, 0x0307},
-    
+    [0x0130] = { 0x0069, 0x0307 },
+
     [0x0132] = 0x0133,
     [0x0134] = 0x0135,
     [0x0136] = 0x0137,
@@ -332,7 +346,7 @@ utf8_case_conv_utl = {
     [0x0143] = 0x0144,
     [0x0145] = 0x0146,
     [0x0147] = 0x0148,
-    [0x0149] = {0x02BC, 0x006E},
+    [0x0149] = { 0x02BC, 0x006E },
     [0x014A] = 0x014B,
     [0x014C] = 0x014D,
     [0x014E] = 0x014F,
@@ -420,7 +434,7 @@ utf8_case_conv_utl = {
     [0x01EA] = 0x01EB,
     [0x01EC] = 0x01ED,
     [0x01EE] = 0x01EF,
-    [0x01F0] = {0x006A, 0x030C},
+    [0x01F0] = { 0x006A, 0x030C },
     [0x01F1] = 0x01F3,
     [0x01F2] = 0x01F3,
     [0x01F4] = 0x01F5,
@@ -481,7 +495,7 @@ utf8_case_conv_utl = {
     [0x038C] = 0x03CC,
     [0x038E] = 0x03CD,
     [0x038F] = 0x03CE,
-    [0x0390] = {0x03B9, 0x0308, 0x0301},
+    [0x0390] = { 0x03B9, 0x0308, 0x0301 },
     [0x0391] = 0x03B1,
     [0x0392] = 0x03B2,
     [0x0393] = 0x03B3,
@@ -508,7 +522,7 @@ utf8_case_conv_utl = {
     [0x03A9] = 0x03C9,
     [0x03AA] = 0x03CA,
     [0x03AB] = 0x03CB,
-    [0x03B0] = {0x03C5, 0x0308, 0x0301},
+    [0x03B0] = { 0x03C5, 0x0308, 0x0301 },
     [0x03C2] = 0x03C3,
     [0x03CF] = 0x03D7,
     [0x03D0] = 0x03B2,
@@ -723,7 +737,7 @@ utf8_case_conv_utl = {
     [0x0554] = 0x0584,
     [0x0555] = 0x0585,
     [0x0556] = 0x0586,
-    [0x0587] = {0x0565, 0x0582},
+    [0x0587] = { 0x0565, 0x0582 },
     [0x10A0] = 0x2D00,
     [0x10A1] = 0x2D01,
     [0x10A2] = 0x2D02,
@@ -900,13 +914,13 @@ utf8_case_conv_utl = {
     [0x1E90] = 0x1E91,
     [0x1E92] = 0x1E93,
     [0x1E94] = 0x1E95,
-    [0x1E96] = {0x0068, 0x0331},
-    [0x1E97] = {0x0074, 0x0308},
-    [0x1E98] = {0x0077, 0x030A},
-    [0x1E99] = {0x0079, 0x030A},
-    [0x1E9A] = {0x0061, 0x02BE},
+    [0x1E96] = { 0x0068, 0x0331 },
+    [0x1E97] = { 0x0074, 0x0308 },
+    [0x1E98] = { 0x0077, 0x030A },
+    [0x1E99] = { 0x0079, 0x030A },
+    [0x1E9A] = { 0x0061, 0x02BE },
     [0x1E9B] = 0x1E61,
-    [0x1E9E] = {0x0073, 0x0073},
+    [0x1E9E] = { 0x0073, 0x0073 },
     --1E9E; S;0x00DF, ; # LATIN CAPITAL LETTER SHARP S
     [0x1EA0] = 0x1EA1,
     [0x1EA2] = 0x1EA3,
@@ -992,10 +1006,10 @@ utf8_case_conv_utl = {
     [0x1F4B] = 0x1F43,
     [0x1F4C] = 0x1F44,
     [0x1F4D] = 0x1F45,
-    [0x1F50] = {0x03C5, 0x0313},
-    [0x1F52] = {0x03C5, 0x0313, 0x0300},
-    [0x1F54] = {0x03C5, 0x0313, 0x0301},
-    [0x1F56] = {0x03C5, 0x0313, 0x0342},
+    [0x1F50] = { 0x03C5, 0x0313 },
+    [0x1F52] = { 0x03C5, 0x0313, 0x0300 },
+    [0x1F54] = { 0x03C5, 0x0313, 0x0301 },
+    [0x1F56] = { 0x03C5, 0x0313, 0x0342 },
     [0x1F59] = 0x1F51,
     [0x1F5B] = 0x1F53,
     [0x1F5D] = 0x1F55,
@@ -1008,129 +1022,129 @@ utf8_case_conv_utl = {
     [0x1F6D] = 0x1F65,
     [0x1F6E] = 0x1F66,
     [0x1F6F] = 0x1F67,
-    [0x1F80] = {0x1F00, 0x03B9},
-    [0x1F81] = {0x1F01, 0x03B9},
-    [0x1F82] = {0x1F02, 0x03B9},
-    [0x1F83] = {0x1F03, 0x03B9},
-    [0x1F84] = {0x1F04, 0x03B9},
-    [0x1F85] = {0x1F05, 0x03B9},
-    [0x1F86] = {0x1F06, 0x03B9},
-    [0x1F87] = {0x1F07, 0x03B9},
-    [0x1F88] = {0x1F00, 0x03B9},
+    [0x1F80] = { 0x1F00, 0x03B9 },
+    [0x1F81] = { 0x1F01, 0x03B9 },
+    [0x1F82] = { 0x1F02, 0x03B9 },
+    [0x1F83] = { 0x1F03, 0x03B9 },
+    [0x1F84] = { 0x1F04, 0x03B9 },
+    [0x1F85] = { 0x1F05, 0x03B9 },
+    [0x1F86] = { 0x1F06, 0x03B9 },
+    [0x1F87] = { 0x1F07, 0x03B9 },
+    [0x1F88] = { 0x1F00, 0x03B9 },
     --1F88; S;0x1F80, ; # GREEK CAPITAL LETTER ALPHA WITH PSILI AND PROSGEGRAMMENI
-    [0x1F89] = {0x1F01, 0x03B9},
+    [0x1F89] = { 0x1F01, 0x03B9 },
     --1F89; S;0x1F81, ; # GREEK CAPITAL LETTER ALPHA WITH DASIA AND PROSGEGRAMMENI
-    [0x1F8A] = {0x1F02, 0x03B9},
+    [0x1F8A] = { 0x1F02, 0x03B9 },
     --1F8A; S;0x1F82, ; # GREEK CAPITAL LETTER ALPHA WITH PSILI AND VARIA AND PROSGEGRAMMENI
-    [0x1F8B] = {0x1F03, 0x03B9},
+    [0x1F8B] = { 0x1F03, 0x03B9 },
     --1F8B; S;0x1F83, ; # GREEK CAPITAL LETTER ALPHA WITH DASIA AND VARIA AND PROSGEGRAMMENI
-    [0x1F8C] = {0x1F04, 0x03B9},
+    [0x1F8C] = { 0x1F04, 0x03B9 },
     --1F8C; S;0x1F84, ; # GREEK CAPITAL LETTER ALPHA WITH PSILI AND OXIA AND PROSGEGRAMMENI
-    [0x1F8D] = {0x1F05, 0x03B9},
+    [0x1F8D] = { 0x1F05, 0x03B9 },
     --1F8D; S;0x1F85, ; # GREEK CAPITAL LETTER ALPHA WITH DASIA AND OXIA AND PROSGEGRAMMENI
-    [0x1F8E] = {0x1F06, 0x03B9},
+    [0x1F8E] = { 0x1F06, 0x03B9 },
     --1F8E; S;0x1F86, ; # GREEK CAPITAL LETTER ALPHA WITH PSILI AND PERISPOMENI AND PROSGEGRAMMENI
-    [0x1F8F] = {0x1F07, 0x03B9},
+    [0x1F8F] = { 0x1F07, 0x03B9 },
     --1F8F; S;0x1F87, ; # GREEK CAPITAL LETTER ALPHA WITH DASIA AND PERISPOMENI AND PROSGEGRAMMENI
-    [0x1F90] = {0x1F20, 0x03B9},
-    [0x1F91] = {0x1F21, 0x03B9},
-    [0x1F92] = {0x1F22, 0x03B9},
-    [0x1F93] = {0x1F23, 0x03B9},
-    [0x1F94] = {0x1F24, 0x03B9},
-    [0x1F95] = {0x1F25, 0x03B9},
-    [0x1F96] = {0x1F26, 0x03B9},
-    [0x1F97] = {0x1F27, 0x03B9},
-    [0x1F98] = {0x1F20, 0x03B9},
+    [0x1F90] = { 0x1F20, 0x03B9 },
+    [0x1F91] = { 0x1F21, 0x03B9 },
+    [0x1F92] = { 0x1F22, 0x03B9 },
+    [0x1F93] = { 0x1F23, 0x03B9 },
+    [0x1F94] = { 0x1F24, 0x03B9 },
+    [0x1F95] = { 0x1F25, 0x03B9 },
+    [0x1F96] = { 0x1F26, 0x03B9 },
+    [0x1F97] = { 0x1F27, 0x03B9 },
+    [0x1F98] = { 0x1F20, 0x03B9 },
     --1F98; S;0x1F90, ; # GREEK CAPITAL LETTER ETA WITH PSILI AND PROSGEGRAMMENI
-    [0x1F99] = {0x1F21, 0x03B9},
+    [0x1F99] = { 0x1F21, 0x03B9 },
     --1F99; S;0x1F91, ; # GREEK CAPITAL LETTER ETA WITH DASIA AND PROSGEGRAMMENI
-    [0x1F9A] = {0x1F22, 0x03B9},
+    [0x1F9A] = { 0x1F22, 0x03B9 },
     --1F9A; S;0x1F92, ; # GREEK CAPITAL LETTER ETA WITH PSILI AND VARIA AND PROSGEGRAMMENI
-    [0x1F9B] = {0x1F23, 0x03B9},
+    [0x1F9B] = { 0x1F23, 0x03B9 },
     --1F9B; S;0x1F93, ; # GREEK CAPITAL LETTER ETA WITH DASIA AND VARIA AND PROSGEGRAMMENI
-    [0x1F9C] = {0x1F24, 0x03B9},
+    [0x1F9C] = { 0x1F24, 0x03B9 },
     --1F9C; S;0x1F94, ; # GREEK CAPITAL LETTER ETA WITH PSILI AND OXIA AND PROSGEGRAMMENI
-    [0x1F9D] = {0x1F25, 0x03B9},
+    [0x1F9D] = { 0x1F25, 0x03B9 },
     --1F9D; S;0x1F95, ; # GREEK CAPITAL LETTER ETA WITH DASIA AND OXIA AND PROSGEGRAMMENI
-    [0x1F9E] = {0x1F26, 0x03B9},
+    [0x1F9E] = { 0x1F26, 0x03B9 },
     --1F9E; S;0x1F96, ; # GREEK CAPITAL LETTER ETA WITH PSILI AND PERISPOMENI AND PROSGEGRAMMENI
-    [0x1F9F] = {0x1F27, 0x03B9},
+    [0x1F9F] = { 0x1F27, 0x03B9 },
     --1F9F; S;0x1F97, ; # GREEK CAPITAL LETTER ETA WITH DASIA AND PERISPOMENI AND PROSGEGRAMMENI
-    [0x1FA0] = {0x1F60, 0x03B9},
-    [0x1FA1] = {0x1F61, 0x03B9},
-    [0x1FA2] = {0x1F62, 0x03B9},
-    [0x1FA3] = {0x1F63, 0x03B9},
-    [0x1FA4] = {0x1F64, 0x03B9},
-    [0x1FA5] = {0x1F65, 0x03B9},
-    [0x1FA6] = {0x1F66, 0x03B9},
-    [0x1FA7] = {0x1F67, 0x03B9},
-    [0x1FA8] = {0x1F60, 0x03B9},
+    [0x1FA0] = { 0x1F60, 0x03B9 },
+    [0x1FA1] = { 0x1F61, 0x03B9 },
+    [0x1FA2] = { 0x1F62, 0x03B9 },
+    [0x1FA3] = { 0x1F63, 0x03B9 },
+    [0x1FA4] = { 0x1F64, 0x03B9 },
+    [0x1FA5] = { 0x1F65, 0x03B9 },
+    [0x1FA6] = { 0x1F66, 0x03B9 },
+    [0x1FA7] = { 0x1F67, 0x03B9 },
+    [0x1FA8] = { 0x1F60, 0x03B9 },
     --1FA8; S;0x1FA0, ; # GREEK CAPITAL LETTER OMEGA WITH PSILI AND PROSGEGRAMMENI
-    [0x1FA9] = {0x1F61, 0x03B9},
+    [0x1FA9] = { 0x1F61, 0x03B9 },
     --1FA9; S;0x1FA1, ; # GREEK CAPITAL LETTER OMEGA WITH DASIA AND PROSGEGRAMMENI
-    [0x1FAA] = {0x1F62, 0x03B9},
+    [0x1FAA] = { 0x1F62, 0x03B9 },
     --1FAA; S;0x1FA2, ; # GREEK CAPITAL LETTER OMEGA WITH PSILI AND VARIA AND PROSGEGRAMMENI
-    [0x1FAB] = {0x1F63, 0x03B9},
+    [0x1FAB] = { 0x1F63, 0x03B9 },
     --1FAB; S;0x1FA3, ; # GREEK CAPITAL LETTER OMEGA WITH DASIA AND VARIA AND PROSGEGRAMMENI
-    [0x1FAC] = {0x1F64, 0x03B9},
+    [0x1FAC] = { 0x1F64, 0x03B9 },
     --1FAC; S;0x1FA4, ; # GREEK CAPITAL LETTER OMEGA WITH PSILI AND OXIA AND PROSGEGRAMMENI
-    [0x1FAD] = {0x1F65, 0x03B9},
+    [0x1FAD] = { 0x1F65, 0x03B9 },
     --1FAD; S;0x1FA5, ; # GREEK CAPITAL LETTER OMEGA WITH DASIA AND OXIA AND PROSGEGRAMMENI
-    [0x1FAE] = {0x1F66, 0x03B9},
+    [0x1FAE] = { 0x1F66, 0x03B9 },
     --1FAE; S;0x1FA6, ; # GREEK CAPITAL LETTER OMEGA WITH PSILI AND PERISPOMENI AND PROSGEGRAMMENI
-    [0x1FAF] = {0x1F67, 0x03B9},
+    [0x1FAF] = { 0x1F67, 0x03B9 },
     --1FAF; S;0x1FA7, ; # GREEK CAPITAL LETTER OMEGA WITH DASIA AND PERISPOMENI AND PROSGEGRAMMENI
-    [0x1FB2] = {0x1F70, 0x03B9},
-    [0x1FB3] = {0x03B1, 0x03B9},
-    [0x1FB4] = {0x03AC, 0x03B9},
-    [0x1FB6] = {0x03B1, 0x0342},
-    [0x1FB7] = {0x03B1, 0x0342, 0x03B9},
+    [0x1FB2] = { 0x1F70, 0x03B9 },
+    [0x1FB3] = { 0x03B1, 0x03B9 },
+    [0x1FB4] = { 0x03AC, 0x03B9 },
+    [0x1FB6] = { 0x03B1, 0x0342 },
+    [0x1FB7] = { 0x03B1, 0x0342, 0x03B9 },
     [0x1FB8] = 0x1FB0,
     [0x1FB9] = 0x1FB1,
     [0x1FBA] = 0x1F70,
     [0x1FBB] = 0x1F71,
-    [0x1FBC] = {0x03B1, 0x03B9},
+    [0x1FBC] = { 0x03B1, 0x03B9 },
     --1FBC; S;0x1FB3, ; # GREEK CAPITAL LETTER ALPHA WITH PROSGEGRAMMENI
     [0x1FBE] = 0x03B9,
-    [0x1FC2] = {0x1F74, 0x03B9},
-    [0x1FC3] = {0x03B7, 0x03B9},
-    [0x1FC4] = {0x03AE, 0x03B9},
-    [0x1FC6] = {0x03B7, 0x0342},
-    [0x1FC7] = {0x03B7, 0x0342, 0x03B9},
+    [0x1FC2] = { 0x1F74, 0x03B9 },
+    [0x1FC3] = { 0x03B7, 0x03B9 },
+    [0x1FC4] = { 0x03AE, 0x03B9 },
+    [0x1FC6] = { 0x03B7, 0x0342 },
+    [0x1FC7] = { 0x03B7, 0x0342, 0x03B9 },
     [0x1FC8] = 0x1F72,
     [0x1FC9] = 0x1F73,
     [0x1FCA] = 0x1F74,
     [0x1FCB] = 0x1F75,
-    [0x1FCC] = {0x03B7, 0x03B9},
+    [0x1FCC] = { 0x03B7, 0x03B9 },
     --1FCC; S;0x1FC3, ; # GREEK CAPITAL LETTER ETA WITH PROSGEGRAMMENI
-    [0x1FD2] = {0x03B9, 0x0308, 0x0300},
-    [0x1FD3] = {0x03B9, 0x0308, 0x0301},
-    [0x1FD6] = {0x03B9, 0x0342},
-    [0x1FD7] = {0x03B9, 0x0308, 0x0342},
+    [0x1FD2] = { 0x03B9, 0x0308, 0x0300 },
+    [0x1FD3] = { 0x03B9, 0x0308, 0x0301 },
+    [0x1FD6] = { 0x03B9, 0x0342 },
+    [0x1FD7] = { 0x03B9, 0x0308, 0x0342 },
     [0x1FD8] = 0x1FD0,
     [0x1FD9] = 0x1FD1,
     [0x1FDA] = 0x1F76,
     [0x1FDB] = 0x1F77,
-    [0x1FE2] = {0x03C5, 0x0308, 0x0300},
-    [0x1FE3] = {0x03C5, 0x0308, 0x0301},
-    [0x1FE4] = {0x03C1, 0x0313},
-    [0x1FE6] = {0x03C5, 0x0342},
-    [0x1FE7] = {0x03C5, 0x0308, 0x0342},
+    [0x1FE2] = { 0x03C5, 0x0308, 0x0300 },
+    [0x1FE3] = { 0x03C5, 0x0308, 0x0301 },
+    [0x1FE4] = { 0x03C1, 0x0313 },
+    [0x1FE6] = { 0x03C5, 0x0342 },
+    [0x1FE7] = { 0x03C5, 0x0308, 0x0342 },
     [0x1FE8] = 0x1FE0,
     [0x1FE9] = 0x1FE1,
     [0x1FEA] = 0x1F7A,
     [0x1FEB] = 0x1F7B,
     [0x1FEC] = 0x1FE5,
-    [0x1FF2] = {0x1F7C, 0x03B9},
-    [0x1FF3] = {0x03C9, 0x03B9},
-    [0x1FF4] = {0x03CE, 0x03B9},
-    [0x1FF6] = {0x03C9, 0x0342},
-    [0x1FF7] = {0x03C9, 0x0342, 0x03B9},
+    [0x1FF2] = { 0x1F7C, 0x03B9 },
+    [0x1FF3] = { 0x03C9, 0x03B9 },
+    [0x1FF4] = { 0x03CE, 0x03B9 },
+    [0x1FF6] = { 0x03C9, 0x0342 },
+    [0x1FF7] = { 0x03C9, 0x0342, 0x03B9 },
     [0x1FF8] = 0x1F78,
     [0x1FF9] = 0x1F79,
     [0x1FFA] = 0x1F7C,
     [0x1FFB] = 0x1F7D,
-    [0x1FFC] = {0x03C9, 0x03B9},
+    [0x1FFC] = { 0x03C9, 0x03B9 },
     --1FFC; S;0x1FF3, ; # GREEK CAPITAL LETTER OMEGA WITH PROSGEGRAMMENI
     [0x2126] = 0x03C9,
     [0x212A] = 0x006B,
@@ -1493,18 +1507,18 @@ utf8_case_conv_utl = {
     [0xABBD] = 0x13ED,
     [0xABBE] = 0x13EE,
     [0xABBF] = 0x13EF,
-    [0xFB00] = {0x0066, 0x0066},
-    [0xFB01] = {0x0066, 0x0069},
-    [0xFB02] = {0x0066, 0x006C},
-    [0xFB03] = {0x0066, 0x0066, 0x0069},
-    [0xFB04] = {0x0066, 0x0066, 0x006C},
-    [0xFB05] = {0x0073, 0x0074},
-    [0xFB06] = {0x0073, 0x0074},
-    [0xFB13] = {0x0574, 0x0576},
-    [0xFB14] = {0x0574, 0x0565},
-    [0xFB15] = {0x0574, 0x056B},
-    [0xFB16] = {0x057E, 0x0576},
-    [0xFB17] = {0x0574, 0x056D},
+    [0xFB00] = { 0x0066, 0x0066 },
+    [0xFB01] = { 0x0066, 0x0069 },
+    [0xFB02] = { 0x0066, 0x006C },
+    [0xFB03] = { 0x0066, 0x0066, 0x0069 },
+    [0xFB04] = { 0x0066, 0x0066, 0x006C },
+    [0xFB05] = { 0x0073, 0x0074 },
+    [0xFB06] = { 0x0073, 0x0074 },
+    [0xFB13] = { 0x0574, 0x0576 },
+    [0xFB14] = { 0x0574, 0x0565 },
+    [0xFB15] = { 0x0574, 0x056B },
+    [0xFB16] = { 0x057E, 0x0576 },
+    [0xFB17] = { 0x0574, 0x056D },
     [0xFF21] = 0xFF41,
     [0xFF22] = 0xFF42,
     [0xFF23] = 0xFF43,
@@ -1757,6 +1771,6 @@ utf8_case_conv_utl = {
     [0x1E920] = 0x1E942,
     [0x1E921] = 0x1E943,
 }
-for k,v in pairs(utf8_case_conv_utl) do utf8_case_conv_ltu[v] = k end
+for k, v in pairs(utf8_case_conv_utl) do utf8_case_conv_ltu[v] = k end
 
 return UTFString

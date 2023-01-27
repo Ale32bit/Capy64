@@ -5,7 +5,7 @@ local term = require("term")
 local function slowPrint(text, delay)
     for i = 1, #text do
         local ch = text:sub(i, i)
-        write(ch)
+        io.write(ch)
         timer.sleep(delay)
     end
     print()

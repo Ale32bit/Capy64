@@ -14,7 +14,7 @@ if not fs.isDir(dir) then
 end
 
 local files = fs.list(dir)
-for k,v in ipairs(files) do
+for k, v in ipairs(files) do
     if fs.isDir(fs.combine(dir, v)) then
         term.setForeground(colors.lightBlue)
         print(v .. "/")

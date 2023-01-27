@@ -1,5 +1,5 @@
 local fs = require("fs")
-local args = {...}
+local args = { ... }
 
 if #args == 0 then
     print("Usage: mkdir <directory>")
