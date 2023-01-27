@@ -2,23 +2,6 @@ local http = require("http")
 local event = require("event")
 local expect = require("expect").expect
 
-local WebSocketHandle = {}
-function WebSocketHandle:close()
-    self:closeAsync()
-    local _, id
-    repeat
-        _, id = event.pull("websocket_close")
-    until id == self.requestId
-end
-
-function WebSocketHandle:receive()
-    local _, id, par
-    repeat
-        _, id, par = event.pull("websocket_message")
-    until id == self.requestId
-
-    return par
-end
 
 function http.request(url, body, headers, options)
     expect(1, url, "string")
@@ -60,12 +43,27 @@ function http.post(url, body, headers, options)
     return http.request(url, body, headers, options)
 end
 
-local function buildWebsocketHandle(requestId, handle)
-    handle.requestId = requestId
-    local metatable = getmetatable(handle) or {}
-    metatable.__index = WebSocketHandle
+local WebSocketHandle
+local function buildWebsocketHandle(handle)
+    if not WebSocketHandle then
+        WebSocketHandle = getmetatable(handle) or { __index = {} }
+        function WebSocketHandle.__index:close()
+            self:closeAsync()
+            local _, id
+            repeat
+                _, id = event.pull("websocket_close")
+            until id == self:getRequestID()
+        end
 
-    setmetatable(handle, metatable)
+        function WebSocketHandle.__index:receive()
+            local _, id, par
+            repeat
+                _, id, par = event.pull("websocket_message")
+            until id == self:getRequestID()
+
+            return par
+        end
+    end
 
     return handle
 end
@@ -88,5 +86,5 @@ function http.websocket(url, headers)
         return nil, par
     end
 
-    return buildWebsocketHandle(requestId, par)
+    return buildWebsocketHandle(par)
 end

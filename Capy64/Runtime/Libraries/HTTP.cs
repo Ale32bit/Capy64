@@ -332,7 +332,7 @@ public class HTTP : IPlugin
 
             await task;
 
-            var handle = new WebSocketHandle(wsClient, requestId, _game);
+            var handle = new WebSocketHandle(wsClient, requestId);
             WebSocketConnections.Add(handle);
 
             _game.LuaRuntime.QueueEvent("websocket_connect", LK =>
@@ -368,10 +368,11 @@ public class HTTP : IPlugin
 
                 if (result.EndOfMessage)
                 {
+                    var payload = builder.ToString();
                     _game.LuaRuntime.QueueEvent("websocket_message", LK =>
                     {
                         LK.PushInteger(requestId);
-                        LK.PushString(builder.ToString());
+                        LK.PushString(payload);
 
                         return 2;
                     });

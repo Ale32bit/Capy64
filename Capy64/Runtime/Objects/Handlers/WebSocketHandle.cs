@@ -2,78 +2,80 @@
 using KeraLua;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.WebSockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Objects.Handlers;
 
 public class WebSocketHandle
 {
-    private ClientWebSocket _client;
-    private long _requestId;
-    private static IGame _game;
-    public WebSocketHandle(ClientWebSocket client, long requestId, IGame game)
+    public const string ObjectType = "WebSocketClient";
+    private readonly ClientWebSocket _socket;
+    private readonly long _requestId;
+    public WebSocketHandle(ClientWebSocket socket, long requestId)
     {
-        _client = client;
+        _socket = socket;
         _requestId = requestId;
-        _game = game;
     }
 
     private static readonly Dictionary<string, LuaFunction> functions = new()
     {
+        ["getRequestID"] = L_GetRequestId,
         ["send"] = L_Send,
         ["closeAsync"] = L_CloseAsync,
     };
 
     public void Push(Lua L)
     {
-        L.NewTable();
+        L.PushObject(this);
 
-        // metatable
-        L.NewTable();
-        L.PushString("__close");
-        L.PushCFunction(L_CloseAsync);
-        L.SetTable(-3);
-        L.PushString("__gc");
-        L.PushCFunction(L_CloseAsync);
-        L.SetTable(-3);
-        L.SetMetaTable(-2);
-
-        foreach (var pair in functions)
+        if (L.NewMetaTable(ObjectType))
         {
-            L.PushString(pair.Key);
-            L.PushCFunction(pair.Value);
+            L.PushString("__index");
+            L.NewTable();
+            foreach (var pair in functions)
+            {
+                L.PushString(pair.Key);
+                L.PushCFunction(pair.Value);
+                L.SetTable(-3);
+            }
+            L.SetTable(-3);
+
+            L.PushString("__close");
+            L.PushCFunction(L_CloseAsync);
+            L.SetTable(-3);
+
+            L.PushString("__gc");
+            L.PushCFunction(L_CloseAsync);
             L.SetTable(-3);
         }
 
-        L.PushString("_handle");
-        L.PushObject(this);
-        L.SetTable(-3);
+        L.SetMetaTable(-2);
     }
 
-    private static WebSocketHandle GetHandle(Lua L, bool gc = true)
+    private static int L_GetRequestId(IntPtr state)
     {
-        L.CheckType(1, LuaType.Table);
-        L.PushString("_handle");
-        L.GetTable(1);
-        return L.ToObject<WebSocketHandle>(-1, gc);
+        var L = Lua.FromIntPtr(state);
+
+        var client = L.CheckObject<WebSocketHandle>(1, ObjectType, false);
+
+        L.PushInteger(client._requestId);
+
+        return 1;
     }
 
     private static int L_Send(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
+        var client = L.CheckObject<WebSocketHandle>(1, ObjectType, false);
+
         var data = L.CheckBuffer(2);
 
-        var h = GetHandle(L, false);
-
-        if (h is null || h._client.State == WebSocketState.Closed)
+        if (client is null || client._socket.State == WebSocketState.Closed)
             L.Error("connection is closed");
 
-        h._client.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
+        client._socket.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
 
         return 0;
     }
@@ -82,24 +84,24 @@ public class WebSocketHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var h = GetHandle(L, true);
+        var client = L.CheckObject<WebSocketHandle>(1, ObjectType, true);
 
-        if (h is null || h._client.State == WebSocketState.Closed)
+        if (client is null || client._socket.State == WebSocketState.Closed)
             return 0;
 
-        h._client.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None)
+        client._socket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None)
             .ContinueWith(async task =>
             {
                 await task;
-                _game.LuaRuntime.QueueEvent("websocket_close", LK =>
+                Capy64.Instance.LuaRuntime.QueueEvent("websocket_close", LK =>
                 {
-                    LK.PushInteger(h._requestId);
+                    LK.PushInteger(client._requestId);
 
                     return 1;
                 });
             });
 
-        HTTP.WebSocketConnections.Remove(h);
+        HTTP.WebSocketConnections.Remove(client);
 
         return 0;
     }
