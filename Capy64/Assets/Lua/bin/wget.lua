@@ -26,7 +26,7 @@ if not response then
     error(err, 0)
 end
 
-local file <close> = fs.open(outputPath, "w")
+local file <close> = fs.open(outputPath, "wb")
 file:write(response:readAll())
 file:close()
 response:close()
