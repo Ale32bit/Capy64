@@ -13,11 +13,13 @@ namespace Capy64.Runtime;
 public class LuaState : IDisposable
 {
     public Lua Thread;
-    private Lua _parent;
+    private readonly Lua _parent;
 
-    private ConcurrentQueue<LuaEvent> _queue = new();
+    private readonly ConcurrentQueue<LuaEvent> _queue = new();
 
     private string[] _eventFilters = Array.Empty<string>();
+    private static readonly System.Timers.Timer yieldTimeoutTimer = new(TimeSpan.FromSeconds(3));
+    private static bool yieldTimedOut = false;
 
     public LuaState()
     {
@@ -34,9 +36,26 @@ public class LuaState : IDisposable
 
         Thread = _parent.NewThread();
 
+        Thread.SetHook(LH_YieldTimeout, LuaHookMask.Count, 7000);
+        yieldTimeoutTimer.Elapsed += (sender, ev) =>
+        {
+            yieldTimedOut = true;
+        };
+
         InitPlugins();
 
         Thread.SetTop(0);
+    }
+
+    private static void LH_YieldTimeout(IntPtr state, IntPtr ar)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        if (yieldTimedOut)
+        {
+            L.Error("no yield timeout");
+            Console.WriteLine("tick");
+        }
     }
 
     private void InitPlugins()
@@ -81,7 +100,7 @@ public class LuaState : IDisposable
     {
         npars = 0;
 
-        if (_queue.Count == 0)
+        if (_queue.IsEmpty)
             return false;
 
         if (!_queue.TryDequeue(out var ev))
@@ -109,8 +128,10 @@ public class LuaState : IDisposable
             Thread.Pop(npars);
             return true;
         }
-
+        yieldTimeoutTimer.Start();
         var status = Thread.Resume(null, npars, out var nresults);
+        yieldTimedOut = false;
+        yieldTimeoutTimer.Stop();
 
         // the Lua script is finished, there's nothing else to resume
         if (status == LuaStatus.OK)
@@ -155,6 +176,7 @@ public class LuaState : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         _queue.Clear();
         Thread.Close();
         _parent.Close();
