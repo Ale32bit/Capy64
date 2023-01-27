@@ -1,6 +1,8 @@
 ﻿using Capy64.API;
 using KeraLua;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -18,15 +20,26 @@ class Timer : IPlugin
     };
 
     private static IGame _game;
-    private static uint _timerId;
+    private static uint _timerId = 0;
+
+    private static ConcurrentDictionary<uint, System.Timers.Timer> timers = new();
     public Timer(IGame game)
     {
         _game = game;
-        _timerId = 0;
     }
 
     public void LuaInit(Lua state)
     {
+        _timerId = 0;
+
+        foreach (var pair in timers)
+        {
+            pair.Value.Stop();
+            pair.Value.Dispose();
+        }
+
+        timers.Clear();
+
         state.RequireF("timer", Open, false);
     }
 
@@ -52,8 +65,12 @@ class Timer : IPlugin
             Interval = delay,
         };
 
+        timers[timerId] = timer;
+
         timer.Elapsed += (o, e) =>
         {
+            timers.TryRemove(timerId, out _);
+
             _game.LuaRuntime.QueueEvent("timer", LK =>
             {
                 LK.PushInteger(timerId);
@@ -64,14 +81,5 @@ class Timer : IPlugin
 
         L.PushInteger(timerId);
         return 1;
-    }
-
-    private static int L_Sleep(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-
-
-        return 0;
     }
 }

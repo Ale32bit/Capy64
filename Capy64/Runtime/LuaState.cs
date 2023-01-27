@@ -1,6 +1,7 @@
 ﻿using Capy64.API;
 using KeraLua;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -14,7 +15,7 @@ public class LuaState : IDisposable
     public Lua Thread;
     private Lua _parent;
 
-    private Queue<LuaEvent> _queue = new();
+    private ConcurrentQueue<LuaEvent> _queue = new();
 
     private string[] _eventFilters = Array.Empty<string>();
 
@@ -24,6 +25,9 @@ public class LuaState : IDisposable
         {
             Encoding = Encoding.UTF8,
         };
+
+        _parent.PushString("Capy64 " + Capy64.Version);
+        _parent.SetGlobal("_HOST");
 
         Sandbox.OpenLibraries(_parent);
         Sandbox.Patch(_parent);
@@ -80,7 +84,8 @@ public class LuaState : IDisposable
         if (_queue.Count == 0)
             return false;
 
-        var ev = _queue.Dequeue();
+        if (!_queue.TryDequeue(out var ev))
+            return false;
 
         Thread.PushString(ev.Name);
         npars = 1;

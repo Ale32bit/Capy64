@@ -99,17 +99,16 @@ public class Event : IPlugin
         var eventName = L.CheckString(1);
 
         var nargs = L.GetTop();
+        var parsState = L.NewThread();
+        L.Pop(1);
+        L.XMove(parsState, nargs - 1);
 
         _game.LuaRuntime.QueueEvent(eventName, LK =>
         {
-            for (int i = 2; i <= nargs; i++)
-            {
-                L.PushCopy(i);
-            }
+            var nargs = parsState.GetTop();
+            parsState.XMove(LK, nargs);
 
-            L.XMove(LK, nargs - 1);
-
-            return nargs - 1;
+            return nargs;
         });
 
         return 0;

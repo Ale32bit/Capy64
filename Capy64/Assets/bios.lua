@@ -1,5 +1,6 @@
 ﻿local term = require("term")
 local timer = require("timer")
+local gpu = require("gpu")
 
 local bootSleep = 2000
 local bg = 0x0
@@ -8,6 +9,9 @@ local fg = 0xffffff
 term.setForeground(fg)
 term.setBackground(bg)
 term.clear()
+
+term.setSize(51, 19)
+gpu.setScale(2)
 
 local function sleep(n)
 	local timerId = timer.start(n)
@@ -82,7 +86,7 @@ local function setupScreen()
 			selection = selection + 1
 		elseif ev[3] == "enter" then
 			options[selection][2]()
-		elseif ev[3] == "esc" then
+		elseif ev[3] == "escape" then
 			exit()
 		end
 
@@ -119,8 +123,3 @@ end
 bootScreen()
 
 term.clear()
-exit()
-
-while true do
-	coroutine.yield()
-end

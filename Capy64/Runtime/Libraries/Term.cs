@@ -360,11 +360,9 @@ internal class Term : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        L.PushInteger(ForegroundColor.R);
-        L.PushInteger(ForegroundColor.G);
-        L.PushInteger(ForegroundColor.B);
+        L.PushInteger(PackRGB(ForegroundColor));
 
-        return 3;
+        return 1;
     }
 
     private static int L_SetForegroundColor(IntPtr state)
@@ -385,7 +383,7 @@ internal class Term : IPlugin
         else if (argsn == 1)
         {
             var c = (uint)L.CheckInteger(1);
-            Utils.UnpackRGB(c, out r, out g, out b);
+            UnpackRGB(c, out r, out g, out b);
         }
         else
         {
@@ -402,11 +400,9 @@ internal class Term : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        L.PushInteger(BackgroundColor.R);
-        L.PushInteger(BackgroundColor.G);
-        L.PushInteger(BackgroundColor.B);
+        L.PushInteger(PackRGB(BackgroundColor));
 
-        return 3;
+        return 1;
     }
 
     private static int L_SetBackgroundColor(IntPtr state)
@@ -427,7 +423,7 @@ internal class Term : IPlugin
         else if (argsn == 1)
         {
             var c = (uint)L.CheckInteger(1);
-            Utils.UnpackRGB(c, out r, out g, out b);
+            UnpackRGB(c, out r, out g, out b);
         }
         else
         {
