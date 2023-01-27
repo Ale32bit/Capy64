@@ -20,6 +20,7 @@ internal class RuntimeManager : IPlugin
     private int step = 0;
 
     private static bool close = false;
+    private static bool inPanic = false;
 
     private static IGame _game;
     public RuntimeManager(IGame game)
@@ -59,10 +60,26 @@ internal class RuntimeManager : IPlugin
 
     private void Resume()
     {
-        if (close || !luaState.ProcessQueue())
+        if (inPanic) return;
+        try
         {
-            Start();
+            if (close || !luaState.ProcessQueue())
+            {
+                Start();
+            }
         }
+        catch (LuaException e)
+        {
+            Console.Error.WriteLine(e);
+            inPanic = true;
+            close = true;
+            PanicScreen.Render(e.Message);
+        }
+    }
+
+    public static void ResetPanic()
+    {
+        inPanic = false;
     }
 
     private void InitBIOS()

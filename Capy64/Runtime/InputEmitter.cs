@@ -75,6 +75,7 @@ internal class InputEmitter
         if (heldReboot >= rebootDelay)
         {
             heldReboot = 0;
+            RuntimeManager.ResetPanic();
             RuntimeManager.Reboot();
         }
     }

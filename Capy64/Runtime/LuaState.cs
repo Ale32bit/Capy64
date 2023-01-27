@@ -135,9 +135,18 @@ public class LuaState : IDisposable
         string stacktrace = Thread.OptString(-1, null);
 
         var builder = new StringBuilder();
+        builder.AppendLine(status switch
+        {
+            LuaStatus.ErrSyntax => "Syntax error",
+            LuaStatus.ErrMem => "Out of memory",
+            LuaStatus.ErrErr => "Error",
+            LuaStatus.ErrRun => "Runtime error",
+            _ => status.ToString()
+        });
         builder.AppendLine(error);
         if (!string.IsNullOrWhiteSpace(stacktrace))
         {
+            builder.AppendLine();
             builder.Append(stacktrace);
         }
 
