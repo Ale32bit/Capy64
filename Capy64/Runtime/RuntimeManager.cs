@@ -68,7 +68,7 @@ internal class RuntimeManager : IPlugin
                 Start();
             }
         }
-        catch (LuaException e)
+        catch (Exception e)
         {
             Console.Error.WriteLine(e);
             inPanic = true;
