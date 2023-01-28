@@ -13,6 +13,7 @@ public class BinaryReadHandle
     private static readonly Dictionary<string, LuaFunction> functions = new()
     {
         ["readAll"] = L_ReadAll,
+        ["seek"] = L_Seek,
         ["nextByte"] = L_NextByte,
         ["nextShort"] = L_NextShort,
         ["nextInt"] = L_NextInt,
@@ -66,13 +67,42 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
+        if (stream.BaseStream.Position >= stream.BaseStream.Length)
+        {
+            L.PushNil();
             return 0;
+        }
 
         var chars = stream.ReadChars((int)stream.BaseStream.Length);
         var buffer = Encoding.ASCII.GetBytes(chars);
 
         L.PushBuffer(buffer);
+        return 1;
+    }
+
+    private static int L_Seek(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
+
+        if (stream is null)
+            L.Error("handle is closed");
+
+        var whence = L.CheckOption(2, "cur", new[]
+        {
+            "set", // begin 0
+            "cur", // current 1
+            "end", // end 2
+            null,
+        });
+
+        var offset = L.OptInteger(3, 0);
+
+        var newPosition = stream.BaseStream.Seek(offset, (SeekOrigin)whence);
+
+        L.PushInteger(newPosition);
+
         return 1;
     }
 
@@ -88,8 +118,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position >= stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         if (count == 1)
         {
@@ -118,8 +151,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position >= stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadInt16();
         L.PushInteger(b);
@@ -135,8 +171,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position > stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadInt32();
         L.PushInteger(b);
@@ -152,8 +191,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position > stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadInt64();
         L.PushInteger(b);
@@ -169,8 +211,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position > stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadSByte();
         L.PushInteger(b);
@@ -186,8 +231,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position > stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadUInt16();
         L.PushInteger(b);
@@ -203,8 +251,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position > stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadUInt32();
         L.PushInteger(b);
@@ -220,8 +271,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position > stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadUInt64();
         L.PushInteger((long)b);
@@ -237,8 +291,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position > stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadHalf();
         L.PushNumber((double)b);
@@ -254,8 +311,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position > stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadSingle();
         L.PushNumber((double)b);
@@ -271,8 +331,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position > stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadDouble();
         L.PushNumber((double)b);
@@ -291,8 +354,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position >= stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         if (count == 1)
         {
@@ -324,8 +390,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position >= stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         if (count == 1)
         {
@@ -351,8 +420,11 @@ public class BinaryReadHandle
         if (stream is null)
             L.Error("handle is closed");
 
-        if (stream.BaseStream.Position == stream.BaseStream.Length)
-            return 0;
+        if (stream.BaseStream.Position > stream.BaseStream.Length)
+        {
+            L.PushNil();
+            return 1;
+        }
 
         var b = stream.ReadBoolean();
         L.PushBoolean(b);

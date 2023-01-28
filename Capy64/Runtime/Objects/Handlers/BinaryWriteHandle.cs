@@ -12,6 +12,7 @@ public class BinaryWriteHandle
 
     private static readonly Dictionary<string, LuaFunction> functions = new()
     {
+        ["seek"] = L_Seek,
         ["writeByte"] = L_WriteByte,
         ["writeShort"] = L_WriteShort,
         ["writeInt"] = L_WriteInt,
@@ -55,6 +56,32 @@ public class BinaryWriteHandle
         }
 
         L.SetMetaTable(-2);
+    }
+
+    private static int L_Seek(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var stream = L.CheckObject<BinaryWriter>(1, ObjectType, false);
+
+        if (stream is null)
+            L.Error("handle is closed");
+
+        var whence = L.CheckOption(2, "cur", new[]
+        {
+            "set", // begin 0
+            "cur", // current 1
+            "end", // end 2
+            null,
+        });
+
+        var offset = L.OptInteger(3, 0);
+
+        var newPosition = stream.BaseStream.Seek(offset, (SeekOrigin)whence);
+
+        L.PushInteger(newPosition);
+
+        return 1;
     }
 
     private static int L_WriteByte(IntPtr state)
