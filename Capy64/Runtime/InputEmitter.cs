@@ -50,12 +50,6 @@ internal class InputEmitter
         _eventEmitter.OnTick -= OnTick;
     }
 
-    private static Keys[] rebootKeys = new[]
-    {
-        Keys.Insert,
-        Keys.LeftAlt, Keys.RightAlt,
-        Keys.LeftControl, Keys.RightControl,
-    };
     private void OnTick(object sender, TickEvent e)
     {
         var keyState = Keyboard.GetState();
