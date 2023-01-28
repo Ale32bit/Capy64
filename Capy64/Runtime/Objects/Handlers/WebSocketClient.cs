@@ -7,12 +7,12 @@ using System.Threading;
 
 namespace Capy64.Runtime.Objects.Handlers;
 
-public class WebSocketHandle
+public class WebSocketClient
 {
     public const string ObjectType = "WebSocketClient";
     private readonly ClientWebSocket _socket;
     private readonly long _requestId;
-    public WebSocketHandle(ClientWebSocket socket, long requestId)
+    public WebSocketClient(ClientWebSocket socket, long requestId)
     {
         _socket = socket;
         _requestId = requestId;
@@ -57,7 +57,7 @@ public class WebSocketHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var client = L.CheckObject<WebSocketHandle>(1, ObjectType, false);
+        var client = L.CheckObject<WebSocketClient>(1, ObjectType, false);
 
         L.PushInteger(client._requestId);
 
@@ -68,7 +68,7 @@ public class WebSocketHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var client = L.CheckObject<WebSocketHandle>(1, ObjectType, false);
+        var client = L.CheckObject<WebSocketClient>(1, ObjectType, false);
 
         var data = L.CheckBuffer(2);
 
@@ -84,7 +84,7 @@ public class WebSocketHandle
     {
         var L = Lua.FromIntPtr(state);
 
-        var client = L.CheckObject<WebSocketHandle>(1, ObjectType, true);
+        var client = L.CheckObject<WebSocketClient>(1, ObjectType, true);
 
         if (client is null || client._socket.State == WebSocketState.Closed)
             return 0;

@@ -18,7 +18,7 @@ public class HTTP : IPlugin
     private static IGame _game;
     private static HttpClient _httpClient;
     private static long _requestId;
-    public static readonly HashSet<WebSocketHandle> WebSocketConnections = new();
+    public static readonly HashSet<WebSocketClient> WebSocketConnections = new();
 
     public static readonly string UserAgent = $"Capy64/{Capy64.Version}";
 
@@ -332,7 +332,7 @@ public class HTTP : IPlugin
 
             await task;
 
-            var handle = new WebSocketHandle(wsClient, requestId);
+            var handle = new WebSocketClient(wsClient, requestId);
             WebSocketConnections.Add(handle);
 
             _game.LuaRuntime.QueueEvent("websocket_connect", LK =>
