@@ -139,6 +139,11 @@ internal class Term : IPlugin
             name = "setBlink",
             function = L_SetBlink,
         },
+        new()
+        {
+            name = "blit",
+            function = L_Blit,
+        },
         new(),
     };
 
@@ -281,7 +286,7 @@ internal class Term : IPlugin
     {
         var L = Lua.FromIntPtr(state);
         string str = "";
-        if(!L.IsNone(1))
+        if (!L.IsNone(1))
             str = L.ToString(1);
 
         Write(str);
@@ -558,6 +563,55 @@ internal class Term : IPlugin
         var enableCursor = L.ToBoolean(1);
 
         SetCursorBlink(enableCursor);
+
+        return 0;
+    }
+
+    private static int L_Blit(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var text = L.CheckString(1);
+        L.CheckType(2, LuaType.Table);
+        L.CheckType(3, LuaType.Table);
+
+        var len = L.Length(1);
+        L.ArgumentCheck(L.Length(2) == len, 2, "length does not match");
+        L.ArgumentCheck(L.Length(3) == len, 3, "length does not match");
+
+        var fg = new Color[len];
+        var bg = new Color[len];
+
+        L.PushCopy(2);
+        for (int i = 1; i <= len; i++)
+        {
+            L.GetInteger(-1, i);
+            var v = L.CheckInteger(-1);
+            L.Pop(1);
+
+            UnpackRGB((uint)v, out var r, out var g, out var b);
+            fg[i - 1] = new Color(r, g, b);
+        }
+        L.Pop(1);
+
+        L.PushCopy(3);
+        for (int i = 1; i <= len; i++)
+        {
+            L.GetInteger(-1, i);
+            var v = L.CheckInteger(-1);
+            L.Pop(1);
+
+            UnpackRGB((uint)v, out var r, out var g, out var b);
+            bg[i - 1] = new Color(r, g, b);
+        }
+        L.Pop(1);
+
+        for (int i = 0; i < len; i++)
+        {
+            ForegroundColor = fg[i];
+            BackgroundColor = bg[i];
+            Write(text[i].ToString());
+        }
 
         return 0;
     }
