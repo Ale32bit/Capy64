@@ -466,6 +466,6 @@ public class GPU : IPlugin
             L.Error(e.ToString());
         }
 
-        return -1;
+        return 0;
     }
 }
