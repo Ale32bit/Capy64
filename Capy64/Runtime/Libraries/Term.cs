@@ -4,6 +4,7 @@ using KeraLua;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
+using Newtonsoft.Json.Linq;
 using System;
 using static Capy64.Utils;
 using static System.Formats.Asn1.AsnWriter;
@@ -575,42 +576,39 @@ internal class Term : IPlugin
         L.CheckType(2, LuaType.Table);
         L.CheckType(3, LuaType.Table);
 
-        var len = L.Length(1);
+        // use .Length instead of Lua's Len
+        // for UTF-8 support
+        var len = text.Length;
         L.ArgumentCheck(L.Length(2) == len, 2, "length does not match");
         L.ArgumentCheck(L.Length(3) == len, 3, "length does not match");
 
-        var fg = new Color[len];
-        var bg = new Color[len];
-
-        L.PushCopy(2);
         for (int i = 1; i <= len; i++)
         {
-            L.GetInteger(-1, i);
-            var v = L.CheckInteger(-1);
+            L.GetInteger(2, i);
+            var fgv = (uint)L.CheckInteger(-1);
             L.Pop(1);
 
-            UnpackRGB((uint)v, out var r, out var g, out var b);
-            fg[i - 1] = new Color(r, g, b);
-        }
-        L.Pop(1);
-
-        L.PushCopy(3);
-        for (int i = 1; i <= len; i++)
-        {
-            L.GetInteger(-1, i);
-            var v = L.CheckInteger(-1);
+            L.GetInteger(3, i);
+            var bgv = (uint)L.CheckInteger(-1);
             L.Pop(1);
 
-            UnpackRGB((uint)v, out var r, out var g, out var b);
-            bg[i - 1] = new Color(r, g, b);
-        }
-        L.Pop(1);
+            // RGB to ABGR
+            fgv =
+                (fgv & 0x00_FF_00_00U) >> 16 | // move R
+                (fgv & 0x00_00_FF_00U) |       // move G
+                (fgv & 0x00_00_00_FFU) << 16 | // move B
+                0xFF_00_00_00U;
 
-        for (int i = 0; i < len; i++)
-        {
-            ForegroundColor = fg[i];
-            BackgroundColor = bg[i];
-            Write(text[i].ToString());
+            bgv =
+                (bgv & 0x00_FF_00_00U) >> 16 | // move R
+                (bgv & 0x00_00_FF_00U) |       // move G
+                (bgv & 0x00_00_00_FFU) << 16 | // move B
+                0xFF_00_00_00U;
+
+
+            ForegroundColor = new(fgv);
+            BackgroundColor = new(bgv);
+            Write(text[i - 1].ToString());
         }
 
         return 0;
