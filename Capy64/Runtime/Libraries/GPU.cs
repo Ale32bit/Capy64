@@ -2,8 +2,10 @@
 using Capy64.Runtime.Objects;
 using KeraLua;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -111,6 +113,11 @@ public class GPU : IPlugin
         {
             name = "drawBuffer",
             function = L_DrawBuffer,
+        },
+        new()
+        {
+            name = "loadImage",
+            function = L_LoadImage,
         },
         new(), // NULL
     };
@@ -424,7 +431,6 @@ public class GPU : IPlugin
         return 1;
     }
 
-    // WIP
     private static int L_DrawBuffer(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
@@ -467,5 +473,42 @@ public class GPU : IPlugin
         }
 
         return 0;
+    }
+
+    private static int L_LoadImage(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var path = L.CheckString(1);
+
+        path = FileSystem.Resolve(path);
+
+        if (!File.Exists(path))
+        {
+            L.Error("file not found");
+            return 0;
+        }
+
+        Texture2D texture;
+        try
+        {
+            texture = Texture2D.FromFile(Capy64.Instance.Drawing.Canvas.GraphicsDevice, path);
+        }
+        catch (Exception e)
+        {
+            L.Error(e.Message);
+            return 0;
+        }
+
+        var data = new uint[texture.Width * texture.Height];
+        texture.GetData(data);
+
+        GPUBuffer.Push(L, data);
+        L.PushInteger(texture.Width);
+        L.PushInteger(texture.Height);
+
+        texture.Dispose();
+
+        return 3;
     }
 }
