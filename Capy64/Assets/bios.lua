@@ -1,6 +1,7 @@
 ﻿local term = require("term")
 local timer = require("timer")
 local gpu = require("gpu")
+local fs = require("fs")
 
 local bootSleep = 2000
 local bg = 0x0
@@ -28,6 +29,27 @@ local function writeCenter(text)
 		y
 	)
 	term.write(text)
+end
+
+local function drawVendorImage()
+	if not fs.exists("/boot/vendor.bmp") then
+		return
+	end
+
+	local w, h = gpu.getSize()
+	local ok, err = pcall(function()
+		local buffer<close>, width, height = gpu.loadImage("/boot/vendor.bmp")
+
+		local x, y = 
+			math.ceil((w / 2) - (width / 2)),
+			math.ceil((h / 2) - (height / 2))
+
+		gpu.drawBuffer(buffer, x, y, width, height)
+	end)
+
+	if not ok then
+		print("Warning: Could not draw vendor.bmp", err)
+	end
 end
 
 local w, h = term.getSize()
@@ -100,6 +122,8 @@ local function setupScreen()
 end
 
 local function bootScreen()
+	drawVendorImage()
+
 	term.setPos(1,2)
 	writeCenter("Capy64")
 	term.setPos(1,4)
