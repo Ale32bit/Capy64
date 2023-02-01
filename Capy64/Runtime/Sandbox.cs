@@ -164,6 +164,9 @@ internal class Sandbox
 
         var libname = L.CheckString(1);
         var searchpath = L.CheckString(2);
+
+        libname = libname.Replace('.', '/');
+
         var possiblePaths = searchpath
             .Split(';')
             .Select(p => p.Replace("?", libname));
