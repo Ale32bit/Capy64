@@ -180,6 +180,7 @@ public class Drawing : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         _spriteBatch.Dispose();
         _whitePixel.Dispose();
     }
