@@ -409,10 +409,34 @@ public class GPU : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = new uint[_game.Width * _game.Height];
+        var width = L.OptInteger(1, _game.Width);
+        var height = L.OptInteger(2, _game.Height);
+
+        var buffer = new uint[width * height];
 
         GPUBuffer.Push(L, buffer);
 
         return 1;
+    }
+
+    // WIP
+    private static int L_CopyBuffer(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var x = L.CheckInteger(1);
+        var y = L.CheckInteger(2);
+
+        var from = L.CheckObject<uint[]>(3, GPUBuffer.ObjectType, false);
+        if (from is null)
+        {
+            L.ArgumentError(3, GPUBuffer.ObjectType + " expected, got " + L.TypeName(L.Type(3)));
+        }
+
+        var origin = new uint[_game.Width * _game.Height];
+        _game.Drawing.Canvas.GetData(origin);
+
+
+        return 0;
     }
 }
