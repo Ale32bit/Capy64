@@ -43,10 +43,11 @@ public class DiscordIntegration : IPlugin
         {
             Details = details,
             State = state,
+            Timestamps = Timestamps.Now,
             Assets = new Assets()
             {
                 LargeImageKey = "image_large",
-                LargeImageText = "Capy64",
+                LargeImageText = "Capy64 " + Capy64.Version,
                 SmallImageKey = "image_small"
             }
         });
