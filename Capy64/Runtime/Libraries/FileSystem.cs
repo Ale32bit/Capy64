@@ -414,6 +414,11 @@ public class FileSystem : IPlugin
         var attr = File.GetAttributes(path);
         if (attr.HasFlag(FileAttributes.Directory))
         {
+            if(!recursive && Directory.GetFileSystemEntries(path).Any())
+            {
+                L.Error("directory not empty");
+                return 0;
+            }
             Directory.Delete(path, recursive);
         }
         else
