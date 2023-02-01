@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using static Capy64.Utils;
+using Capy64.Integrations;
 
 namespace Capy64;
 
@@ -33,6 +34,8 @@ public class Capy64 : Game, IGame
     public Drawing Drawing { get; private set; }
     public LuaState LuaRuntime { get; set; }
     public EventEmitter EventEmitter { get; private set; }
+    public DiscordIntegration Discord { get; set; }
+
     public Borders Borders = new()
     {
         Top = 0,

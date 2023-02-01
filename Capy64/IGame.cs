@@ -1,6 +1,7 @@
 ﻿using Capy64.API;
 using Capy64.Core;
 using Capy64.Eventing;
+using Capy64.Integrations;
 using Capy64.Runtime;
 using Microsoft.Xna.Framework;
 using System;
@@ -27,4 +28,7 @@ public interface IGame
     event EventHandler<EventArgs> Exiting;
     void Run();
     void Exit();
+
+    // Integrations
+    DiscordIntegration Discord { get; }
 }
