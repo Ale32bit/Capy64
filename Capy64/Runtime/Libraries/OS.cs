@@ -15,31 +15,5 @@ public class OS : IPlugin
     public void LuaInit(Lua state)
     {
         state.GetGlobal("os");
-
-        state.PushString("shutdown");
-        state.PushCFunction(L_Shutdown);
-        state.SetTable(-3);
-    }
-
-    private static int L_Shutdown(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        var doReboot = false;
-        if (L.IsBoolean(1))
-        {
-            doReboot = L.ToBoolean(1);
-        }
-
-        if (doReboot)
-        {
-            RuntimeManager.Reboot();
-        }
-        else
-        {
-            RuntimeManager.Shutdown();
-        }
-
-        return 0;
     }
 }
