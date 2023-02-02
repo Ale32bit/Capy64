@@ -3,6 +3,7 @@ using DiscordRPC;
 using DiscordRPC.Logging;
 using DiscordRPC.Message;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,15 +22,15 @@ public class DiscordIntegration : IPlugin
         _configuration = configuration;
 
         var discordConfig = _configuration.GetSection("Integrations:Discord");
-        Client = new(discordConfig["ApplicationId"])
-        {
-            Logger = new ConsoleLogger() { Level = LogLevel.Warning }
-        };
+        Client = new(discordConfig["ApplicationId"]);
 
-        Capy64.Instance.Discord = this;
-
+#if DEBUG
+        Client.Logger = new ConsoleLogger() { Level = DiscordRPC.Logging.LogLevel.Info };
         Client.OnReady += OnReady;
         Client.OnPresenceUpdate += OnPresenceUpdate;
+#endif
+
+        Capy64.Instance.Discord = this;
 
         if (discordConfig.GetValue("Enable", false))
         {
