@@ -1,5 +1,6 @@
 local term = require("term")
 local colors = require("colors")
+local machine = require("machine")
 
 term.setForeground(0x59c9ff)
 term.setBackground(colors.black)
@@ -11,4 +12,4 @@ term.setPos(1, 2)
 
 dofile("/bin/shell.lua")
 
-os.shutdown(false)
+machine.shutdown()

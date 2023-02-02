@@ -2,6 +2,7 @@
 local timer = require("timer")
 local gpu = require("gpu")
 local fs = require("fs")
+local machine = require("machine")
 
 local bootSleep = 2000
 local bg = 0x0
@@ -72,7 +73,7 @@ local function setupScreen()
 		},
 		{
 			"Shutdown",
-			os.shutdown,
+			machine.shutdown,
 		}
 	}
 
