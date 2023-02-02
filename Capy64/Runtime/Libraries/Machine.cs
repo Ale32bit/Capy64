@@ -78,7 +78,7 @@ public class Machine : IPlugin
 
         var currentTitle = Capy64.Instance.Window.Title;
 
-        if(!L.IsNoneOrNil(1))
+        if (!L.IsNoneOrNil(1))
         {
             var newTitle = L.CheckString(1);
 
@@ -106,9 +106,20 @@ public class Machine : IPlugin
         var details = L.CheckString(1);
         var dstate = L.OptString(2, null);
 
-        Capy64.Instance.Discord.SetPresence(details, dstate);
+        try
+        {
+            Capy64.Instance.Discord.SetPresence(details, dstate);
+            L.PushBoolean(true);
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine(e);
+            L.PushBoolean(false);
+        }
 
-        return 0;
+
+
+        return 1;
     }
 
 }
