@@ -84,6 +84,8 @@ internal class RuntimeManager : IPlugin
 
     private void InitBIOS()
     {
+        InstallOS(false);
+
         _game.Discord.SetPresence("Booting up...");
 
         luaState = new LuaState();
