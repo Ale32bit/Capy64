@@ -20,7 +20,7 @@ local function showError(err)
 end
 
 function os.version()
-    return "CapyOS 0.0.1"
+    return "CapyOS 0.0.2"
 end
 
 term.setSize(51, 19)
@@ -29,9 +29,9 @@ gpu.setScale(2)
 term.setPos(1, 1)
 term.write(_HOST)
 
-local files = fs.list("/boot")
+local files = fs.list("/boot/autorun")
 for k, v in ipairs(files) do
-    local func, err = loadfile("/boot/" .. v)
+    local func, err = loadfile("/boot/autorun/" .. v)
     if not func then
         showError(err)
         break
