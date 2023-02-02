@@ -1,3 +1,5 @@
+local version = "0.0.2"
+
 print("Starting CapyOS")
 
 local term = require("term")
@@ -20,7 +22,7 @@ local function showError(err)
 end
 
 function os.version()
-    return "CapyOS 0.0.2"
+    return "CapyOS " .. version
 end
 
 term.setSize(51, 19)
@@ -30,18 +32,16 @@ term.setPos(1, 1)
 term.write(_HOST)
 
 local files = fs.list("/boot/autorun")
-for k, v in ipairs(files) do
-    local func, err = loadfile("/boot/autorun/" .. v)
+for i = 1, #files do
+    local func, err = loadfile("/boot/autorun/" .. files[i])
     if not func then
         showError(err)
         break
     end
 
     local ok, err = pcall(func)
-
     if not ok then
         showError(debug.traceback(err))
-
         break
     end
 end

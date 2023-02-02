@@ -1,6 +1,7 @@
 local term = require("term")
 local colors = require("colors")
 local fs = require("fs")
+local machine = require("machine")
 
 local exit = false
 local shell = {}
@@ -10,9 +11,13 @@ shell.homePath = "/home"
 
 local currentDir = shell.homePath
 
-local function buildEnvironment()
+local function buildEnvironment(path, args)
+    local arg = { table.unpack(args, 2) }
+    arg[0] = path
+    
     return setmetatable({
         shell = shell,
+        arg = arg
     }, { __index = _G })
 end
 
@@ -76,7 +81,7 @@ function shell.run(...)
         return false
     end
 
-    local env = buildEnvironment()
+    local env = buildEnvironment(command, args)
 
     local func, err = loadfile(path, "t", env)
 
@@ -105,6 +110,8 @@ end
 local history = {}
 local lastExecSuccess = true
 while not exit do
+    machine.setRPC(os.version(), "On shell")
+
     term.setBackground(colors.black)
     term.setForeground(colors.white)
     io.write(":")
@@ -130,6 +137,7 @@ while not exit do
     end
 
     if line:match("%S") then
+        machine.setRPC(os.version(), "Running: " .. line)
         lastExecSuccess = shell.run(line)
     end
 end
