@@ -56,6 +56,7 @@ internal class Term : IPlugin
         UpdateSize();
 
         _game.EventEmitter.OnOverlay += OnOverlay;
+        _game.EventEmitter.OnScreenSizeChange += OnScreenSizeChange;
     }
 
     private LuaRegister[] TermLib = new LuaRegister[]
@@ -160,12 +161,16 @@ internal class Term : IPlugin
         return 1;
     }
 
-    public static void UpdateSize()
+    public static void UpdateSize(bool resize = true)
     {
-        _game.Width = RealWidth;
-        _game.Height = RealHeight;
-        _game.UpdateSize();
-        CharGrid = new Char?[Width * Height];
+        Array.Resize(ref CharGrid, Width * Height);
+
+        if (resize)
+        {
+            _game.Width = RealWidth;
+            _game.Height = RealHeight;
+            _game.UpdateSize();
+        }
     }
 
     public static Vector2 ToRealPos(Vector2 termPos)
@@ -250,6 +255,14 @@ internal class Term : IPlugin
             cursorState = !cursorState;
         }
         UpdateCursor();
+    }
+
+    private void OnScreenSizeChange(object sender, EventArgs e)
+    {
+        Width = _game.Width / CharWidth;
+        Height = _game.Height / CharHeight;
+
+        UpdateSize(false);
     }
 
     private static void UpdateCursor()

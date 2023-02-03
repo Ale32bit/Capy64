@@ -16,7 +16,7 @@ namespace Capy64.Runtime;
 internal class RuntimeManager : IPlugin
 {
     private LuaState luaState;
-    private InputEmitter emitter;
+    private EventEmitter emitter;
     private int step = 0;
 
     private static bool close = false;

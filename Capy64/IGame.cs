@@ -17,13 +17,13 @@ public interface IGame
     GameWindow Window { get; }
     Drawing Drawing { get; }
     LuaState LuaRuntime { get; set; }
-    EventEmitter EventEmitter { get; }
+    Eventing.EventEmitter EventEmitter { get; }
     void ConfigureServices(IServiceProvider serviceProvider);
 
     int Width { get; set; }
     int Height { get; set; }
     float Scale { get; set; }
-    void UpdateSize();
+    void UpdateSize(bool resize = true);
 
     event EventHandler<EventArgs> Exiting;
     void Run();

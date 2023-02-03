@@ -33,7 +33,7 @@ public class Capy64 : Game, IGame
     public float Scale { get; set; } = 2f;
     public Drawing Drawing { get; private set; }
     public LuaState LuaRuntime { get; set; }
-    public EventEmitter EventEmitter { get; private set; }
+    public Eventing.EventEmitter EventEmitter { get; private set; }
     public DiscordIntegration Discord { get; set; }
 
     public Borders Borders = new()
@@ -71,11 +71,14 @@ public class Capy64 : Game, IGame
         _serviceProvider = serviceProvider;
     }
 
-    public void UpdateSize()
+    public void UpdateSize(bool resize = true)
     {
-        _graphics.PreferredBackBufferWidth = (int)(Width * Scale) + Borders.Left + Borders.Right;
-        _graphics.PreferredBackBufferHeight = (int)(Height * Scale) + Borders.Top + Borders.Right;
-        _graphics.ApplyChanges();
+        if (resize)
+        {
+            _graphics.PreferredBackBufferWidth = (int)(Width * Scale) + Borders.Left + Borders.Right;
+            _graphics.PreferredBackBufferHeight = (int)(Height * Scale) + Borders.Top + Borders.Right;
+            _graphics.ApplyChanges();
+        }
 
         renderTarget = new RenderTarget2D(
             GraphicsDevice,
@@ -96,17 +99,27 @@ public class Capy64 : Game, IGame
     private void OnWindowSizeChange(object sender, EventArgs e)
     {
         var bounds = Window.ClientBounds;
-        Console.WriteLine(bounds);
-
-        if (Window.IsMaximized())
-        {
-
-        }
 
         Width = (int)(bounds.Width / Scale);
         Height = (int)(bounds.Height / Scale);
 
-        UpdateSize();
+        if (Window.IsMaximized())
+        {
+            var vertical = bounds.Height - Height * Scale;
+            var horizontal = bounds.Width - Width * Scale;
+
+            Borders.Top = (int)Math.Floor(vertical / 2d);
+            Borders.Bottom = (int)Math.Ceiling(vertical / 2d);
+
+            Borders.Left = (int)Math.Floor(horizontal / 2d);
+            Borders.Right = (int)Math.Ceiling(horizontal / 2d);
+        }
+        else
+        {
+            Borders = new Borders();
+        }
+
+        UpdateSize(false);
     }
 
     protected override void Initialize()
@@ -115,7 +128,7 @@ public class Capy64 : Game, IGame
 
         UpdateSize();
 
-        Window.AllowUserResizing = false;
+        Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnWindowSizeChange;
 
         NativePlugins = GetNativePlugins();
