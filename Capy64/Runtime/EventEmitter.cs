@@ -9,14 +9,14 @@ using Capy64.Runtime.Extensions;
 
 namespace Capy64.Runtime;
 
-internal class InputEmitter
+internal class EventEmitter
 {
-    private EventEmitter _eventEmitter;
+    private Eventing.EventEmitter _eventEmitter;
     private LuaState _runtime;
     private const int rebootDelay = 30;
     private int heldReboot = 0;
 
-    public InputEmitter(EventEmitter eventEmitter, LuaState runtime)
+    public EventEmitter(Eventing.EventEmitter eventEmitter, LuaState runtime)
     {
         _eventEmitter = eventEmitter;
         _runtime = runtime;
@@ -34,6 +34,7 @@ internal class InputEmitter
         _eventEmitter.OnChar += OnChar;
 
         _eventEmitter.OnTick += OnTick;
+        _eventEmitter.OnScreenSizeChange += OnScreenSizeChange;
     }
 
     public void Unregister()
@@ -178,6 +179,14 @@ internal class InputEmitter
             LK.PushString(e.Character.ToString());
 
             return 1;
+        });
+    }
+
+    private void OnScreenSizeChange(object sender, EventArgs e)
+    {
+        _runtime.QueueEvent("screen_resize", LK =>
+        {
+            return 0;
         });
     }
 }
