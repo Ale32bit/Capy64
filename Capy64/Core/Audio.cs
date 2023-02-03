@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Audio;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,11 +11,11 @@ namespace Capy64.Core;
 public class Audio
 {
     public const int SampleRate = 48000;
-    public static TimeSpan Play(byte[] buffer)
+    public static TimeSpan Play(byte[] buffer, out SoundEffect soundEffect)
     {
-        var soundEffect = new SoundEffect(buffer, SampleRate, AudioChannels.Mono);
+        soundEffect = new SoundEffect(buffer, SampleRate, AudioChannels.Stereo);
 
-        soundEffect.Play();
+        soundEffect.Play(1, 0, 0);
 
         return soundEffect.Duration;
     }
