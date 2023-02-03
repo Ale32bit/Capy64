@@ -24,11 +24,9 @@ public class DiscordIntegration : IPlugin
         var discordConfig = _configuration.GetSection("Integrations:Discord");
         Client = new(discordConfig["ApplicationId"]);
 
-#if DEBUG
-        Client.Logger = new ConsoleLogger() { Level = DiscordRPC.Logging.LogLevel.Info };
+        Client.Logger = new ConsoleLogger() { Level = DiscordRPC.Logging.LogLevel.Warning };
+
         Client.OnReady += OnReady;
-        Client.OnPresenceUpdate += OnPresenceUpdate;
-#endif
 
         Capy64.Instance.Discord = this;
 
@@ -56,11 +54,6 @@ public class DiscordIntegration : IPlugin
 
     private void OnReady(object sender, ReadyMessage e)
     {
-        Console.WriteLine("Received Ready from user {0}", e.User.Username);
-    }
-
-    private void OnPresenceUpdate(object sender, PresenceMessage e)
-    {
-        Console.WriteLine("Received Update! {0}", e.Presence);
+        Console.WriteLine("Discord RPC: Received Ready from user {0}", e.User.Username);
     }
 }
