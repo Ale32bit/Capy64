@@ -1,14 +1,8 @@
 ﻿using Capy64.API;
-using Capy64.Core;
 using KeraLua;
 using Microsoft.Xna.Framework.Audio;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Timers;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -16,8 +10,6 @@ public class Audio : IPlugin
 {
     private const int queueLimit = 8;
 
-    private static ConcurrentQueue<byte[]> queue = new();
-    private static bool isProcessing = false;
     private static IGame _game;
     public Audio(IGame game)
     {
@@ -81,45 +73,16 @@ public class Audio : IPlugin
         return 1;
     }
 
-    private static async Task PlayAudio(byte[] buffer)
+    private static async Task DelayEmit(TimeSpan time)
     {
-        try
+        var waitTime = time - TimeSpan.FromMilliseconds(1000 / 60);
+        if (waitTime.TotalMilliseconds < 0)
+            waitTime = time;
+        await Task.Delay(waitTime);
+        _game.LuaRuntime.QueueEvent("audio_end", LK =>
         {
-            var time = _game.Audio.Submit(buffer);
-            if (_game.Audio.Sound.State != Microsoft.Xna.Framework.Audio.SoundState.Playing)
-            {
-                _game.Audio.Sound.Play();
-            }
-            var waitTime = time - TimeSpan.FromMilliseconds(1000 / 60);
-            if (waitTime.TotalMilliseconds < 0)
-                waitTime = time;
-            await Task.Delay(waitTime);
-            _game.LuaRuntime.QueueEvent("audio_end", LK =>
-            {
-                LK.PushInteger(_game.Audio.Sound.PendingBufferCount);
-                return 1;
-            });
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-        }
-    }
-
-    private static void ProcessAudio()
-    {
-        if (isProcessing)
-            return;
-
-        isProcessing = true;
-        Task.Run(async () =>
-        {
-            while (queue.TryDequeue(out var buffer))
-            {
-                await PlayAudio(buffer);
-            }
-            isProcessing = false;
+            LK.PushInteger(_game.Audio.Sound.PendingBufferCount);
+            return 1;
         });
     }
 
@@ -137,9 +100,18 @@ public class Audio : IPlugin
             return 2;
         }
 
-        queue.Enqueue(buffer);
+        try
+        {
+            var ts = _game.Audio.Submit(buffer);
+            DelayEmit(ts);
 
-        ProcessAudio();
+            if (_game.Audio.Sound.State != SoundState.Playing)
+                _game.Audio.Sound.Play();
+        }
+        catch (Exception ex)
+        {
+            L.Error(ex.Message);
+        }
 
         return 0;
     }
@@ -153,11 +125,20 @@ public class Audio : IPlugin
         var volume = L.OptNumber(3, 1);
         Math.Clamp(volume, 0, 1);
 
-        var sine = Core.Audio.GenerateSquareWave(freq, time, volume);
+        var buffer = Core.Audio.GenerateSquareWave(freq, time, volume);
 
-        queue.Enqueue(sine);
+        try
+        {
+            var ts = _game.Audio.Submit(buffer);
+            DelayEmit(ts);
 
-        ProcessAudio();
+            if (_game.Audio.Sound.State != SoundState.Playing)
+                _game.Audio.Sound.Play();
+        }
+        catch (Exception ex)
+        {
+            L.Error(ex.Message);
+        }
 
         return 0;
     }
@@ -174,7 +155,6 @@ public class Audio : IPlugin
     }
     private static int L_Stop(IntPtr state)
     {
-        queue.Clear();
         _game.Audio.Sound.Stop();
 
         return 0;
