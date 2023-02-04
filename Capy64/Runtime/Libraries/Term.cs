@@ -20,8 +20,8 @@ internal class Term : IPlugin
         public Color Background;
     }
 
-    public const int CharWidth = 7;
-    public const int CharHeight = 13;
+    public const int CharWidth = 6;
+    public const int CharHeight = 12;
 
     public const int CursorDelay = 30;
 
@@ -29,7 +29,7 @@ internal class Term : IPlugin
     public static int Height { get; private set; } = 23;
     public static int RealWidth => CharWidth * Width;
     public static int RealHeight => CharHeight * Height;
-    public static Vector2 CharOffset => new(1, 0);
+    public static Vector2 CharOffset => new(0, -1);
     public static Vector2 CursorPosition => _cursorPosition + Vector2.One;
     private static Vector2 _cursorPosition { get; set; }
     public static Color ForegroundColor { get; set; }
@@ -189,6 +189,7 @@ internal class Term : IPlugin
         var realpos = ToRealPos(pos);
         var charpos = realpos + CharOffset;
         _game.Drawing.DrawRectangle(realpos, new(CharWidth, CharHeight), bg, Math.Min(CharWidth, CharHeight));
+        //_game.Drawing.DrawRectangle(realpos, new(CharWidth, CharHeight), Color.Red, 1);
         _game.Drawing.DrawString(charpos, ch.ToString(), fg);
 
         if (!save)
