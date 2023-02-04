@@ -174,7 +174,9 @@ public class Audio : IPlugin
     }
     private static int L_Stop(IntPtr state)
     {
+        queue.Clear();
         _game.Audio.Sound.Stop();
+
         return 0;
     }
 
