@@ -3,6 +3,7 @@ local timer = require("timer")
 local gpu = require("gpu")
 local fs = require("fs")
 local machine = require("machine")
+local audio = require("audio")
 
 local bootSleep = 2000
 local bg = 0x0
@@ -144,6 +145,8 @@ local function bootScreen()
 		end
 	end
 end
+
+audio.beep(1000, 0.4, 0.2)
 
 bootScreen()
 

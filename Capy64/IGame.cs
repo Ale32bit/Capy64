@@ -16,6 +16,7 @@ public interface IGame
     IList<IPlugin> Plugins { get; }
     GameWindow Window { get; }
     Drawing Drawing { get; }
+    Audio Audio { get; }
     LuaState LuaRuntime { get; set; }
     Eventing.EventEmitter EventEmitter { get; }
     void ConfigureServices(IServiceProvider serviceProvider);

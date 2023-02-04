@@ -18,7 +18,7 @@ namespace Capy64;
 
 public class Capy64 : Game, IGame
 {
-    public const string Version = "0.0.6-alpha";
+    public const string Version = "0.0.7-alpha";
     public static string AppDataPath = Path.Combine(
         Environment.GetFolderPath(
             Environment.SpecialFolder.ApplicationData,
@@ -32,6 +32,7 @@ public class Capy64 : Game, IGame
     public int Height { get; set; } = 300;
     public float Scale { get; set; } = 2f;
     public Drawing Drawing { get; private set; }
+    public Audio Audio { get; private set; }
     public LuaState LuaRuntime { get; set; }
     public Eventing.EventEmitter EventEmitter { get; private set; }
     public DiscordIntegration Discord { get; set; }
@@ -130,6 +131,8 @@ public class Capy64 : Game, IGame
 
         Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnWindowSizeChange;
+
+        Audio = new Audio();
 
         NativePlugins = GetNativePlugins();
         Plugins = PluginLoader.LoadAllPlugins("plugins", _serviceProvider);
