@@ -90,7 +90,25 @@ public class Audio : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = L.CheckBuffer(1);
+        byte[] buffer;
+
+        if (L.IsString(1))
+        {
+            buffer = L.CheckBuffer(1);
+        }
+        else
+        {
+            L.CheckType(1, LuaType.Table);
+            var len = L.RawLen(1);
+            buffer = new byte[len];
+            for (int i = 1; i <= len; i++)
+            {
+                L.GetInteger(1, i);
+                var value = L.CheckInteger(-1);
+                buffer[i - 1] = (byte)value;
+                L.Pop(1);
+            }
+        }
 
         if (_game.Audio.Sound.PendingBufferCount > queueLimit)
         {
