@@ -14,20 +14,20 @@ public class BinaryReadHandle
     {
         ["readAll"] = L_ReadAll,
         ["seek"] = L_Seek,
-        ["nextByte"] = L_NextByte,
-        ["nextShort"] = L_NextShort,
-        ["nextInt"] = L_NextInt,
-        ["nextLong"] = L_NextLong,
-        ["nextSByte"] = L_NextSByte,
-        ["nextUShort"] = L_NextUShort,
-        ["nextUInt"] = L_NextUInt,
-        ["nextULong"] = L_NextULong,
-        ["nextHalf"] = L_NextHalf,
-        ["nextFloat"] = L_NextFloat,
-        ["nextDouble"] = L_NextDouble,
-        ["nextChar"] = L_NextChar,
-        ["nextString"] = L_NextString,
-        ["nextBoolean"] = L_NextBoolean,
+        ["readByte"] = L_ReadByte,
+        ["readShort"] = L_ReadShort,
+        ["readInt"] = L_ReadInt,
+        ["readLong"] = L_ReadLong,
+        ["readSByte"] = L_ReadSByte,
+        ["readUShort"] = L_ReadUShort,
+        ["readUInt"] = L_ReadUInt,
+        ["readULong"] = L_ReadULong,
+        ["readHalf"] = L_ReadHalf,
+        ["readFloat"] = L_ReadFloat,
+        ["readDouble"] = L_ReadDouble,
+        ["readChar"] = L_ReadChar,
+        ["readString"] = L_ReadString,
+        ["readBoolean"] = L_ReadBoolean,
         ["close"] = L_Close,
     };
 
@@ -56,6 +56,67 @@ public class BinaryReadHandle
         }
 
         L.SetMetaTable(-2);
+    }
+
+    private static int L_Read(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var stream = L.CheckObject<BinaryReader>(1, ObjectType, false);
+
+        if (stream is null)
+            L.Error("handle is closed");
+
+        if (L.IsInteger(2))
+        {
+            if (stream.BaseStream.Position >= stream.BaseStream.Length)
+            {
+                L.PushNil();
+                return 0;
+            }
+            stream.ReadChars((int)L.ToInteger(2));
+        }
+        else if (L.IsString(2))
+        {
+            var option = L.ToString(2);
+            option = option.TrimStart('*');
+            if (option.Length == 0)
+            {
+                L.ArgumentError(2, "invalid option");
+                return 0;
+            }
+
+            if (stream.BaseStream.Position >= stream.BaseStream.Length)
+            {
+                L.PushNil();
+                return 0;
+            }
+
+            var reader = new StreamReader(stream.BaseStream);
+
+            switch (option[0])
+            {
+                case 'a':
+                    L.PushString(reader.ReadToEnd());
+                    break;
+                case 'l':
+                    L.PushString(reader.ReadLine());
+                    break;
+                case 'n':
+                    L.Error("Not yet implemented!");
+                    break;
+                default:
+                    L.ArgumentError(2, "invalid option");
+                    break;
+            }
+        }
+        else
+        {
+            L.ArgumentError(2, "number or string expected");
+            return 0;
+        }
+
+        return 1;
     }
 
     private static int L_ReadAll(IntPtr state)
@@ -106,7 +167,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextByte(IntPtr state)
+    private static int L_ReadByte(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -142,7 +203,7 @@ public class BinaryReadHandle
         }
     }
 
-    private static int L_NextShort(IntPtr state)
+    private static int L_ReadShort(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -162,7 +223,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextInt(IntPtr state)
+    private static int L_ReadInt(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -182,7 +243,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextLong(IntPtr state)
+    private static int L_ReadLong(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -202,7 +263,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextSByte(IntPtr state)
+    private static int L_ReadSByte(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -222,7 +283,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextUShort(IntPtr state)
+    private static int L_ReadUShort(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -242,7 +303,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextUInt(IntPtr state)
+    private static int L_ReadUInt(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -262,7 +323,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextULong(IntPtr state)
+    private static int L_ReadULong(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -282,7 +343,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextHalf(IntPtr state)
+    private static int L_ReadHalf(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -302,7 +363,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextFloat(IntPtr state)
+    private static int L_ReadFloat(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -322,7 +383,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextDouble(IntPtr state)
+    private static int L_ReadDouble(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -342,7 +403,7 @@ public class BinaryReadHandle
         return 1;
     }
 
-    private static int L_NextChar(IntPtr state)
+    private static int L_ReadChar(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -378,7 +439,7 @@ public class BinaryReadHandle
         }
     }
 
-    private static int L_NextString(IntPtr state)
+    private static int L_ReadString(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -411,7 +472,7 @@ public class BinaryReadHandle
         }
     }
 
-    private static int L_NextBoolean(IntPtr state)
+    private static int L_ReadBoolean(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
