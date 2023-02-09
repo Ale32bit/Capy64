@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading;
 
-namespace Capy64.Runtime.Objects.Handlers;
+namespace Capy64.Runtime.Objects;
 
 public class WebSocketClient
 {

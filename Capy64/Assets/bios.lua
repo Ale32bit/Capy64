@@ -4,6 +4,14 @@ local gpu = require("gpu")
 local fs = require("fs")
 local machine = require("machine")
 local audio = require("audio")
+local http = require("http")
+local event = require("event")
+
+local BASE_URL = "https://api.github.com/repos/%s/contents/%s"
+local REPOSITORY = "Capy64/CapyOS"
+local JSON_URL = "https://raw.githubusercontent.com/Capy64/CapyOS/main/lib/json.lua"
+-- This token only has read-only access to repository files
+local GITHUB_TOKEN = "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"
 
 local bootSleep = 2000
 local bg = 0x0
@@ -15,6 +23,8 @@ term.clear()
 
 term.setSize(51, 19)
 gpu.setScale(2)
+
+local w, h = term.getSize()
 
 local function sleep(n)
 	local timerId = timer.start(n)
@@ -54,7 +64,96 @@ local function drawVendorImage()
 	end
 end
 
-local w, h = term.getSize()
+local nPrint = print
+local function print( text )
+	local x, y = term.getPos()
+	term.write(tostring(text))
+	if y == h then
+		term.scroll(1)
+		term.setPos(1, y)
+	else
+		term.setPos(1, y + 1)
+	end
+end
+
+local function printError( text )
+	term.setForeground(0xff0000)
+	print(text)
+	term.setForeground(0xffffff)
+end
+
+local function hget(url, headers)
+	local requestId = http.requestAsync(url, nil, headers, {binary = true})
+
+	local ev, rId, par, info
+	repeat
+		ev, rId, par, info = event.pull("http_response", "http_failure")
+	until rId == requestId
+
+	if ev == "http_failure" then
+		return nil, par
+	end
+	local content = par:read("a")
+	par:close()
+	return content, info
+end
+
+local function promptKey()
+	print("Press any key to continue")
+	event.pull("key_down")
+end
+
+local function repo(path)
+	return string.format(BASE_URL, REPOSITORY, path or "")
+end
+
+local json
+local function recursiveDownload(path)
+	path = path or ""
+	local index = json.decode(hget(repo(path), {
+		Authorization = "Bearer " .. GITHUB_TOKEN
+	}))
+
+
+	for i, v in ipairs(index) do
+		if v.type == "dir" then
+			if not fs.exists(v.path) then
+				fs.makeDir(v.path)
+			end
+			recursiveDownload(v.path)
+		elseif v.type == "file" then
+			print("Downloading " .. v.path)
+			local fileContent = hget(v.download_url)
+			local f = fs.open(v.path, "wb")
+			f:write(fileContent)
+			f:close()
+			print("Written to " .. v.path)
+		end
+	end
+end
+
+local function installOS()
+	term.clear()
+	term.setPos(1, 1)
+
+	print("Installing CapyOS...")
+
+	local jsonLib, par = hget(JSON_URL)
+	if not jsonLib then
+		printError(par)
+		promptKey()
+		return
+	end
+
+	json = load(jsonLib)()
+
+	recursiveDownload()
+
+	flagInstalled()
+
+	print("CapyOS installed!")
+	promptKey()
+end
 
 term.setBlink(false)
 
@@ -147,6 +246,10 @@ local function bootScreen()
 end
 
 audio.beep(1000, 0.4, 0.2)
+
+if shouldInstallOS() then
+	installOS()
+end
 
 bootScreen()
 

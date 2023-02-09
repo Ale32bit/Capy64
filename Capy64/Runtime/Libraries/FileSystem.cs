@@ -1,11 +1,12 @@
 ﻿using Capy64.API;
-using Capy64.Runtime.Objects.Handlers;
 using Capy64.Runtime.Extensions;
 using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using Capy64.Runtime.Objects;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -491,8 +492,7 @@ public class FileSystem : IPlugin
     {
         var L = Lua.FromIntPtr(state);
         var path = Resolve(L.CheckString(1));
-        var mode = L.CheckString(2);
-
+        var mode = L.OptString(2, "r");
 
         var errorMessage = "invalid file mode";
         if (mode.Length < 1 && mode.Length > 2)
@@ -542,25 +542,8 @@ public class FileSystem : IPlugin
         }
 
         var fileStream = File.Open(path, fileMode, fileAccess, FileShare.ReadWrite);
-
-        if (fileAccess == FileAccess.Read)
-        {
-            if (binaryMode)
-                BinaryReadHandle.Push(L, new(fileStream));
-            else
-                ReadHandle.Push(L, new(fileStream));
-        }
-        else if (fileAccess == FileAccess.Write)
-        {
-            if (binaryMode)
-                BinaryWriteHandle.Push(L, new(fileStream));
-            else
-                WriteHandle.Push(L, new(fileStream));
-        }
-        else
-        {
-            throw new InvalidOperationException();
-        }
+        L.PushObject(fileStream);
+        L.SetMetaTable(FileHandle.ObjectType);
 
         return 1;
     }

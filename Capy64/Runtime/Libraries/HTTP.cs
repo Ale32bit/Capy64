@@ -1,10 +1,11 @@
 ﻿using Capy64.API;
 using Capy64.Runtime.Extensions;
-using Capy64.Runtime.Objects.Handlers;
+using Capy64.Runtime.Objects;
 using KeraLua;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.WebSockets;
@@ -209,10 +210,12 @@ public class HTTP : IPlugin
                 LK.PushInteger(requestId);
 
                 // arg 2, response data
-                if ((bool)options["binary"])
+                L.PushObject(stream);
+                L.SetMetaTable(FileHandle.ObjectType);
+                /*if ((bool)options["binary"])
                     BinaryReadHandle.Push(LK, new(stream));
                 else
-                    ReadHandle.Push(LK, new(stream));
+                    ReadHandle.Push(LK, new(stream));*/
 
                 // arg 3, response info
                 LK.NewTable();
