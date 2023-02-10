@@ -54,7 +54,7 @@ class Timer : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        var delay = L.CheckInteger(1);
+        var delay = L.CheckNumber(1);
         L.ArgumentCheck(delay > 0, 1, "delay must be greater than 0");
 
         var timerId = _timerId++;
