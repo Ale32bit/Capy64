@@ -397,7 +397,8 @@ public class GPU : IPlugin
         var buffer = new uint[_game.Width * _game.Height];
         _game.Drawing.Canvas.GetData(buffer);
 
-        GPUBuffer.Push(L, buffer);
+        L.PushObject(buffer);
+        L.SetMetaTable(GPUBuffer.ObjectType);
 
         return 1;
     }
@@ -406,11 +407,7 @@ public class GPU : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = L.CheckObject<uint[]>(1, GPUBuffer.ObjectType, false);
-        if (buffer is null)
-        {
-            L.ArgumentError(1, GPUBuffer.ObjectType + " expected, got " + L.TypeName(L.Type(1)));
-        }
+        var buffer = GPUBuffer.CheckBuffer(L, false);
 
         _game.Drawing.Canvas.SetData(buffer);
 
@@ -426,7 +423,8 @@ public class GPU : IPlugin
 
         var buffer = new uint[width * height];
 
-        GPUBuffer.Push(L, buffer);
+        L.PushObject(buffer);
+        L.SetMetaTable(GPUBuffer.ObjectType);
 
         return 1;
     }
@@ -435,11 +433,7 @@ public class GPU : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = L.CheckObject<uint[]>(1, GPUBuffer.ObjectType, false);
-        if (buffer is null)
-        {
-            L.ArgumentError(1, GPUBuffer.ObjectType + " expected, got " + L.TypeName(L.Type(1)));
-        }
+        var buffer = GPUBuffer.CheckBuffer(L, false);
 
         var x = (int)L.CheckInteger(2) - 1;
         var y = (int)L.CheckInteger(3) - 1;
@@ -490,7 +484,8 @@ public class GPU : IPlugin
         var data = new uint[texture.Width * texture.Height];
         texture.GetData(data);
 
-        GPUBuffer.Push(L, data);
+        L.PushObject(data);
+        L.SetMetaTable(GPUBuffer.ObjectType);
         L.PushInteger(texture.Width);
         L.PushInteger(texture.Height);
 

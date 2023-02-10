@@ -1,47 +1,82 @@
-﻿using KeraLua;
+﻿using Capy64.API;
+using KeraLua;
 using System;
+using System.IO;
 
 namespace Capy64.Runtime.Objects;
 
-public class GPUBuffer
+public class GPUBuffer : IPlugin
 {
     public const string ObjectType = "GPUBuffer";
 
-    public static void Push(Lua L, uint[] buffer)
+    private static LuaRegister[] MetaMethods = new LuaRegister[]
     {
-        L.PushObject(buffer);
-
-        if (L.NewMetaTable(ObjectType))
+        new()
         {
-            L.PushString("__index");
-            L.PushCFunction(LM_Index);
-            L.SetTable(-3);
+            name = "__index",
+            function = LM_Index,
+        },
+        new()
+        {
+            name = "__newindex",
+            function = LM_NewIndex,
+        },
+        new()
+        {
+            name = "__len",
+            function = LM_Length,
+        },
+        new()
+        {
+            name = "__gc",
+            function = LM_GC,
+        },
+        new()
+        {
+            name = "__close",
+            function = LM_GC,
+        },
+        new()
+        {
+            name = "__tostring",
+            function = LM_ToString,
+        },
 
-            L.PushString("__newindex");
-            L.PushCFunction(LM_NewIndex);
-            L.SetTable(-3);
+        new(),
+    };
 
-            L.PushString("__len");
-            L.PushCFunction(LM_Length);
-            L.SetTable(-3);
+    public void LuaInit(Lua L)
+    {
+        CreateMeta(L);
+    }
 
-            L.PushString("__gc");
-            L.PushCFunction(LM_GC);
-            L.SetTable(-3);
+    public static void CreateMeta(Lua L)
+    {
+        L.NewMetaTable(ObjectType);
+        L.SetFuncs(MetaMethods, 0);
+    }
 
-            L.PushString("__close");
-            L.PushCFunction(LM_GC);
-            L.SetTable(-3);
+    public static uint[] ToBuffer(Lua L, bool gc = false)
+    {
+        return L.CheckObject<uint[]>(1, ObjectType, gc);
+    }
+
+    public static uint[] CheckBuffer(Lua L, bool gc = false)
+    {
+        var obj = L.CheckObject<uint[]>(1, ObjectType, gc);
+        if (obj is null)
+        {
+            L.Error("attempt to use a closed buffer");
+            return null;
         }
-
-        L.SetMetaTable(-2);
+        return (uint[])obj;
     }
 
     private static int LM_Index(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = L.CheckObject<uint[]>(1, ObjectType, false);
+        var buffer = CheckBuffer(L, false);
 
         if (!L.IsInteger(2))
         {
@@ -74,7 +109,7 @@ public class GPUBuffer
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = L.CheckObject<uint[]>(1, ObjectType, false);
+        var buffer = CheckBuffer(L, false);
         if (!L.IsInteger(2))
         {
             return 0;
@@ -111,7 +146,7 @@ public class GPUBuffer
     {
         var L = Lua.FromIntPtr(state);
 
-        L.CheckObject<uint[]>(1, ObjectType, true);
+        CheckBuffer(L, true);
 
         return 0;
     }
@@ -120,9 +155,20 @@ public class GPUBuffer
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = L.CheckObject<uint[]>(1, ObjectType, false);
+        var buffer = CheckBuffer(L, false);
 
         L.PushInteger(buffer.LongLength);
+
+        return 1;
+    }
+
+    private static int LM_ToString(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var buffer = CheckBuffer(L, false);
+
+        L.PushString(ObjectType);
 
         return 1;
     }
