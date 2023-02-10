@@ -7,11 +7,9 @@ local audio = require("audio")
 local http = require("http")
 local event = require("event")
 
-local BASE_URL = "https://api.github.com/repos/%s/contents/%s"
-local REPOSITORY = "Capy64/CapyOS"
-local JSON_URL = "https://raw.githubusercontent.com/Capy64/CapyOS/main/lib/json.lua"
--- This token only has read-only access to repository files
-local GITHUB_TOKEN = "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"
+
+local INDEX_URL = "https://raw.github.com/Capy64/CapyOS/deploy/index.json"
+local JSON_URL = "https://raw.github.com/Capy64/CapyOS/main/lib/json.lua"
 
 local bootSleep = 2000
 local bg = 0x0
@@ -103,35 +101,6 @@ local function promptKey()
 	event.pull("key_down")
 end
 
-local function repo(path)
-	return string.format(BASE_URL, REPOSITORY, path or "")
-end
-
-local json
-local function recursiveDownload(path)
-	path = path or ""
-	local index = json.decode(hget(repo(path), {
-		Authorization = "Bearer " .. GITHUB_TOKEN
-	}))
-
-
-	for i, v in ipairs(index) do
-		if v.type == "dir" then
-			if not fs.exists(v.path) then
-				fs.makeDir(v.path)
-			end
-			recursiveDownload(v.path)
-		elseif v.type == "file" then
-			print("Downloading " .. v.path)
-			local fileContent = hget(v.download_url)
-			local f = fs.open(v.path, "wb")
-			f:write(fileContent)
-			f:close()
-			print("Written to " .. v.path)
-		end
-	end
-end
-
 local function installOS()
 	term.clear()
 	term.setPos(1, 1)
@@ -145,9 +114,27 @@ local function installOS()
 		return
 	end
 
-	json = load(jsonLib)()
+	local json = load(jsonLib)()
+	local indexData, par = hget(INDEX_URL)
+	if not indexData then
+		printError(par)
+		promptKey()
+		return
+	end
+	local index = json.decode(indexData)
 
-	recursiveDownload()
+	for i, v in ipairs(index) do
+		local dirname = fs.getDir(v.path) 
+		if not fs.exists(dirname) then
+			fs.makeDir(dirname)
+		end
+		print("Downloading " .. v.path)
+		local fileContent = hget(v.raw_url)
+		local f = fs.open(v.path, "w")
+		f:write(fileContent)
+		f:close()
+		print("Written to " .. v.path)
+	end
 
 	flagInstalled()
 
