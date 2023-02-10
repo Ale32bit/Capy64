@@ -15,6 +15,11 @@ class Timer : IPlugin
             name = "start",
             function = L_StartTimer,
         },
+        new()
+        {
+            name = "now",
+            function = L_Now
+        },
 
         new(),
     };
@@ -80,6 +85,16 @@ class Timer : IPlugin
         };
 
         L.PushInteger(timerId);
+        return 1;
+    }
+
+    private static int L_Now(IntPtr state)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var L = Lua.FromIntPtr(state);
+
+        L.PushInteger(now.ToUnixTimeMilliseconds());
+
         return 1;
     }
 }
