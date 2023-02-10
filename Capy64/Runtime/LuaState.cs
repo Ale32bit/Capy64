@@ -79,12 +79,15 @@ public class LuaState : IDisposable
     /// <returns>Whether the thread can still be resumed and is not finished</returns>
     public bool ProcessQueue()
     {
-        while (Dequeue(out var npars))
+        var ncycle = _queue.Count;
+        var done = 0;
+        while (done < ncycle && Dequeue(out var npars))
         {
             if (!Resume(npars))
             {
                 return false;
             }
+            done++;
         }
 
         return true;
