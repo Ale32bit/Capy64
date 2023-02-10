@@ -446,6 +446,11 @@ public class GPU : IPlugin
         var w = (int)L.CheckInteger(4);
         var h = (int)L.CheckInteger(5);
 
+        if(w * h != buffer.Length)
+        {
+            L.Error("width and height do not match buffer size");
+        }
+
         _game.Drawing.DrawBuffer(buffer, new()
         {
             X = x,
