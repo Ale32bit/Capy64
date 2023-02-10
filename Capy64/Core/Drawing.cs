@@ -16,6 +16,7 @@ public class Drawing : IDisposable
     private Texture2D _whitePixel;
     private RenderTarget2D _canvas;
     private bool _isDrawing;
+    private HashSet<Texture2D> _disposeTextures = new();
     public RenderTarget2D Canvas
     {
         get => _canvas;
@@ -34,7 +35,7 @@ public class Drawing : IDisposable
                 Begin();
         }
     }
-    
+
     public Drawing()
     {
         _fontSystem = new FontSystem();
@@ -59,6 +60,11 @@ public class Drawing : IDisposable
 
         _spriteBatch.End();
         _graphicsDevice.SetRenderTarget(null);
+
+        foreach (var t in _disposeTextures)
+            t.Dispose();
+        _disposeTextures.Clear();
+
         _isDrawing = false;
     }
 
@@ -78,10 +84,10 @@ public class Drawing : IDisposable
     {
         if (point.X < 0 || point.Y < 0) return;
         if (point.X >= _canvas.Width || point.Y >= _canvas.Height) return;
-        
+
         var grid = new Color[_canvas.Width * _canvas.Height];
         _canvas.GetData(grid);
-        
+
         grid[point.X + (point.Y * _canvas.Width)] = color;
 
         _canvas.SetData(grid);
@@ -176,6 +182,20 @@ public class Drawing : IDisposable
         _spriteBatch.Draw(_whitePixel, position, null, color, rotation, Vector2.Zero, scale2, SpriteEffects.None, layerDepth);
         _spriteBatch.Draw(_whitePixel, position2, null, color, rotation, Vector2.Zero, scale2, SpriteEffects.None, layerDepth);
         _spriteBatch.Draw(_whitePixel, position3, null, color, rotation, Vector2.Zero, scale, SpriteEffects.None, layerDepth);
+    }
+
+    public void DrawTexture(Texture2D texture, Vector2 pos)
+    {
+        _spriteBatch.Draw(texture, pos, null, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
+    }
+
+    public void DrawBuffer(uint[] buffer, Rectangle rect)
+    {
+        var texture = new Texture2D(_graphicsDevice, rect.Width, rect.Height, false, SurfaceFormat.Color);
+        texture.SetData(buffer);
+
+        DrawTexture(texture, new(rect.X, rect.Y));
+        _disposeTextures.Add(texture);
     }
 
     public void Dispose()

@@ -435,8 +435,8 @@ public class GPU : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        var from = L.CheckObject<uint[]>(1, GPUBuffer.ObjectType, false);
-        if (from is null)
+        var buffer = L.CheckObject<uint[]>(1, GPUBuffer.ObjectType, false);
+        if (buffer is null)
         {
             L.ArgumentError(1, GPUBuffer.ObjectType + " expected, got " + L.TypeName(L.Type(1)));
         }
@@ -445,32 +445,14 @@ public class GPU : IPlugin
         var y = (int)L.CheckInteger(3) - 1;
         var w = (int)L.CheckInteger(4);
         var h = (int)L.CheckInteger(5);
-        try
-        {
-            _game.Drawing.Canvas.SetData(0, new Rectangle
-            {
-                X = x,
-                Y = y,
-                Width = w,
-                Height = h,
-            }, from, 0, from.Length);
-        }
-        catch (Exception e)
-        {
-            if (w * h != from.Length)
-            {
-                L.Error("buffer size does not match width and height");
-                return 0;
-            }
 
-            if(x < 0 || y < 0 || x + w >= _game.Drawing.Canvas.Width || y + h >= _game.Drawing.Canvas.Height)
-            {
-                L.Error("position out of bounds");
-                return 0;
-            }
-
-            L.Error(e.ToString());
-        }
+        _game.Drawing.DrawBuffer(buffer, new()
+        {
+            X = x,
+            Y = y,
+            Width = w,
+            Height = h,
+        });
 
         return 0;
     }
