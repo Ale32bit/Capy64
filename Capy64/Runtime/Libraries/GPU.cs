@@ -397,7 +397,8 @@ public class GPU : IPlugin
         var buffer = new uint[_game.Width * _game.Height];
         _game.Drawing.Canvas.GetData(buffer);
 
-        L.PushObject(buffer);
+        ObjectManager.PushObject(L, buffer);
+        //L.PushObject(buffer);
         L.SetMetaTable(GPUBuffer.ObjectType);
 
         return 1;
@@ -423,7 +424,7 @@ public class GPU : IPlugin
 
         var buffer = new uint[width * height];
 
-        L.PushObject(buffer);
+        ObjectManager.PushObject(L, buffer);
         L.SetMetaTable(GPUBuffer.ObjectType);
 
         return 1;
@@ -484,7 +485,7 @@ public class GPU : IPlugin
         var data = new uint[texture.Width * texture.Height];
         texture.GetData(data);
 
-        L.PushObject(data);
+        ObjectManager.PushObject(L, data);
         L.SetMetaTable(GPUBuffer.ObjectType);
         L.PushInteger(texture.Width);
         L.PushInteger(texture.Height);

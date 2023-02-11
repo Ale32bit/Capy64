@@ -210,7 +210,8 @@ public class HTTP : IPlugin
                 LK.PushInteger(requestId);
 
                 // arg 2, response data
-                L.PushObject(stream);
+                ObjectManager.PushObject(L, stream);
+                //L.PushObject(stream);
                 L.SetMetaTable(FileHandle.ObjectType);
                 /*if ((bool)options["binary"])
                     BinaryReadHandle.Push(LK, new(stream));

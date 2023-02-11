@@ -97,12 +97,14 @@ public class FileHandle : IPlugin
 
     private static Stream ToStream(Lua L, bool gc = false)
     {
-        return L.CheckObject<Stream>(1, ObjectType, gc);
+        return ObjectManager.ToObject<Stream>(L, 1, gc);
+        //return L.CheckObject<Stream>(1, ObjectType, gc);
     }
 
     private static Stream CheckStream(Lua L, bool gc = false)
     {
-        var obj = L.CheckObject<Stream>(1, ObjectType, gc);
+        var obj = ObjectManager.CheckObject<Stream>(L, 1, ObjectType, gc);
+        //var obj = L.CheckObject<Stream>(1, ObjectType, gc);
         if (obj is null)
         {
             L.Error("attempt to use a closed file");
