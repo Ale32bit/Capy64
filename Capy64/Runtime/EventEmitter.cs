@@ -71,7 +71,7 @@ internal class EventEmitter
         {
             heldReboot = 0;
             RuntimeManager.ResetPanic();
-            RuntimeManager.Reboot();
+            RuntimeManager.Reset();
         }
     }
 

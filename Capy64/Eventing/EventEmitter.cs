@@ -21,6 +21,7 @@ public class EventEmitter
     // Functional events
     public event EventHandler<TickEvent> OnTick;
     public event EventHandler OnInit;
+    public event EventHandler OnClose;
     public event EventHandler OnScreenSizeChange;
     public event EventHandler<OverlayEvent> OnOverlay;
 
@@ -97,6 +98,14 @@ public class EventEmitter
         if (OnInit is not null)
         {
             OnInit(this, EventArgs.Empty);
+        }
+    }
+
+    public void RaiseClose()
+    {
+        if (OnClose is not null)
+        {
+            OnClose(this, EventArgs.Empty);
         }
     }
 

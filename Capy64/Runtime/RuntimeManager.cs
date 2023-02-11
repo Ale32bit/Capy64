@@ -5,6 +5,7 @@ using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,8 +18,8 @@ internal class RuntimeManager : IPlugin
 {
     private LuaState luaState;
     private EventEmitter emitter;
-    private int step = 0;
 
+    private static int step = 0;
     private static bool close = false;
     private static bool inPanic = false;
 
@@ -65,6 +66,7 @@ internal class RuntimeManager : IPlugin
         {
             if (close || !luaState.ProcessQueue())
             {
+                _game.EventEmitter.RaiseClose();
                 Start();
             }
         }
@@ -141,6 +143,12 @@ internal class RuntimeManager : IPlugin
         {
             throw new LuaException(luaState.Thread.ToString(-1));
         }
+    }
+
+    public static void Reset()
+    {
+        close = true;
+        step = 0;
     }
 
     public static void Reboot()
