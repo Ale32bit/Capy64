@@ -59,13 +59,11 @@ public class GPUBuffer : IPlugin
     public static uint[] ToBuffer(Lua L, bool gc = false)
     {
         return ObjectManager.ToObject<uint[]>(L, 1, gc);
-        //return L.CheckObject<uint[]>(1, ObjectType, gc);
     }
 
     public static uint[] CheckBuffer(Lua L, bool gc = false)
     {
         var obj = ObjectManager.CheckObject<uint[]>(L, 1, ObjectType, gc);
-        //var obj = L.CheckObject<uint[]>(1, ObjectType, gc);
         if (obj is null)
         {
             L.Error("attempt to use a closed buffer");
@@ -164,14 +162,18 @@ public class GPUBuffer : IPlugin
         return 1;
     }
 
-    private static int LM_ToString(IntPtr state)
+    private static unsafe int LM_ToString(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-
-        var buffer = CheckBuffer(L, false);
-
-        L.PushString(ObjectType);
-
+        var buffer = ToBuffer(L);
+        if (buffer is not null)
+        {
+            L.PushString("GPUBuffer ({0:X})", (ulong)&buffer);
+        }
+        else
+        {
+            L.PushString("GPUBuffer (closed)");
+        }
         return 1;
     }
 }

@@ -57,17 +57,17 @@ public class FileHandle : IPlugin
         new()
         {
             name = "__gc",
-            function = F_GC,
+            function = LM_GC,
         },
         new()
         {
             name = "__close",
-            function = F_GC,
+            function = LM_GC,
         },
         new()
         {
             name = "__tostring",
-            function = F_ToString,
+            function = LM_ToString,
         },
 
         new(),
@@ -307,7 +307,7 @@ public class FileHandle : IPlugin
         return 0;
     }
 
-    private static unsafe int F_ToString(IntPtr state)
+    private static unsafe int LM_ToString(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
         var stream = ToStream(L);
@@ -322,7 +322,7 @@ public class FileHandle : IPlugin
         return 1;
     }
 
-    private static int F_GC(IntPtr state)
+    private static int LM_GC(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
