@@ -142,6 +142,11 @@ local function installOS()
 	promptKey()
 end
 
+local function toggleConsole()
+	local status = getConsole()
+	setConsole(not status)
+end
+
 term.setBlink(false)
 
 local function setupScreen()
@@ -149,6 +154,10 @@ local function setupScreen()
 		{
 			"Open data folder",
 			openDataFolder,
+		},
+		{
+			"Toggle console window",
+			toggleConsole,
 		},
 		{
 			"Install default OS",

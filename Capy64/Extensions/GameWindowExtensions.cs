@@ -54,4 +54,19 @@ public static class GameWindowExtensions
     {
         return window.GetWindowFlags().HasFlag(WindowFlags.SDL_WINDOW_MAXIMIZED);
     }
+
+    public static void ToggleConsole(this GameWindow _, bool show)
+    {
+        var console = Common.GetConsoleWindow();
+        if (console != IntPtr.Zero)
+            Common.ShowWindow(console, show ? Common.SW_SHOW : Common.SW_HIDE);
+    }
+
+    public static bool IsConsoleVisible(this GameWindow _)
+    {
+        var console = Common.GetConsoleWindow();
+        if (console != IntPtr.Zero)
+            return false;
+        return Common.IsWindowVisible(console);
+    }
 }
