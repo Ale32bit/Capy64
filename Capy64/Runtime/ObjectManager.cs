@@ -1,5 +1,4 @@
 ﻿using Capy64.API;
-using Capy64.Runtime.Libraries;
 using KeraLua;
 using System;
 using System.Collections.Concurrent;
@@ -14,13 +13,16 @@ namespace Capy64.Runtime;
 
 public class ObjectManager : IPlugin
 {
+    private static ConcurrentDictionary<nint, object> _objects = new();
+
     private static IGame _game;
     public ObjectManager(IGame game)
     {
         _game = game;
+        _game.EventEmitter.OnClose += OnClose;
     }
 
-    public static unsafe void PushObject<T>(Lua L, T obj)
+    public static void PushObject<T>(Lua L, T obj)
     {
         if (obj == null)
         {
@@ -28,79 +30,52 @@ public class ObjectManager : IPlugin
             return;
         }
 
-        var p = (nint*)L.NewUserData(sizeof(nint));
-        var handle = GCHandle.Alloc(obj);
-        var op = GCHandle.ToIntPtr(handle);
-        *p = op;
-        //_objects[p] = obj;
+        var p = L.NewUserData(1);
+        _objects[p] = obj;
     }
 
-    public static unsafe T ToObject<T>(Lua L, int index, bool freeGCHandle = true)
+    public static T ToObject<T>(Lua L, int index, bool freeGCHandle = true)
     {
         if (L.IsNil(index) || !L.IsUserData(index))
             return default(T);
 
-        /*if (p == IntPtr.Zero)
+        var data = L.ToUserData(index);
+        if (data == IntPtr.Zero)
             return default(T);
 
-        /*if (!_objects.ContainsKey(data))
+        if (!_objects.ContainsKey(data))
             return default(T);
 
-        var reference = (T)_objects[data];*/
-
-        var p = (nint*)L.ToUserData(index);
-        var op = *p;
-        var handle = GCHandle.FromIntPtr(op);
-
-        var reference = handle.Target;
-        if (reference == null)
-            return default(T);
-
-        T value;
-        try
-        {
-            value = (T)reference;
-        }
-        catch (Exception ex)
-        {
-            value = default;
-        }
+        var reference = (T)_objects[data];
 
         if (freeGCHandle)
-            handle.Free();
+            _objects.Remove(data, out _);
 
-        return value;
+        return reference;
     }
 
-    public static unsafe T CheckObject<T>(Lua L, int argument, string typeName, bool freeGCHandle = true)
+    public static T CheckObject<T>(Lua L, int argument, string typeName, bool freeGCHandle = true)
     {
         if (L.IsNil(argument) || !L.IsUserData(argument))
             return default(T);
 
-        var p = (nint*)L.CheckUserData(argument, typeName);
-        var op = *p;
-        var handle = GCHandle.FromIntPtr(op);
-
-        if (!handle.IsAllocated)
-            return default;
-
-        var reference = handle.Target;
-        if (reference == null)
+        IntPtr data = L.CheckUserData(argument, typeName);
+        if (data == IntPtr.Zero)
             return default(T);
 
-        T value;
-        try
-        {
-            value = (T)reference;
-        }
-        catch (Exception ex)
-        {
-            value = default;
-        }
+        if (!_objects.ContainsKey(data))
+            return default(T);
+
+        var reference = (T)_objects[data];
 
         if (freeGCHandle)
-            handle.Free();
+            _objects.Remove(data, out _);
 
-        return value;
+        return reference;
+    }
+
+    private void OnClose(object sender, EventArgs e)
+    {
+        _objects.Clear();
     }
 }

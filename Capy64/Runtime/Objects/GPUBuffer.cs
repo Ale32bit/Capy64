@@ -165,7 +165,7 @@ public class GPUBuffer : IPlugin
     private static unsafe int LM_ToString(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-        var buffer = ToBuffer(L, false);
+        var buffer = ToBuffer(L);
         if (buffer is not null)
         {
             L.PushString("GPUBuffer ({0:X})", (ulong)&buffer);
