@@ -18,13 +18,13 @@ namespace Capy64;
 
 public class Capy64 : Game, IGame
 {
-    public const string Version = "0.0.7-alpha";
+    public const string Version = "0.0.8-alpha";
     public static string AppDataPath = Path.Combine(
         Environment.GetFolderPath(
             Environment.SpecialFolder.ApplicationData,
             Environment.SpecialFolderOption.Create),
         "Capy64");
-    public static Capy64 Instance;
+    public static Capy64 Instance { get; private set; }
     public Capy64 Game => this;
     public IList<IPlugin> NativePlugins { get; private set; }
     public IList<IPlugin> Plugins { get; private set; }
