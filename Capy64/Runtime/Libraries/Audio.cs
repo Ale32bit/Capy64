@@ -14,6 +14,7 @@ public class Audio : IPlugin
     public Audio(IGame game)
     {
         _game = game;
+        _game.EventEmitter.OnClose += OnClose;
     }
 
     private static LuaRegister[] AudioLib = new LuaRegister[]
@@ -213,5 +214,10 @@ public class Audio : IPlugin
         L.PushString(status);
 
         return 1;
+    }
+
+    private void OnClose(object sender, EventArgs e)
+    {
+        _game.Audio.Sound.Stop(true);
     }
 }
