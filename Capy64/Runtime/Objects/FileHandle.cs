@@ -91,20 +91,26 @@ public class FileHandle : IPlugin
     private static char CheckMode(string mode)
     {
         var modes = "nlLa";
-        var i = modes.IndexOf(mode.TrimStart('*')[0]);
+        mode = mode.TrimStart('*');
+        if(string.IsNullOrEmpty(mode)) {
+            return '\0';
+        }
+
+        var i = modes.IndexOf(mode[0]);
+        if(i == -1)
+            return '\0';
+
         return modes[i];
     }
 
     private static Stream ToStream(Lua L, bool gc = false)
     {
         return ObjectManager.ToObject<Stream>(L, 1, gc);
-        //return L.CheckObject<Stream>(1, ObjectType, gc);
     }
 
     private static Stream CheckStream(Lua L, bool gc = false)
     {
         var obj = ObjectManager.CheckObject<Stream>(L, 1, ObjectType, gc);
-        //var obj = L.CheckObject<Stream>(1, ObjectType, gc);
         if (obj is null)
         {
             L.Error("attempt to use a closed file");
@@ -160,8 +166,6 @@ public class FileHandle : IPlugin
     private static int L_Read(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-        bool success = false;
-
         var stream = CheckStream(L);
 
         if (!stream.CanRead)
@@ -177,6 +181,7 @@ public class FileHandle : IPlugin
             L.PushString("l");
         }
 
+        bool success;
         if (L.Type(2) == LuaType.Number)
         {
             success = ReadChars(L, stream, (int)L.ToNumber(2));
