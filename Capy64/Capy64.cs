@@ -132,6 +132,8 @@ public class Capy64 : Game, IGame
         Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnWindowSizeChange;
 
+        InactiveSleepTime = new TimeSpan(0);
+
         Audio = new Audio();
 
         NativePlugins = GetNativePlugins();
