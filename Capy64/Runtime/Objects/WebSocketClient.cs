@@ -1,4 +1,5 @@
-﻿using Capy64.Runtime.Libraries;
+﻿using Capy64.API;
+using Capy64.Runtime.Libraries;
 using KeraLua;
 using System;
 using System.Collections.Generic;
@@ -7,16 +8,71 @@ using System.Threading;
 
 namespace Capy64.Runtime.Objects;
 
-public class WebSocketClient
+public class WebSocketClient : IPlugin
 {
     public const string ObjectType = "WebSocketClient";
-    private readonly ClientWebSocket _socket;
-    private readonly long _requestId;
-    public WebSocketClient(ClientWebSocket socket, long requestId)
+
+    public record Client(ClientWebSocket Socket, long RequestId);
+
+    public void LuaInit(Lua L)
     {
-        _socket = socket;
-        _requestId = requestId;
+        CreateMeta(L);
     }
+
+    public static void CreateMeta(Lua L)
+    {
+        L.NewMetaTable(ObjectType);
+        L.SetFuncs(MetaMethods, 0);
+        L.NewLibTable(Methods);
+        L.SetFuncs(Methods, 0);
+        L.SetField(-2, "__index");
+        L.Pop(1);
+    }
+
+    internal static LuaRegister[] Methods = new LuaRegister[]
+    {
+        new()
+        {
+            name = "getRequestID",
+            function = L_GetRequestId,
+        },
+        new()
+        {
+            name = "send",
+            function = L_Send,
+        },
+        new()
+        {
+            name = "closeAsync",
+            function = L_CloseAsync,
+        },
+        new(),
+    };
+
+    internal static LuaRegister[] MetaMethods = new LuaRegister[]
+    {
+        new()
+        {
+            name = "__index",
+        },
+        new()
+        {
+            name = "__gc",
+            function = L_CloseAsync,
+        },
+        new()
+        {
+            name = "__close",
+            function = L_CloseAsync,
+        },
+        new()
+        {
+            name = "__tostring",
+            function = LM_ToString,
+        },
+
+        new(),
+    };
 
     private static readonly Dictionary<string, LuaFunction> functions = new()
     {
@@ -25,41 +81,29 @@ public class WebSocketClient
         ["closeAsync"] = L_CloseAsync,
     };
 
-    public void Push(Lua L)
+    public static Client ToObject(Lua L, bool gc = false)
     {
-        L.PushObject(this);
+        return ObjectManager.ToObject<Client>(L, 1, gc);
+    }
 
-        if (L.NewMetaTable(ObjectType))
+    public static Client CheckObject(Lua L, bool gc = false)
+    {
+        var obj = ObjectManager.CheckObject<Client>(L, 1, ObjectType, gc);
+        if (obj is null)
         {
-            L.PushString("__index");
-            L.NewTable();
-            foreach (var pair in functions)
-            {
-                L.PushString(pair.Key);
-                L.PushCFunction(pair.Value);
-                L.SetTable(-3);
-            }
-            L.SetTable(-3);
-
-            L.PushString("__close");
-            L.PushCFunction(L_CloseAsync);
-            L.SetTable(-3);
-
-            L.PushString("__gc");
-            L.PushCFunction(L_CloseAsync);
-            L.SetTable(-3);
+            L.Error("attempt to use a closed object");
+            return null;
         }
-
-        L.SetMetaTable(-2);
+        return obj;
     }
 
     private static int L_GetRequestId(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
-        var client = L.CheckObject<WebSocketClient>(1, ObjectType, false);
+        var client = CheckObject(L, false);
 
-        L.PushInteger(client._requestId);
+        L.PushInteger(client.RequestId);
 
         return 1;
     }
@@ -68,14 +112,14 @@ public class WebSocketClient
     {
         var L = Lua.FromIntPtr(state);
 
-        var client = L.CheckObject<WebSocketClient>(1, ObjectType, false);
+        var client = CheckObject(L, false);
 
         var data = L.CheckBuffer(2);
 
-        if (client is null || client._socket.State == WebSocketState.Closed)
+        if (client is null || client.Socket.State == WebSocketState.Closed)
             L.Error("connection is closed");
 
-        client._socket.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
+        client.Socket.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
 
         return 0;
     }
@@ -84,18 +128,18 @@ public class WebSocketClient
     {
         var L = Lua.FromIntPtr(state);
 
-        var client = L.CheckObject<WebSocketClient>(1, ObjectType, true);
+        var client = ToObject(L, true);
 
-        if (client is null || client._socket.State == WebSocketState.Closed)
+        if (client is null || client.Socket.State == WebSocketState.Closed)
             return 0;
 
-        client._socket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None)
+        client.Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None)
             .ContinueWith(async task =>
             {
                 await task;
                 Capy64.Instance.LuaRuntime.QueueEvent("websocket_close", LK =>
                 {
-                    LK.PushInteger(client._requestId);
+                    LK.PushInteger(client.RequestId);
 
                     return 1;
                 });
@@ -104,5 +148,20 @@ public class WebSocketClient
         HTTP.WebSocketConnections.Remove(client);
 
         return 0;
+    }
+
+    private static unsafe int LM_ToString(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+        var buffer = ToObject(L);
+        if (buffer is not null)
+        {
+            L.PushString("GPUBuffer ({0:X})", (ulong)&buffer);
+        }
+        else
+        {
+            L.PushString("GPUBuffer (closed)");
+        }
+        return 1;
     }
 }
