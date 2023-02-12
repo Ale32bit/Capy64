@@ -14,11 +14,12 @@ namespace Capy64.Runtime;
 public class ObjectManager : IPlugin
 {
     private static ConcurrentDictionary<nint, object> _objects = new();
+
     private static IGame _game;
     public ObjectManager(IGame game)
     {
         _game = game;
-        _game.EventEmitter.OnClose += OnClone;
+        _game.EventEmitter.OnClose += OnClose;
     }
 
     public static void PushObject<T>(Lua L, T obj)
@@ -29,93 +30,51 @@ public class ObjectManager : IPlugin
             return;
         }
 
-        L.NewTable();
-        var rp = L.ToPointer(-1);
-
-        //var handle = GCHandle.Alloc(obj);
-        //var op = GCHandle.ToIntPtr(handle);
-
-        _objects[rp] = obj;
+        var p = L.NewUserData(1);
+        _objects[p] = obj;
     }
 
     public static T ToObject<T>(Lua L, int index, bool freeGCHandle = true)
     {
-        if (L.IsNil(index) || !L.IsTable(index))
+        if (L.IsNil(index) || !L.IsUserData(index))
             return default(T);
 
-        var rp = L.ToPointer(index);
-        if (rp == IntPtr.Zero)
+        var data = L.ToUserData(index);
+        if (data == IntPtr.Zero)
             return default(T);
 
-        if (!_objects.ContainsKey(rp))
+        if (!_objects.ContainsKey(data))
             return default(T);
 
-        var obj = _objects[rp];
-        if(obj == null)
-            return default(T);
+        var reference = (T)_objects[data];
 
         if (freeGCHandle)
-            _objects.Remove(rp, out _);
+            _objects.Remove(data, out _);
 
-        return (T)obj;
-
-        /*var handle = GCHandle.FromIntPtr(Objects[rp]);
-        if (!handle.IsAllocated)
-            return default(T);
-
-        var reference = (T)handle.Target;
-
-        if (freeGCHandle)
-            handle.Free();
-
-        return reference;*/
+        return reference;
     }
 
     public static T CheckObject<T>(Lua L, int argument, string typeName, bool freeGCHandle = true)
     {
-        if (L.IsNil(argument) || !L.IsTable(argument))
+        if (L.IsNil(argument) || !L.IsUserData(argument))
             return default(T);
 
-        if(L.GetMetaField(argument, "__name") != LuaType.String)
+        IntPtr data = L.CheckUserData(argument, typeName);
+        if (data == IntPtr.Zero)
             return default(T);
 
-        var mtName = L.ToString(-1);
-        L.Pop(1);
-
-        if(mtName != typeName)
+        if (!_objects.ContainsKey(data))
             return default(T);
 
-        var rp = L.ToPointer(argument);
-        if (rp == IntPtr.Zero)
-            return default(T);
-
-        if (!_objects.ContainsKey(rp))
-            return default(T);
-
-        var obj = _objects[rp];
-        if (obj == null)
-            return default(T);
+        var reference = (T)_objects[data];
 
         if (freeGCHandle)
-            _objects.Remove(rp, out _);
+            _objects.Remove(data, out _);
 
-        return (T)obj;
-
-        /*
-
-        var handle = GCHandle.FromIntPtr(Objects[rp]);
-        if (!handle.IsAllocated)
-            return default(T);
-
-        var reference = (T)handle.Target;
-
-        if (freeGCHandle)
-            handle.Free();
-
-        return reference;*/
+        return reference;
     }
 
-    private void OnClone(object sender, EventArgs e)
+    private void OnClose(object sender, EventArgs e)
     {
         _objects.Clear();
     }
