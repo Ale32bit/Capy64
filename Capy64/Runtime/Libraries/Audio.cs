@@ -142,7 +142,10 @@ public class Audio : IPlugin
         var freq = L.CheckNumber(1);
         var time = L.OptNumber(2, 1);
         var volume = L.OptNumber(3, 1);
-        Math.Clamp(volume, 0, 1);
+
+
+
+        volume = Math.Clamp(volume, 0, 1);
 
         var buffer = Core.Audio.GenerateSquareWave(freq, time, volume);
 
