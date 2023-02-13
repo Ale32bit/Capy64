@@ -241,7 +241,7 @@ local function bootScreen()
 	end
 end
 
-audio.beep(1000, 0.4, 0.2)
+audio.beep(1000, 0.4, 0.2, "square")
 
 if shouldInstallOS() then
 	installOS()

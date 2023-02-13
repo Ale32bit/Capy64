@@ -139,15 +139,31 @@ public class Audio : IPlugin
     {
         var L = Lua.FromIntPtr(state);
 
-        var freq = L.CheckNumber(1);
+        var freq = L.OptNumber(1, 440);
         var time = L.OptNumber(2, 1);
         var volume = L.OptNumber(3, 1);
-
-
-
         volume = Math.Clamp(volume, 0, 1);
 
-        var buffer = Core.Audio.GenerateSquareWave(freq, time, volume);
+        var form = L.CheckOption(4, "sine", new string[]
+        {
+            "sine",
+            "square",
+            "triangle",
+            "sawtooth",
+            "noise",
+            null,
+        });
+
+
+        var buffer = form switch
+        {
+            0 => Core.Audio.GenerateSineWave(freq, time, volume),
+            1 => Core.Audio.GenerateSquareWave(freq, time, volume),
+            2 => Core.Audio.GenerateTriangleWave(freq, time, volume),
+            3 => Core.Audio.GenerateSawtoothWave(freq, time, volume),
+            4 => Core.Audio.GenerateNoiseWave(time, volume),
+            _ => throw new NotImplementedException()
+        };
 
         try
         {
