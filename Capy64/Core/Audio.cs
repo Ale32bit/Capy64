@@ -49,12 +49,9 @@ public class Audio : IDisposable
     private static double GetSquarePoint(double frequency, double x)
     {
         double v = 0;
-        for (int n = 0; n <= 25; n++)
+        for (int k = 1; k <= 50; k++)
         {
-            v += Math.Sin(Math.PI * (2 * n) * x * frequency)
-                / (2 * n + 1)
-                / 2 + 0.5;
-
+            v += 1 / (2 * k - 1) * Math.Sin(frequency * 2 * Math.PI * (2 * k - 1) * x) / 2 + 0.5;
         }
         return v;
     }
@@ -76,6 +73,18 @@ public class Audio : IDisposable
         return buffer;
     }
 
+    private static double GetTrianglePoint(double frequency, double x)
+    {
+        double v = 0;
+        for (int k = 1; k <= 50; k++)
+        {
+            v += (Math.Pow(-1, k) / Math.Pow(2 * k - 1, 2))
+                * Math.Sin(2 * Math.PI * (frequency * 2 * k - 1) * x)
+                / 2 + 0.5;
+        }
+        return -(8 / (Math.PI * Math.PI)) * v;
+    }
+
     public static byte[] GenerateTriangleWave(double frequency, double time, double volume = 1d)
     {
         var amplitude = 128 * volume;
@@ -86,12 +95,22 @@ public class Audio : IDisposable
         var ctime = 0d;
         for (int i = 0; i < buffer.Length; i++)
         {
-            var st = ctime * frequency - Math.Floor(ctime * frequency + 0.5);
-            var x = Math.Abs(st) * 2.0f - 1.0f;
+            var x = GetTrianglePoint(frequency, ctime);
             buffer[i] = (byte)(amplitude * x);
             ctime += timeStep;
         }
         return buffer;
+    }
+
+    private static double GetSawtoothPoint(double frequency, double x)
+    {
+        double v = 0;
+        for (int k = 1; k <= 50; k++)
+        {
+            v += (Math.Pow(-1, k) / k) * Math.Sin(frequency * 2 * Math.PI * k * x)
+                / 4 + 0.5;
+        }
+        return -v;
     }
 
     public static byte[] GenerateSawtoothWave(double frequency, double time, double volume = 1d)
@@ -104,7 +123,8 @@ public class Audio : IDisposable
         var ctime = 0d;
         for (int i = 0; i < buffer.Length; i++)
         {
-            var x = ctime * frequency - Math.Floor(ctime * frequency + 0.5);
+            //var x = ctime * frequency - Math.Floor(ctime * frequency + 0.5);
+            var x = GetSawtoothPoint(frequency, ctime);
             buffer[i] = (byte)(amplitude * x);
             ctime += timeStep;
         }
