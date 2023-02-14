@@ -4,6 +4,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +14,15 @@ namespace Capy64.Core;
 
 public class Audio : IDisposable
 {
+    public enum Waveform
+    {
+        Sine,
+        Square,
+        Triangle,
+        Sawtooth,
+        Noise
+    }
+
     public const int SampleRate = 48000;
     public const AudioChannels Channels = AudioChannels.Mono;
     public readonly DynamicSoundEffectInstance Sound;
@@ -19,7 +30,6 @@ public class Audio : IDisposable
     private static readonly Random rng = new();
     public Audio()
     {
-        GenerateSawtoothWave(440, 1);
         Sound = new DynamicSoundEffectInstance(SampleRate, Channels);
     }
 
@@ -29,77 +39,63 @@ public class Audio : IDisposable
         return Sound.GetSampleDuration(buffer.Length);
     }
 
-    public static byte[] GenerateSineWave(double frequency, double time, double volume = 1d)
+    public byte[] GenerateWave(Waveform form, double frequency, TimeSpan time)
     {
-        var amplitude = 128 * volume;
-        var timeStep = 1d / SampleRate;
+        var size = Sound.GetSampleSizeInBytes(time);
+        var buffer = new byte[size];
 
-        var buffer = new byte[(int)(SampleRate * time)];
-        var ctime = 0d;
-        for (int i = 0; i < buffer.Length; i++)
+        var step = 1d / SampleRate;
+        double x = 0;
+        for (int i = 0; i < size; i += 2)
         {
-            double angle = (Math.PI * frequency) * ctime;
-            double factor = 0.5 * (Math.Sin(angle) + 1.0);
-            buffer[i] = (byte)(amplitude * factor);
-            ctime += timeStep;
+            var value = form switch
+            {
+                Waveform.Sine => GetSinePoint(frequency, x),
+                Waveform.Square => GetSquarePoint(frequency, x),
+                Waveform.Triangle => GetTrianglePoint(frequency, x),
+                Waveform.Sawtooth => GetSawtoothPoint(frequency, x),
+                Waveform.Noise => rng.NextDouble() * 2 - 1,
+                _ => throw new NotImplementedException(),
+            };
+            Console.WriteLine(value);
+            value = Math.Clamp(value, -1, 1);
+            var sample = (short)(value >= 0.0f ? value * short.MaxValue : value * short.MinValue * -1);
+            if (!BitConverter.IsLittleEndian)
+            {
+                buffer[i] = (byte)(sample >> 8);
+                buffer[i + 1] = (byte)sample;
+            }
+            else
+            {
+                buffer[i] = (byte)sample;
+                buffer[i + 1] = (byte)(sample >> 8);
+            }
+            x += step;
         }
+
         return buffer;
+    }
+
+    public static double GetSinePoint(double frequency, double x)
+    {
+        return Math.Sin(x * 2 * Math.PI * frequency);
     }
 
     private static double GetSquarePoint(double frequency, double x)
     {
-        double v = 0;
-        for (int k = 1; k <= 50; k++)
-        {
-            v += 1 / (2 * k - 1) * Math.Sin(frequency * 2 * Math.PI * (2 * k - 1) * x) / 2 + 0.5;
-        }
-        return v;
-    }
-
-    public static byte[] GenerateSquareWave(double frequency, double time, double volume = 1d)
-    {
-        var amplitude = 128 * volume;
-        var timeStep = 1d / SampleRate;
-        frequency /= 2;
-
-        var buffer = new byte[(int)(SampleRate * time)];
-        var ctime = 0d;
-        for (int i = 0; i < buffer.Length; i++)
-        {
-            var v = GetSquarePoint(frequency, ctime);
-            buffer[i] = (byte)(v * amplitude);
-            ctime += timeStep;
-        }
-        return buffer;
+        double v = GetSinePoint(frequency, x);
+        return v > 0 ? 1 : -1;
     }
 
     private static double GetTrianglePoint(double frequency, double x)
     {
         double v = 0;
-        for (int k = 1; k <= 50; k++)
+        for (int k = 1; k <= 25; k++)
         {
             v += (Math.Pow(-1, k) / Math.Pow(2 * k - 1, 2))
-                * Math.Sin(2 * Math.PI * (frequency * 2 * k - 1) * x)
-                / 2 + 0.5;
+                * Math.Sin(frequency * 2 * Math.PI * (2 * k - 1) * x);
         }
-        return -(8 / (Math.PI * Math.PI)) * v;
-    }
-
-    public static byte[] GenerateTriangleWave(double frequency, double time, double volume = 1d)
-    {
-        var amplitude = 128 * volume;
-        var timeStep = 1d / SampleRate;
-        frequency /= 2;
-
-        var buffer = new byte[(int)(SampleRate * time)];
-        var ctime = 0d;
-        for (int i = 0; i < buffer.Length; i++)
-        {
-            var x = GetTrianglePoint(frequency, ctime);
-            buffer[i] = (byte)(amplitude * x);
-            ctime += timeStep;
-        }
-        return buffer;
+        return -(8 / Math.Pow(Math.PI, 2)) * v;
     }
 
     private static double GetSawtoothPoint(double frequency, double x)
@@ -107,43 +103,9 @@ public class Audio : IDisposable
         double v = 0;
         for (int k = 1; k <= 50; k++)
         {
-            v += (Math.Pow(-1, k) / k) * Math.Sin(frequency * 2 * Math.PI * k * x)
-                / 4 + 0.5;
+            v += (Math.Pow(-1, k) / k) * Math.Sin(frequency * 2 * Math.PI * k * x);
         }
-        return -v;
-    }
-
-    public static byte[] GenerateSawtoothWave(double frequency, double time, double volume = 1d)
-    {
-        var amplitude = 128 * volume;
-        var timeStep = 1d / SampleRate;
-        frequency /= 2;
-
-        var buffer = new byte[(int)(SampleRate * time)];
-        var ctime = 0d;
-        for (int i = 0; i < buffer.Length; i++)
-        {
-            //var x = ctime * frequency - Math.Floor(ctime * frequency + 0.5);
-            var x = GetSawtoothPoint(frequency, ctime);
-            buffer[i] = (byte)(amplitude * x);
-            ctime += timeStep;
-        }
-        return buffer;
-    }
-
-    public static byte[] GenerateNoiseWave(double time, double volume = 1d)
-    {
-        var amplitude = 128 * volume;
-        var timeStep = 1d / SampleRate;
-
-        var buffer = new byte[(int)(SampleRate * time)];
-        var ctime = 0d;
-        for (int i = 0; i < buffer.Length; i++)
-        {
-            buffer[i] = (byte)rng.Next(0, (int)amplitude);
-            ctime += timeStep;
-        }
-        return buffer;
+        return -(2 / Math.PI) * v;
     }
 
     public void Dispose()
