@@ -46,18 +46,31 @@ public class Audio : IDisposable
         return buffer;
     }
 
+    private static double GetSquarePoint(double frequency, double x)
+    {
+        double v = 0;
+        for (int n = 0; n <= 25; n++)
+        {
+            v += Math.Sin(Math.PI * (2 * n) * x * frequency)
+                / (2 * n + 1)
+                / 2 + 0.5;
+
+        }
+        return v;
+    }
+
     public static byte[] GenerateSquareWave(double frequency, double time, double volume = 1d)
     {
         var amplitude = 128 * volume;
         var timeStep = 1d / SampleRate;
+        frequency /= 2;
 
         var buffer = new byte[(int)(SampleRate * time)];
         var ctime = 0d;
         for (int i = 0; i < buffer.Length; i++)
         {
-            double angle = (Math.PI * frequency) * ctime;
-            double factor = Math.Sin(angle);
-            buffer[i] = (byte)(factor >= 0 ? amplitude : 0);
+            var v = GetSquarePoint(frequency, ctime);
+            buffer[i] = (byte)(v * amplitude);
             ctime += timeStep;
         }
         return buffer;
