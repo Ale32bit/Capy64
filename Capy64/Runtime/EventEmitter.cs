@@ -35,6 +35,10 @@ internal class EventEmitter
 
         _eventEmitter.OnTick += OnTick;
         _eventEmitter.OnScreenSizeChange += OnScreenSizeChange;
+
+        _eventEmitter.OnGamePadButton += OnGamePadButton;
+        _eventEmitter.OnGamePadTrigger += OnGamePadTrigger;
+        _eventEmitter.OnGamePadThumbstick += OnGamePadThumbstick;
     }
 
     public void Unregister()
@@ -49,6 +53,11 @@ internal class EventEmitter
         _eventEmitter.OnChar -= OnChar;
 
         _eventEmitter.OnTick -= OnTick;
+        _eventEmitter.OnScreenSizeChange -= OnScreenSizeChange;
+
+        _eventEmitter.OnGamePadButton -= OnGamePadButton;
+        _eventEmitter.OnGamePadTrigger -= OnGamePadTrigger;
+        _eventEmitter.OnGamePadThumbstick -= OnGamePadThumbstick;
     }
 
     private void OnTick(object sender, TickEvent e)
@@ -187,6 +196,37 @@ internal class EventEmitter
         _runtime.QueueEvent("screen_resize", LK =>
         {
             return 0;
+        });
+    }
+
+    private void OnGamePadButton(object sender, GamePadButtonEvent e)
+    {
+        _runtime.QueueEvent("gamepad_button", LK =>
+        {
+            LK.PushInteger((int)e.Button);
+            LK.PushBoolean(e.State == ButtonState.Pressed);
+            return 2;
+        });
+    }
+
+    private void OnGamePadTrigger(object sender, GamePadTriggerEvent e)
+    {
+        _runtime.QueueEvent("gamepad_trigger", LK =>
+        {
+            LK.PushInteger(e.Trigger);
+            LK.PushNumber(e.Value);
+            return 2;
+        });
+    }
+
+    private void OnGamePadThumbstick(object sender, GamePadThumbstickEvent e)
+    {
+        _runtime.QueueEvent("gamepad_stick", LK =>
+        {
+            LK.PushInteger(e.Stick);
+            LK.PushNumber(e.Value.X);
+            LK.PushNumber(e.Value.Y);
+            return 2;
         });
     }
 }

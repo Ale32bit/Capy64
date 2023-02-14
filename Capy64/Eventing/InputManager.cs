@@ -90,6 +90,7 @@ public class InputManager
     {
         UpdateMouse(Mouse.GetState(), IsActive);
         UpdateKeyboard(Keyboard.GetState(), IsActive);
+        UpdateGamePad(GamePad.GetState(PlayerIndex.One), IsActive);
     }
 
     private void UpdateMouse(MouseState state, bool isActive)
@@ -287,5 +288,211 @@ public class InputManager
     public static string ToUnderscore(string str)
     {
         return string.Concat(str.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString())).ToLower();
+    }
+
+    private GamePadState oldGamePadState = new();
+    private void UpdateGamePad(GamePadState state, bool isActive)
+    {
+        if (!isActive)
+            return;
+
+        if (!state.IsConnected)
+            return;
+
+        var ob = oldGamePadState.Buttons;
+        var b = state.Buttons;
+        // ABXY
+        if (ob.A != b.A)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.A,
+                State = b.A,
+            });
+        }
+
+        if (ob.B != b.B)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.B,
+                State = b.B,
+            });
+        }
+
+        if (ob.X != b.X)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.X,
+                State = b.X,
+            });
+        }
+
+        if (ob.Y != b.Y)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.Y,
+                State = b.Y,
+            });
+        }
+
+        // Back & Start
+        if (ob.Back != b.Back)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.Back,
+                State = b.Back,
+            });
+        }
+
+        if (ob.Start != b.Start)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.Start,
+                State = b.Start,
+            });
+        }
+
+        // Shoulders
+        if (ob.LeftShoulder != b.LeftShoulder)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.LeftShoulder,
+                State = b.LeftShoulder,
+            });
+        }
+
+        if (ob.RightShoulder != b.RightShoulder)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.RightShoulder,
+                State = b.RightShoulder,
+            });
+        }
+
+        // Sticks
+        if (ob.LeftStick != b.LeftStick)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.LeftStick,
+                State = b.LeftStick,
+            });
+        }
+
+        if (ob.RightStick != b.RightStick)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.RightStick,
+                State = b.RightStick,
+            });
+        }
+
+        // BIG BUTTON
+        if (ob.BigButton != b.BigButton)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.BigButton,
+                State = b.BigButton,
+            });
+        }
+
+        // D-PAD
+        var od = oldGamePadState.DPad;
+        var d = state.DPad;
+        
+        if (od.Left != d.Left)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.DPadLeft,
+                State = d.Left,
+            });
+        }
+
+        if (od.Right != d.Right)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.DPadRight,
+                State = d.Right,
+            });
+        }
+
+        if (od.Up != d.Up)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.DPadUp,
+                State = d.Up,
+            });
+        }
+
+        if (od.Down != d.Down)
+        {
+            _eventEmitter.RaiseGamePadButton(new()
+            {
+                Button = Buttons.DPadDown,
+                State = d.Down,
+            });
+        }
+
+        // triggers
+        var ot = oldGamePadState.Triggers;
+        var t = state.Triggers;
+
+        if (ot.Left != t.Left)
+        {
+            
+            _eventEmitter.RaiseGamePadTrigger(new()
+            {
+                Trigger = 1, // left
+                Value = t.Left,
+            });
+        }
+
+        if (ot.Right != t.Right)
+        {
+
+            _eventEmitter.RaiseGamePadTrigger(new()
+            {
+                Trigger = 2, // right
+                Value = t.Right,
+            });
+        }
+
+        // thumbsticks
+        var os = oldGamePadState.ThumbSticks;
+        var s = state.ThumbSticks;
+
+        if (os.Left != s.Left)
+        {
+
+            _eventEmitter.RaiseGamePadThumbstick(new()
+            {
+                Stick = 1, // left
+                Value = s.Left,
+            });
+        }
+
+        if (os.Right != s.Right)
+        {
+
+            _eventEmitter.RaiseGamePadThumbstick(new()
+            {
+                Stick = 2, // right
+                Value = s.Right,
+            });
+        }
+
+        oldGamePadState = state;
     }
 }

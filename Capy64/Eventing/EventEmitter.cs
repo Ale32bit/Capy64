@@ -18,6 +18,11 @@ public class EventEmitter
     public event EventHandler<KeyEvent> OnKeyUp;
     public event EventHandler<CharEvent> OnChar;
 
+    // GamePad events
+    public event EventHandler<GamePadButtonEvent> OnGamePadButton;
+    public event EventHandler<GamePadTriggerEvent> OnGamePadTrigger;
+    public event EventHandler<GamePadThumbstickEvent> OnGamePadThumbstick;
+
     // Functional events
     public event EventHandler<TickEvent> OnTick;
     public event EventHandler OnInit;
@@ -82,6 +87,30 @@ public class EventEmitter
         if (OnChar is not null)
         {
             OnChar(this, ev);
+        }
+    }
+
+    public void RaiseGamePadButton(GamePadButtonEvent ev)
+    {
+        if (OnGamePadButton is not null)
+        {
+            OnGamePadButton(this, ev);
+        }
+    }
+
+    public void RaiseGamePadTrigger(GamePadTriggerEvent ev)
+    {
+        if (OnGamePadTrigger is not null)
+        {
+            OnGamePadTrigger(this, ev);
+        }
+    }
+
+    public void RaiseGamePadThumbstick(GamePadThumbstickEvent ev)
+    {
+        if (OnGamePadThumbstick is not null)
+        {
+            OnGamePadThumbstick(this, ev);
         }
     }
 
