@@ -541,10 +541,9 @@ public class FileSystem : IPlugin
             }
         }
 
-        var fileStream = File.Open(path, fileMode, fileAccess, FileShare.ReadWrite);
+        var fileStream = File.Open(path, fileMode, fileAccess, FileShare.ReadWrite | FileShare.Delete);
 
         ObjectManager.PushObject(L, fileStream);
-        //L.PushObject(fileStream);
         L.SetMetaTable(FileHandle.ObjectType);
 
         return 1;
