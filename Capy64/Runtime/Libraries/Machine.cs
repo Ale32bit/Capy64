@@ -1,5 +1,7 @@
 ﻿using Capy64.API;
 using KeraLua;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +44,11 @@ public class Machine : IPlugin
         {
             name = "setRPC",
             function = L_SetRPC,
+        },
+        new()
+        {
+            name = "vibrate",
+            function = L_Vibrate,
         },
         new(),
     };
@@ -122,4 +129,18 @@ public class Machine : IPlugin
         return 1;
     }
 
+    private static int L_Vibrate(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var left = (float)L.CheckNumber(1);
+        var right = (float)L.OptNumber(2, left);
+
+        left = Math.Clamp(left, 0, 1);
+        right = Math.Clamp(right, 0, 1);
+
+        GamePad.SetVibration(PlayerIndex.One, left, right);
+
+        return 0;
+    }
 }
