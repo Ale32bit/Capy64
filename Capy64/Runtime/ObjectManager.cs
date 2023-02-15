@@ -76,6 +76,12 @@ public class ObjectManager : IPlugin
 
     private void OnClose(object sender, EventArgs e)
     {
+        foreach (var pair in _objects)
+        {
+            if (pair.Value is IDisposable disposable)
+                disposable.Dispose();
+        }
+
         _objects.Clear();
     }
 }
