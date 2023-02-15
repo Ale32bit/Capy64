@@ -35,6 +35,7 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
+		<None Include="C:\Users\Alex\source\repos\Capy64\Capy64\Capy64\.editorconfig" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="DiscordRichPresence" Version="1.1.3.18" />
@@ -55,4 +56,7 @@
 		<Message Text="Restoring dotnet tools" Importance="High" />
 		<Exec Command="dotnet tool restore" />
 	</Target>
+	<ItemGroup>
+	  <EditorConfigFiles Remove="C:\Users\Alex\source\repos\Capy64\Capy64\Capy64\.editorconfig" />
+	</ItemGroup>
 </Project>
