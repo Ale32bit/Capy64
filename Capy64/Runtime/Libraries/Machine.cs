@@ -103,6 +103,8 @@ public class Machine : IPlugin
         if (!L.IsNoneOrNil(1))
         {
             var newTitle = L.CheckString(1);
+            
+            L.ArgumentCheck(!string.IsNullOrEmpty(newTitle), 1, "string must not be empty");
 
             Capy64.Instance.Window.Title = newTitle;
         }
