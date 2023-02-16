@@ -29,11 +29,14 @@ public class Audio : IDisposable
         Noise
     }
 
-    public const int SampleRate = 48000;
+    public const int SampleRate = 16000;
+    public const int HQSampleRate = 48000;
     public const AudioChannels AudioChannel = AudioChannels.Mono;
     public const int ChannelsCount = 5;
     public readonly DynamicSoundEffectInstance[] Channels = new DynamicSoundEffectInstance[ChannelsCount];
     private bool[] freeChannels = new bool[ChannelsCount];
+
+    public readonly DynamicSoundEffectInstance HQChannel = new(HQSampleRate, AudioChannel);
 
     private static readonly Random rng = new();
     public Audio()
@@ -44,6 +47,19 @@ public class Audio : IDisposable
             freeChannels[i] = true;
             Channels[i].BufferNeeded += Audio_BufferNeeded;
         }
+
+        HQChannel.BufferNeeded += HQChannel_BufferNeeded;
+    }
+
+    private void HQChannel_BufferNeeded(object sender, EventArgs e)
+    {
+        var pending = HQChannel.PendingBufferCount;
+        Capy64.Instance.LuaRuntime.QueueEvent("audio_need", LK =>
+        {
+            LK.PushInteger(-1);
+            LK.PushInteger(pending);
+            return 2;
+        });
     }
 
     private void Audio_BufferNeeded(object sender, EventArgs e)
@@ -71,6 +87,9 @@ public class Audio : IDisposable
             return inp;
 
         if (inp == -1)
+            return -1;
+
+        if (inp == -2)
         {
             for (int i = 0; i < ChannelsCount; i++)
             {
@@ -78,8 +97,6 @@ public class Audio : IDisposable
                     return i;
             }
         }
-
-        // -2 is all?
 
         return -3;
     }
@@ -90,6 +107,8 @@ public class Audio : IDisposable
 
         if (resolvedId >= 0)
             channel = Channels[resolvedId];
+        else if (resolvedId == -1)
+            channel = HQChannel;
         else
             channel = null;
 
@@ -106,7 +125,13 @@ public class Audio : IDisposable
         return channel.GetSampleDuration(buffer.Length);
     }
 
-    public byte[] GenerateWave(DynamicSoundEffectInstance channel, Waveform form, double frequency, TimeSpan time, float volume = 1f)
+    public TimeSpan SubmitHQ(byte[] buffer)
+    {
+        HQChannel.SubmitBuffer(buffer);
+        return HQChannel.GetSampleDuration(buffer.Length);
+    }
+
+    public static byte[] GenerateWave(DynamicSoundEffectInstance channel, Waveform form, double frequency, TimeSpan time, float volume = 1f)
     {
         var size = channel.GetSampleSizeInBytes(time);
         var buffer = new byte[size];

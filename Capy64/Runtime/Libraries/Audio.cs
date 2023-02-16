@@ -114,16 +114,7 @@ public class Audio : IComponent
             }
         }
 
-        var id = (int)L.OptInteger(2, -1);
-
-        if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
-        {
-            L.PushBoolean(false);
-            L.PushString("Channel not available");
-            return 2;
-        }
-
-        if (channel.PendingBufferCount > queueLimit)
+        if (_game.Audio.HQChannel.PendingBufferCount > queueLimit)
         {
             L.PushBoolean(false);
             L.PushString("queue is full");
@@ -133,10 +124,10 @@ public class Audio : IComponent
 
         try
         {
-            var ts = _game.Audio.Submit(rid, buffer);
+            var ts = _game.Audio.SubmitHQ(buffer);
 
-            if (channel.State != SoundState.Playing)
-                channel.Play();
+            if (_game.Audio.HQChannel.State != SoundState.Playing)
+                _game.Audio.HQChannel.Play();
         }
         catch (Exception ex)
         {
@@ -167,7 +158,7 @@ public class Audio : IComponent
             null,
         });
 
-        var id = (int)L.OptInteger(5, -1);
+        var id = (int)L.OptInteger(5, -2);
 
         if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
         {
@@ -175,7 +166,7 @@ public class Audio : IComponent
             return 1;
         }
 
-        var buffer = _game.Audio.GenerateWave(channel, (Waveform)form, freq, timespan, volume);
+        var buffer = GenerateWave(channel, (Waveform)form, freq, timespan, volume);
 
         try
         {
