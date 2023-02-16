@@ -30,24 +30,78 @@ public class Audio : IDisposable
     }
 
     public const int SampleRate = 48000;
-    public const AudioChannels Channels = AudioChannels.Mono;
-    public readonly DynamicSoundEffectInstance Sound;
+    public const AudioChannels AudioChannel = AudioChannels.Mono;
+    public const int ChannelsCount = 5;
+    public readonly DynamicSoundEffectInstance[] Channels = new DynamicSoundEffectInstance[ChannelsCount];
+    private bool[] freeChannels = new bool[ChannelsCount];
 
     private static readonly Random rng = new();
     public Audio()
     {
-        Sound = new DynamicSoundEffectInstance(SampleRate, Channels);
+        for (int i = 0; i < ChannelsCount; i++)
+        {
+            Channels[i] = new DynamicSoundEffectInstance(SampleRate, AudioChannel);
+            freeChannels[i] = true;
+            Channels[i].BufferNeeded += Audio_BufferNeeded;
+        }
     }
 
-    public TimeSpan Submit(byte[] buffer)
+    private void Audio_BufferNeeded(object sender, EventArgs e)
     {
-        Sound.SubmitBuffer(buffer);
-        return Sound.GetSampleDuration(buffer.Length);
+        for (int i = 0; i < ChannelsCount; i++)
+        {
+            if (Channels[i] == sender)
+            {
+                freeChannels[i] = true;
+            }
+        }
+
     }
 
-    public byte[] GenerateWave(Waveform form, double frequency, TimeSpan time, float volume = 1f)
+    public int GetChannelId(int inp)
     {
-        var size = Sound.GetSampleSizeInBytes(time);
+        if (inp >= 0)
+            return inp;
+
+        if (inp == -1)
+        {
+            for (int i = 0; i < ChannelsCount; i++)
+            {
+                if (freeChannels[i])
+                    return i;
+            }
+        }
+
+        // -2 is all?
+
+        return -3;
+    }
+
+    public bool TryGetChannel(int id, out DynamicSoundEffectInstance channel, out int resolvedId)
+    {
+        resolvedId = GetChannelId(id);
+
+        if (resolvedId >= 0)
+            channel = Channels[resolvedId];
+        else
+            channel = null;
+
+        return channel != null;
+    }
+
+    public TimeSpan Submit(int id, byte[] buffer)
+    {
+        if (!TryGetChannel(id, out var channel, out var rId))
+            return TimeSpan.Zero;
+
+        channel.SubmitBuffer(buffer);
+        freeChannels[rId] = false;
+        return channel.GetSampleDuration(buffer.Length);
+    }
+
+    public byte[] GenerateWave(DynamicSoundEffectInstance channel, Waveform form, double frequency, TimeSpan time, float volume = 1f)
+    {
+        var size = channel.GetSampleSizeInBytes(time);
         var buffer = new byte[size];
 
         var step = 1d / SampleRate;
@@ -63,7 +117,7 @@ public class Audio : IDisposable
                 Waveform.Noise => rng.NextDouble() * 2 - 1,
                 _ => throw new NotImplementedException(),
             };
-            
+
             value = Math.Clamp(value, -1, 1);
             var sample = (short)((value >= 0.0f ? value * short.MaxValue : value * short.MinValue * -1) * volume);
             if (!BitConverter.IsLittleEndian)
@@ -117,6 +171,9 @@ public class Audio : IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        Sound.Dispose();
+        for (int i = 0; i < ChannelsCount; i++)
+        {
+            Channels[i]?.Dispose();
+        }
     }
 }

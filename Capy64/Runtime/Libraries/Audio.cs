@@ -90,7 +90,7 @@ public class Audio : IComponent
         return 1;
     }
 
-    private static async Task DelayEmit(TimeSpan time)
+    private static async Task DelayEmit(TimeSpan time, DynamicSoundEffectInstance channel)
     {
         var waitTime = time - TimeSpan.FromMilliseconds(1000 / 60);
         if (waitTime.TotalMilliseconds < 0)
@@ -98,7 +98,7 @@ public class Audio : IComponent
         await Task.Delay(waitTime);
         _game.LuaRuntime.QueueEvent("audio_end", LK =>
         {
-            LK.PushInteger(_game.Audio.Sound.PendingBufferCount);
+            LK.PushInteger(channel.PendingBufferCount);
             return 1;
         });
     }
@@ -127,7 +127,16 @@ public class Audio : IComponent
             }
         }
 
-        if (_game.Audio.Sound.PendingBufferCount > queueLimit)
+        var id = (int)L.OptInteger(2, -1);
+
+        if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
+        {
+            L.PushBoolean(false);
+            L.PushString("Channel not available");
+            return 2;
+        }
+
+        if (channel.PendingBufferCount > queueLimit)
         {
             L.PushBoolean(false);
             L.PushString("queue is full");
@@ -137,11 +146,11 @@ public class Audio : IComponent
 
         try
         {
-            var ts = _game.Audio.Submit(buffer);
-            DelayEmit(ts);
+            var ts = _game.Audio.Submit(rid, buffer);
+            DelayEmit(ts, channel);
 
-            if (_game.Audio.Sound.State != SoundState.Playing)
-                _game.Audio.Sound.Play();
+            if (channel.State != SoundState.Playing)
+                channel.Play();
         }
         catch (Exception ex)
         {
@@ -157,10 +166,10 @@ public class Audio : IComponent
 
         var freq = L.OptNumber(1, 440);
         var time = L.OptNumber(2, 1);
+        var timespan = TimeSpan.FromSeconds(time);
+
         var volume = (float)L.OptNumber(3, 1);
         volume = Math.Clamp(volume, 0, 1);
-
-        var timespan = TimeSpan.FromSeconds(time);
 
         var form = L.CheckOption(4, "sine", new string[]
         {
@@ -172,37 +181,71 @@ public class Audio : IComponent
             null,
         });
 
-        var buffer = _game.Audio.GenerateWave((Waveform)form, freq, timespan, volume);
+        var id = (int)L.OptInteger(5, -1);
+
+        if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
+        {
+            L.PushBoolean(false);
+            return 1;
+        }
+
+        var buffer = _game.Audio.GenerateWave(channel, (Waveform)form, freq, timespan, volume);
 
         try
         {
-            var ts = _game.Audio.Submit(buffer);
-            DelayEmit(ts);
+            var ts = _game.Audio.Submit(rid, buffer);
+            DelayEmit(ts, channel);
 
-            if (_game.Audio.Sound.State != SoundState.Playing)
-                _game.Audio.Sound.Play();
+            if (channel.State != SoundState.Playing)
+                channel.Play();
+
+            L.PushBoolean(true);
         }
         catch (Exception ex)
         {
             L.Error(ex.Message);
         }
 
-        return 0;
+        return 1;
     }
 
     private static int L_Resume(IntPtr state)
     {
-        _game.Audio.Sound.Resume();
+        var L = Lua.FromIntPtr(state);
+        var id = (int)L.CheckInteger(1);
+        if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
+        {
+            L.PushBoolean(false);
+            return 1;
+        }
+
+        channel.Resume();
         return 0;
     }
     private static int L_Pause(IntPtr state)
     {
-        _game.Audio.Sound.Pause();
+        var L = Lua.FromIntPtr(state);
+        var id = (int)L.CheckInteger(1);
+        if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
+        {
+            L.PushBoolean(false);
+            return 1;
+        }
+
+        channel.Pause();
         return 0;
     }
     private static int L_Stop(IntPtr state)
     {
-        _game.Audio.Sound.Stop();
+        var L = Lua.FromIntPtr(state);
+        var id = (int)L.CheckInteger(1);
+        if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
+        {
+            L.PushBoolean(false);
+            return 1;
+        }
+
+        channel.Stop();
 
         return 0;
     }
@@ -211,7 +254,14 @@ public class Audio : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        L.PushNumber(_game.Audio.Sound.Volume);
+        var id = (int)L.CheckInteger(1);
+        if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
+        {
+            L.PushNil();
+            return 1;
+        }
+
+        L.PushNumber(channel.Volume);
 
         return 1;
     }
@@ -219,10 +269,17 @@ public class Audio : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var volume = (float)L.CheckNumber(1);
+        var id = (int)L.CheckInteger(1);
+        if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
+        {
+            L.PushNil();
+            return 1;
+        }
+
+        var volume = (float)L.CheckNumber(2);
         volume = Math.Clamp(volume, 0, 1);
 
-        _game.Audio.Sound.Volume = volume;
+        channel.Volume = volume;
 
         return 0;
     }
@@ -231,7 +288,14 @@ public class Audio : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var status = _game.Audio.Sound.State switch
+        var id = (int)L.CheckInteger(1);
+        if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
+        {
+            L.PushNil();
+            return 1;
+        }
+
+        var status = channel.State switch
         {
             SoundState.Playing => "playing",
             SoundState.Paused => "paused",
@@ -246,6 +310,9 @@ public class Audio : IComponent
 
     private void OnClose(object sender, EventArgs e)
     {
-        _game.Audio.Sound.Stop(true);
+        foreach (var channel in _game.Audio.Channels)
+        {
+            channel.Stop();
+        }
     }
 }
