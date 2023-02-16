@@ -109,6 +109,8 @@ public class Machine : IPlugin
                 newTitle = "Capy64 " + Capy64.Version;
             }
 
+            newTitle = newTitle[..Math.Min(newTitle.Length, 256)];
+
             Capy64.Instance.Window.Title = newTitle;
         }
 
