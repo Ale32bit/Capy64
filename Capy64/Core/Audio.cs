@@ -72,7 +72,7 @@ public class Audio : IDisposable
                 Waveform.Noise => rng.NextDouble() * 2 - 1,
                 _ => throw new NotImplementedException(),
             };
-            Console.WriteLine(value);
+            
             value = Math.Clamp(value, -1, 1);
             var sample = (short)(value >= 0.0f ? value * short.MaxValue : value * short.MinValue * -1);
             if (!BitConverter.IsLittleEndian)
