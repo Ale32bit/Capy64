@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Libraries;
 
-public class Machine : IPlugin
+public class Machine : IComponent
 {
     private static IGame _game;
     public Machine(IGame game)
@@ -103,13 +103,6 @@ public class Machine : IPlugin
         if (!L.IsNoneOrNil(1))
         {
             var newTitle = L.CheckString(1);
-            
-            if (string.IsNullOrEmpty(newTitle))
-            {
-                newTitle = "Capy64 " + Capy64.Version;
-            }
-
-            newTitle = newTitle[..Math.Min(newTitle.Length, 256)];
 
             Capy64.Instance.Window.Title = newTitle;
         }

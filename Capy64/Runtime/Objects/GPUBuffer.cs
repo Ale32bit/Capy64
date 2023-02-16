@@ -20,7 +20,7 @@ using System.IO;
 
 namespace Capy64.Runtime.Objects;
 
-public class GPUBuffer : IPlugin
+public class GPUBuffer : IComponent
 {
     public const string ObjectType = "GPUBuffer";
 

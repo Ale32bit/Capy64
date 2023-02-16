@@ -33,21 +33,21 @@ internal class PluginLoader
         return loadContext.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(path)));
     }
 
-    public static List<IPlugin> LoadAllPlugins(string pluginsPath, IServiceProvider provider)
+    public static List<IComponent> LoadAllPlugins(string pluginsPath, IServiceProvider provider)
     {
         if (!Directory.Exists(pluginsPath))
             Directory.CreateDirectory(pluginsPath);
 
-        var plugins = new List<IPlugin>();
+        var plugins = new List<IComponent>();
         foreach (var fileName in Directory.GetFiles(pluginsPath).Where(q => q.EndsWith(".dll")))
         {
             var assembly = LoadPlugin(fileName);
 
             foreach (Type type in assembly.GetTypes())
             {
-                if (typeof(IPlugin).IsAssignableFrom(type))
+                if (typeof(IComponent).IsAssignableFrom(type))
                 {
-                    IPlugin result = ActivatorUtilities.CreateInstance(provider, type) as IPlugin;
+                    IComponent result = ActivatorUtilities.CreateInstance(provider, type) as IComponent;
                     plugins.Add(result);
                 }
             }

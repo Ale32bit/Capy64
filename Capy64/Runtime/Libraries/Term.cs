@@ -26,7 +26,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace Capy64.Runtime.Libraries;
 
-internal class Term : IPlugin
+internal class Term : IComponent
 {
     private struct Char
     {

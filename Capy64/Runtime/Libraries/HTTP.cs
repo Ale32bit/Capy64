@@ -28,7 +28,7 @@ using System.Threading;
 
 namespace Capy64.Runtime.Libraries;
 #nullable enable
-public class HTTP : IPlugin
+public class HTTP : IComponent
 {
     private static IGame _game;
     private static HttpClient _httpClient;

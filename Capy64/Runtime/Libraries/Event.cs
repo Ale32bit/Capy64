@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Libraries;
 
-public class Event : IPlugin
+public class Event : IComponent
 {
     private static IGame _game;
     public Event(IGame game)

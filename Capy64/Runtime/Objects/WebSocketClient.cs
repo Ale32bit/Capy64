@@ -23,7 +23,7 @@ using System.Threading;
 
 namespace Capy64.Runtime.Objects;
 
-public class WebSocketClient : IPlugin
+public class WebSocketClient : IComponent
 {
     public const string ObjectType = "WebSocketClient";
 

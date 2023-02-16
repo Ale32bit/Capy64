@@ -25,7 +25,7 @@ using Capy64.Runtime.Objects;
 
 namespace Capy64.Runtime.Libraries;
 
-public class FileSystem : IPlugin
+public class FileSystem : IComponent
 {
     public static string DataPath = Path.Combine(Capy64.AppDataPath, "data");
 

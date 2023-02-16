@@ -19,7 +19,7 @@ using System;
 
 namespace Capy64.Runtime.Libraries;
 
-public class OS : IPlugin
+public class OS : IComponent
 {
     private static IGame _game;
     public OS(IGame game)

@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Objects;
 
-public class FileHandle : IPlugin
+public class FileHandle : IComponent
 {
     public const string ObjectType = "file";
 

@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 
 namespace Capy64.Runtime;
 
-public class ObjectManager : IPlugin
+public class ObjectManager : IComponent
 {
     private static ConcurrentDictionary<nint, object> _objects = new();
 

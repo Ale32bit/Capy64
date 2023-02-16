@@ -27,8 +27,8 @@ namespace Capy64;
 public interface IGame
 {
     Capy64 Game { get; }
-    IList<IPlugin> NativePlugins { get; }
-    IList<IPlugin> Plugins { get; }
+    IList<IComponent> NativePlugins { get; }
+    IList<IComponent> Plugins { get; }
     GameWindow Window { get; }
     Drawing Drawing { get; }
     Audio Audio { get; }

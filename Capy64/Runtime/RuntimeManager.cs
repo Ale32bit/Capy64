@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 
 namespace Capy64.Runtime;
 
-internal class RuntimeManager : IPlugin
+internal class RuntimeManager : IComponent
 {
     private LuaState luaState;
     private EventEmitter emitter;

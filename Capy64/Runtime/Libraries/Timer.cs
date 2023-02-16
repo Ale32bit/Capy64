@@ -21,7 +21,7 @@ using System.Collections.Generic;
 
 namespace Capy64.Runtime.Libraries;
 
-class Timer : IPlugin
+class Timer : IComponent
 {
     private LuaRegister[] TimerLib = new LuaRegister[]
     {

@@ -4,7 +4,7 @@ using KeraLua;
 
 namespace ExamplePlugin;
 
-public class MyPlugin : IPlugin
+public class MyPlugin : IComponent
 {
     private static IGame _game;
     public MyPlugin(IGame game)

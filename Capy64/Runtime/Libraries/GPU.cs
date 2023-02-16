@@ -24,7 +24,7 @@ using System.IO;
 
 namespace Capy64.Runtime.Libraries;
 
-public class GPU : IPlugin
+public class GPU : IComponent
 {
 
     private static IGame _game;

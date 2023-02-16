@@ -75,7 +75,7 @@ public class LuaState : IDisposable
 
     private void InitPlugins()
     {
-        var allPlugins = new List<IPlugin>(Capy64.Instance.NativePlugins);
+        var allPlugins = new List<IComponent>(Capy64.Instance.NativePlugins);
         allPlugins.AddRange(Capy64.Instance.Plugins);
         foreach (var plugin in allPlugins)
         {

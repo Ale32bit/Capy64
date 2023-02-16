@@ -22,7 +22,7 @@ using static Capy64.Core.Audio;
 
 namespace Capy64.Runtime.Libraries;
 
-public class Audio : IPlugin
+public class Audio : IComponent
 {
     private const int queueLimit = 8;
 

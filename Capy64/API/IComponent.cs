@@ -18,7 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Capy64.API;
 
-public interface IPlugin
+public interface IComponent
 {
     void ConfigureServices(IServiceCollection services) { }
     void LuaInit(Lua L) { }

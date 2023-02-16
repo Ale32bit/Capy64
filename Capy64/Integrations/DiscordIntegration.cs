@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 
 namespace Capy64.Integrations;
 
-public class DiscordIntegration : IPlugin
+public class DiscordIntegration : IComponent
 {
     public DiscordRpcClient Client { get; private set; }
     private readonly IConfiguration _configuration;
