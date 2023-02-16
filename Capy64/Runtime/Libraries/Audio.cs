@@ -90,19 +90,6 @@ public class Audio : IComponent
         return 1;
     }
 
-    private static async Task DelayEmit(TimeSpan time, DynamicSoundEffectInstance channel)
-    {
-        var waitTime = time - TimeSpan.FromMilliseconds(1000 / 60);
-        if (waitTime.TotalMilliseconds < 0)
-            waitTime = time;
-        await Task.Delay(waitTime);
-        _game.LuaRuntime.QueueEvent("audio_end", LK =>
-        {
-            LK.PushInteger(channel.PendingBufferCount);
-            return 1;
-        });
-    }
-
     private static int L_Play(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
@@ -147,7 +134,6 @@ public class Audio : IComponent
         try
         {
             var ts = _game.Audio.Submit(rid, buffer);
-            DelayEmit(ts, channel);
 
             if (channel.State != SoundState.Playing)
                 channel.Play();
@@ -194,7 +180,6 @@ public class Audio : IComponent
         try
         {
             var ts = _game.Audio.Submit(rid, buffer);
-            DelayEmit(ts, channel);
 
             if (channel.State != SoundState.Playing)
                 channel.Play();
@@ -215,8 +200,8 @@ public class Audio : IComponent
         var id = (int)L.CheckInteger(1);
         if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
         {
-            L.PushBoolean(false);
-            return 1;
+            L.ArgumentError(1, "channel id not found");
+            return 0;
         }
 
         channel.Resume();
@@ -228,8 +213,8 @@ public class Audio : IComponent
         var id = (int)L.CheckInteger(1);
         if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
         {
-            L.PushBoolean(false);
-            return 1;
+            L.ArgumentError(1, "channel id not found");
+            return 0;
         }
 
         channel.Pause();
@@ -241,8 +226,8 @@ public class Audio : IComponent
         var id = (int)L.CheckInteger(1);
         if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
         {
-            L.PushBoolean(false);
-            return 1;
+            L.ArgumentError(1, "channel id not found");
+            return 0;
         }
 
         channel.Stop();
@@ -257,8 +242,8 @@ public class Audio : IComponent
         var id = (int)L.CheckInteger(1);
         if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
         {
-            L.PushNil();
-            return 1;
+            L.ArgumentError(1, "channel id not found");
+            return 0;
         }
 
         L.PushNumber(channel.Volume);
@@ -272,8 +257,8 @@ public class Audio : IComponent
         var id = (int)L.CheckInteger(1);
         if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
         {
-            L.PushNil();
-            return 1;
+            L.ArgumentError(1, "channel id not found");
+            return 0;
         }
 
         var volume = (float)L.CheckNumber(2);
@@ -291,8 +276,8 @@ public class Audio : IComponent
         var id = (int)L.CheckInteger(1);
         if (!_game.Audio.TryGetChannel(id, out var channel, out var rid))
         {
-            L.PushNil();
-            return 1;
+            L.ArgumentError(1, "channel id not found");
+            return 0;
         }
 
         var status = channel.State switch

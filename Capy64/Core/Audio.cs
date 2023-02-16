@@ -53,6 +53,13 @@ public class Audio : IDisposable
             if (Channels[i] == sender)
             {
                 freeChannels[i] = true;
+                var pending = Channels[i].PendingBufferCount;
+                Capy64.Instance.LuaRuntime.QueueEvent("audio_need", LK =>
+                {
+                    LK.PushInteger(i);
+                    LK.PushInteger(pending);
+                    return 2;
+                });
             }
         }
 
