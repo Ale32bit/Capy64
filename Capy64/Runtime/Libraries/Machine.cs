@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+// This file is part of Capy64 - https://github.com/Capy64/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -103,6 +103,13 @@ public class Machine : IPlugin
         if (!L.IsNoneOrNil(1))
         {
             var newTitle = L.CheckString(1);
+            
+            if (string.IsNullOrEmpty(newTitle))
+            {
+                newTitle = "Capy64 " + Capy64.Version;
+            }
+
+            newTitle = newTitle[..Math.Min(newTitle.Length, 256)];
 
             Capy64.Instance.Window.Title = newTitle;
         }
