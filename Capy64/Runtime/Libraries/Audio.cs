@@ -157,7 +157,7 @@ public class Audio : IComponent
 
         var freq = L.OptNumber(1, 440);
         var time = L.OptNumber(2, 1);
-        var volume = L.OptNumber(3, 1);
+        var volume = (float)L.OptNumber(3, 1);
         volume = Math.Clamp(volume, 0, 1);
 
         var timespan = TimeSpan.FromSeconds(time);
@@ -172,7 +172,7 @@ public class Audio : IComponent
             null,
         });
 
-        var buffer = _game.Audio.GenerateWave((Waveform)form, freq, timespan);
+        var buffer = _game.Audio.GenerateWave((Waveform)form, freq, timespan, volume);
 
         try
         {

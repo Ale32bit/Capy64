@@ -14,16 +14,7 @@
 // limitations under the License.
 
 using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.Core;
 
@@ -54,7 +45,7 @@ public class Audio : IDisposable
         return Sound.GetSampleDuration(buffer.Length);
     }
 
-    public byte[] GenerateWave(Waveform form, double frequency, TimeSpan time)
+    public byte[] GenerateWave(Waveform form, double frequency, TimeSpan time, float volume = 1f)
     {
         var size = Sound.GetSampleSizeInBytes(time);
         var buffer = new byte[size];
@@ -74,7 +65,7 @@ public class Audio : IDisposable
             };
             
             value = Math.Clamp(value, -1, 1);
-            var sample = (short)(value >= 0.0f ? value * short.MaxValue : value * short.MinValue * -1);
+            var sample = (short)((value >= 0.0f ? value * short.MaxValue : value * short.MinValue * -1) * volume);
             if (!BitConverter.IsLittleEndian)
             {
                 buffer[i] = (byte)(sample >> 8);
