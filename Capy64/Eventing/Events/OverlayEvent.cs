@@ -14,7 +14,6 @@
 // limitations under the License.
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
 
 namespace Capy64.Eventing.Events;

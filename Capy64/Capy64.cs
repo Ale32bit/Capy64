@@ -17,8 +17,9 @@ using Capy64.API;
 using Capy64.Core;
 using Capy64.Eventing;
 using Capy64.Extensions;
-using Capy64.Runtime;
+using Capy64.Integrations;
 using Capy64.PluginManager;
+using Capy64.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,7 +28,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using static Capy64.Utils;
-using Capy64.Integrations;
 
 namespace Capy64;
 
@@ -121,8 +121,8 @@ public class Capy64 : Game, IGame
 
         if (Window.IsMaximized())
         {
-            var vertical = bounds.Height - Height * Scale;
-            var horizontal = bounds.Width - Width * Scale;
+            var vertical = bounds.Height - (Height * Scale);
+            var horizontal = bounds.Width - (Width * Scale);
 
             Borders.Top = (int)Math.Floor(vertical / 2d);
             Borders.Bottom = (int)Math.Ceiling(vertical / 2d);

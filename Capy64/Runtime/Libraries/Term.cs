@@ -18,11 +18,8 @@ using Capy64.Eventing.Events;
 using KeraLua;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Extended;
-using Newtonsoft.Json.Linq;
 using System;
 using static Capy64.Utils;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -292,7 +289,7 @@ internal class Term : IComponent
         if (cursorState)
         {
             var realpos = ToRealPos(CursorPosition - Vector2.One);
-            var charpos = realpos * _game.Scale + CharOffset;
+            var charpos = (realpos * _game.Scale) + CharOffset;
             _game.Game.SpriteBatch.Draw(cursorTexture, charpos, null, ForegroundColor, 0f, Vector2.Zero, _game.Scale, SpriteEffects.None, 0);
         }
     }
@@ -623,15 +620,15 @@ internal class Term : IComponent
 
             // RGB to ABGR
             fgv =
-                (fgv & 0x00_FF_00_00U) >> 16 | // move R
+                ((fgv & 0x00_FF_00_00U) >> 16) | // move R
                 (fgv & 0x00_00_FF_00U) |       // move G
-                (fgv & 0x00_00_00_FFU) << 16 | // move B
+                ((fgv & 0x00_00_00_FFU) << 16) | // move B
                 0xFF_00_00_00U;
 
             bgv =
-                (bgv & 0x00_FF_00_00U) >> 16 | // move R
+                ((bgv & 0x00_FF_00_00U) >> 16) | // move R
                 (bgv & 0x00_00_FF_00U) |       // move G
-                (bgv & 0x00_00_00_FFU) << 16 | // move B
+                ((bgv & 0x00_00_00_FFU) << 16) | // move B
                 0xFF_00_00_00U;
 
 

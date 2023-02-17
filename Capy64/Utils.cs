@@ -33,7 +33,7 @@ public static class Utils
         return
             (color.R << 16) +
             (color.G << 8) +
-            (color.B);
+            color.B;
     }
 
     public static void UnpackRGB(uint packed, out byte r, out byte g, out byte b)

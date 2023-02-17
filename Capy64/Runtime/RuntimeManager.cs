@@ -19,14 +19,8 @@ using Capy64.Extensions;
 using Capy64.Runtime.Libraries;
 using KeraLua;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Capy64.Runtime;
 

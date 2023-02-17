@@ -15,13 +15,12 @@
 
 using Capy64.API;
 using Capy64.Runtime.Extensions;
+using Capy64.Runtime.Objects;
 using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using Capy64.Runtime.Objects;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -430,7 +429,7 @@ public class FileSystem : IComponent
         var attr = File.GetAttributes(path);
         if (attr.HasFlag(FileAttributes.Directory))
         {
-            if(!recursive && Directory.GetFileSystemEntries(path).Any())
+            if (!recursive && Directory.GetFileSystemEntries(path).Any())
             {
                 L.Error("directory not empty");
                 return 0;

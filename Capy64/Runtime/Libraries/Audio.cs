@@ -17,7 +17,6 @@ using Capy64.API;
 using KeraLua;
 using Microsoft.Xna.Framework.Audio;
 using System;
-using System.Threading.Tasks;
 using static Capy64.Core.Audio;
 
 namespace Capy64.Runtime.Libraries;

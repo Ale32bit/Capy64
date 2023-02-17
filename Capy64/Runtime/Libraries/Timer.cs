@@ -17,7 +17,6 @@ using Capy64.API;
 using KeraLua;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace Capy64.Runtime.Libraries;
 

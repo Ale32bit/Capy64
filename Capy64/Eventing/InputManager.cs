@@ -423,7 +423,7 @@ public class InputManager
         // D-PAD
         var od = oldGamePadState.DPad;
         var d = state.DPad;
-        
+
         if (od.Left != d.Left)
         {
             _eventEmitter.RaiseGamePadButton(new()
@@ -466,7 +466,7 @@ public class InputManager
 
         if (ot.Left != t.Left)
         {
-            
+
             _eventEmitter.RaiseGamePadTrigger(new()
             {
                 Trigger = 1, // left

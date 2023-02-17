@@ -16,7 +16,6 @@
 using Capy64.API;
 using KeraLua;
 using System;
-using System.IO;
 
 namespace Capy64.Runtime.Objects;
 
@@ -111,9 +110,9 @@ public class GPUBuffer : IComponent
 
         // ABGR to RGB
         value =
-            (value & 0x00_00_00_FFU) << 16 | // move R
+            ((value & 0x00_00_00_FFU) << 16) | // move R
             (value & 0x00_00_FF_00U) |       // move G
-            (value & 0x00_FF_00_00U) >> 16;  // move B
+            ((value & 0x00_FF_00_00U) >> 16);  // move B
 
         L.PushInteger(value);
 
@@ -146,11 +145,11 @@ public class GPUBuffer : IComponent
 
         // RGB to ABGR
         value =
-            (value & 0x00_FF_00_00U) >> 16 | // move R
+            ((value & 0x00_FF_00_00U) >> 16) | // move R
             (value & 0x00_00_FF_00U) |       // move G
-            (value & 0x00_00_00_FFU) << 16 | // move B
+            ((value & 0x00_00_00_FFU) << 16) | // move B
             0xFF_00_00_00U;
-        
+
 
         buffer[key] = value;
 

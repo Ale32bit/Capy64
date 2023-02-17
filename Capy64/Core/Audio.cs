@@ -146,7 +146,7 @@ public class Audio : IDisposable
                 Waveform.Square => GetSquarePoint(frequency, x),
                 Waveform.Triangle => GetTrianglePoint(frequency, x),
                 Waveform.Sawtooth => GetSawtoothPoint(frequency, x),
-                Waveform.Noise => rng.NextDouble() * 2 - 1,
+                Waveform.Noise => (rng.NextDouble() * 2) - 1,
                 _ => throw new NotImplementedException(),
             };
 
@@ -184,8 +184,8 @@ public class Audio : IDisposable
         double v = 0;
         for (int k = 1; k <= 25; k++)
         {
-            v += (Math.Pow(-1, k) / Math.Pow(2 * k - 1, 2))
-                * Math.Sin(frequency * 2 * Math.PI * (2 * k - 1) * x);
+            v += Math.Pow(-1, k) / Math.Pow((2 * k) - 1, 2)
+                * Math.Sin(frequency * 2 * Math.PI * ((2 * k) - 1) * x);
         }
         return -(8 / Math.Pow(Math.PI, 2)) * v;
     }
@@ -195,7 +195,7 @@ public class Audio : IDisposable
         double v = 0;
         for (int k = 1; k <= 50; k++)
         {
-            v += (Math.Pow(-1, k) / k) * Math.Sin(frequency * 2 * Math.PI * k * x);
+            v += Math.Pow(-1, k) / k * Math.Sin(frequency * 2 * Math.PI * k * x);
         }
         return -(2 / Math.PI) * v;
     }

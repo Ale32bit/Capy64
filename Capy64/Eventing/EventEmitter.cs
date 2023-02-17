@@ -163,7 +163,8 @@ public class EventEmitter
 
     public void RaiseOverlay(OverlayEvent ev)
     {
-        if(OnOverlay is not null) {
+        if (OnOverlay is not null)
+        {
             OnOverlay(this, ev);
         }
     }
