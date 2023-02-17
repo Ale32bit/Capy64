@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -75,7 +75,7 @@ public class LuaState : IDisposable
 
     private void InitPlugins()
     {
-        var allPlugins = new List<IComponent>(Capy64.Instance.NativePlugins);
+        var allPlugins = new List<IPlugin>(Capy64.Instance.NativePlugins);
         allPlugins.AddRange(Capy64.Instance.Plugins);
         foreach (var plugin in allPlugins)
         {
