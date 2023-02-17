@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
+﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -41,8 +41,8 @@ public class Capy64 : Game, IGame
         "Capy64");
     public static Capy64 Instance { get; private set; }
     public Capy64 Game => this;
-    public IList<IPlugin> NativePlugins { get; private set; }
-    public IList<IPlugin> Plugins { get; private set; }
+    public IList<IComponent> NativePlugins { get; private set; }
+    public IList<IComponent> Plugins { get; private set; }
     public int Width { get; set; } = 400;
     public int Height { get; set; } = 300;
     public float Scale { get; set; } = 2f;
@@ -159,18 +159,18 @@ public class Capy64 : Game, IGame
         base.Initialize();
     }
 
-    private List<IPlugin> GetNativePlugins()
+    private List<IComponent> GetNativePlugins()
     {
-        var iType = typeof(IPlugin);
+        var iType = typeof(IComponent);
         var types = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(s => s.GetTypes())
             .Where(p => iType.IsAssignableFrom(p) && !p.IsInterface);
 
-        var plugins = new List<IPlugin>();
+        var plugins = new List<IComponent>();
 
         foreach (var type in types)
         {
-            var instance = (IPlugin)ActivatorUtilities.CreateInstance(_serviceProvider, type)!;
+            var instance = (IComponent)ActivatorUtilities.CreateInstance(_serviceProvider, type)!;
             plugins.Add(instance);
         }
         return plugins;

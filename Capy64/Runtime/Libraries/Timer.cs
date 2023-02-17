@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
+﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -21,7 +21,7 @@ using System.Collections.Generic;
 
 namespace Capy64.Runtime.Libraries;
 
-class Timer : IPlugin
+class Timer : IComponent
 {
     private LuaRegister[] TimerLib = new LuaRegister[]
     {
