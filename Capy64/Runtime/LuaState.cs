@@ -19,9 +19,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.Runtime;
 
@@ -42,9 +40,6 @@ public class LuaState : IDisposable
         {
             Encoding = Encoding.UTF8,
         };
-
-        _parent.PushString("Capy64 " + Capy64.Version);
-        _parent.SetGlobal("_HOST");
 
         Sandbox.OpenLibraries(_parent);
         Sandbox.Patch(_parent);
