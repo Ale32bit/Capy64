@@ -14,6 +14,7 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Core;
 using KeraLua;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -22,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -65,6 +67,16 @@ public class Machine : IPlugin
             name = "vibrate",
             function = L_Vibrate,
         },
+        new()
+        {
+            name = "setClipboard",
+            function = L_SetClipboard,
+        },
+        new()
+        {
+            name = "getClipboard",
+            function = L_GetClipboard,
+        },
         new(),
     };
 
@@ -104,7 +116,12 @@ public class Machine : IPlugin
         {
             var newTitle = L.CheckString(1);
             
-            L.ArgumentCheck(!string.IsNullOrEmpty(newTitle), 1, "string must not be empty");
+            if (string.IsNullOrEmpty(newTitle))
+            {
+                newTitle = "Capy64 " + Capy64.Version;
+            }
+
+            newTitle = newTitle[..Math.Min(newTitle.Length, 256)];
 
             Capy64.Instance.Window.Title = newTitle;
         }
@@ -112,6 +129,26 @@ public class Machine : IPlugin
         L.PushString(currentTitle);
 
         return 1;
+    }
+
+    private static int L_GetClipboard(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        L.PushString(SDL.GetClipboardText());
+
+        return 1;
+    }
+
+    private static int L_SetClipboard(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var newcontents = L.CheckString(1);
+
+        SDL.SetClipboardText(newcontents);
+
+        return 0;
     }
 
     private static int L_Version(IntPtr state)

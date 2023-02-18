@@ -41,6 +41,10 @@ public partial class SDL2
     [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     internal static partial int SDL_HasClipboardText();
 
+    [LibraryImport(SDL, EntryPoint = "SDL_SetClipboardText", StringMarshalling = StringMarshalling.Utf8)]
+    [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    internal static partial int Native_SDL_SetClipboardText(string contents);
+
     [LibraryImport(SDL)]
     [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     internal static partial void SDL_free(IntPtr memblock);
