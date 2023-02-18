@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -18,15 +18,10 @@ using KeraLua;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.Runtime;
 
-public class ObjectManager : IPlugin
+public class ObjectManager : IComponent
 {
     private static ConcurrentDictionary<nint, object> _objects = new();
 

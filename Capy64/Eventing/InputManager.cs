@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -423,7 +423,7 @@ public class InputManager
         // D-PAD
         var od = oldGamePadState.DPad;
         var d = state.DPad;
-        
+
         if (od.Left != d.Left)
         {
             _eventEmitter.RaiseGamePadButton(new()
@@ -466,7 +466,7 @@ public class InputManager
 
         if (ot.Left != t.Left)
         {
-            
+
             _eventEmitter.RaiseGamePadTrigger(new()
             {
                 Trigger = 1, // left

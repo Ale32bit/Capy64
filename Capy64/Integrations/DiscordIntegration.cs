@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -18,16 +18,11 @@ using DiscordRPC;
 using DiscordRPC.Logging;
 using DiscordRPC.Message;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.Integrations;
 
-public class DiscordIntegration : IPlugin
+public class DiscordIntegration : IComponent
 {
     public DiscordRpcClient Client { get; private set; }
     private readonly IConfiguration _configuration;

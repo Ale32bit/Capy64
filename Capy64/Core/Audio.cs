@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -14,16 +14,7 @@
 // limitations under the License.
 
 using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.Core;
 
@@ -38,25 +29,111 @@ public class Audio : IDisposable
         Noise
     }
 
-    public const int SampleRate = 48000;
-    public const AudioChannels Channels = AudioChannels.Mono;
-    public readonly DynamicSoundEffectInstance Sound;
+    public const int SampleRate = 16000;
+    public const int HQSampleRate = 48000;
+    public const AudioChannels AudioChannel = AudioChannels.Mono;
+    public const int ChannelsCount = 5;
+    public readonly DynamicSoundEffectInstance[] Channels = new DynamicSoundEffectInstance[ChannelsCount];
+    private bool[] freeChannels = new bool[ChannelsCount];
+
+    public readonly DynamicSoundEffectInstance HQChannel = new(HQSampleRate, AudioChannel);
 
     private static readonly Random rng = new();
     public Audio()
     {
-        Sound = new DynamicSoundEffectInstance(SampleRate, Channels);
+        for (int i = 0; i < ChannelsCount; i++)
+        {
+            Channels[i] = new DynamicSoundEffectInstance(SampleRate, AudioChannel);
+            freeChannels[i] = true;
+            Channels[i].BufferNeeded += Audio_BufferNeeded;
+        }
+
+        HQChannel.BufferNeeded += HQChannel_BufferNeeded;
     }
 
-    public TimeSpan Submit(byte[] buffer)
+    private void HQChannel_BufferNeeded(object sender, EventArgs e)
     {
-        Sound.SubmitBuffer(buffer);
-        return Sound.GetSampleDuration(buffer.Length);
+        var pending = HQChannel.PendingBufferCount;
+        Capy64.Instance.LuaRuntime.QueueEvent("audio_need", LK =>
+        {
+            LK.PushInteger(-1);
+            LK.PushInteger(pending);
+            return 2;
+        });
     }
 
-    public byte[] GenerateWave(Waveform form, double frequency, TimeSpan time)
+    private void Audio_BufferNeeded(object sender, EventArgs e)
     {
-        var size = Sound.GetSampleSizeInBytes(time);
+        for (int i = 0; i < ChannelsCount; i++)
+        {
+            if (Channels[i] == sender)
+            {
+                freeChannels[i] = true;
+                var pending = Channels[i].PendingBufferCount;
+                Capy64.Instance.LuaRuntime.QueueEvent("audio_need", LK =>
+                {
+                    LK.PushInteger(i);
+                    LK.PushInteger(pending);
+                    return 2;
+                });
+            }
+        }
+
+    }
+
+    public int GetChannelId(int inp)
+    {
+        if (inp >= 0)
+            return inp;
+
+        if (inp == -1)
+            return -1;
+
+        if (inp == -2)
+        {
+            for (int i = 0; i < ChannelsCount; i++)
+            {
+                if (freeChannels[i])
+                    return i;
+            }
+        }
+
+        return -3;
+    }
+
+    public bool TryGetChannel(int id, out DynamicSoundEffectInstance channel, out int resolvedId)
+    {
+        resolvedId = GetChannelId(id);
+
+        if (resolvedId >= 0)
+            channel = Channels[resolvedId];
+        else if (resolvedId == -1)
+            channel = HQChannel;
+        else
+            channel = null;
+
+        return channel != null;
+    }
+
+    public TimeSpan Submit(int id, byte[] buffer)
+    {
+        if (!TryGetChannel(id, out var channel, out var rId))
+            return TimeSpan.Zero;
+
+        channel.SubmitBuffer(buffer);
+        freeChannels[rId] = false;
+        return channel.GetSampleDuration(buffer.Length);
+    }
+
+    public TimeSpan SubmitHQ(byte[] buffer)
+    {
+        HQChannel.SubmitBuffer(buffer);
+        return HQChannel.GetSampleDuration(buffer.Length);
+    }
+
+    public static byte[] GenerateWave(DynamicSoundEffectInstance channel, Waveform form, double frequency, TimeSpan time, float volume = 1f)
+    {
+        var size = channel.GetSampleSizeInBytes(time);
         var buffer = new byte[size];
 
         var step = 1d / SampleRate;
@@ -69,12 +146,12 @@ public class Audio : IDisposable
                 Waveform.Square => GetSquarePoint(frequency, x),
                 Waveform.Triangle => GetTrianglePoint(frequency, x),
                 Waveform.Sawtooth => GetSawtoothPoint(frequency, x),
-                Waveform.Noise => rng.NextDouble() * 2 - 1,
+                Waveform.Noise => (rng.NextDouble() * 2) - 1,
                 _ => throw new NotImplementedException(),
             };
-            Console.WriteLine(value);
+
             value = Math.Clamp(value, -1, 1);
-            var sample = (short)(value >= 0.0f ? value * short.MaxValue : value * short.MinValue * -1);
+            var sample = (short)((value >= 0.0f ? value * short.MaxValue : value * short.MinValue * -1) * volume);
             if (!BitConverter.IsLittleEndian)
             {
                 buffer[i] = (byte)(sample >> 8);
@@ -107,8 +184,8 @@ public class Audio : IDisposable
         double v = 0;
         for (int k = 1; k <= 25; k++)
         {
-            v += (Math.Pow(-1, k) / Math.Pow(2 * k - 1, 2))
-                * Math.Sin(frequency * 2 * Math.PI * (2 * k - 1) * x);
+            v += Math.Pow(-1, k) / Math.Pow((2 * k) - 1, 2)
+                * Math.Sin(frequency * 2 * Math.PI * ((2 * k) - 1) * x);
         }
         return -(8 / Math.Pow(Math.PI, 2)) * v;
     }
@@ -118,7 +195,7 @@ public class Audio : IDisposable
         double v = 0;
         for (int k = 1; k <= 50; k++)
         {
-            v += (Math.Pow(-1, k) / k) * Math.Sin(frequency * 2 * Math.PI * k * x);
+            v += Math.Pow(-1, k) / k * Math.Sin(frequency * 2 * Math.PI * k * x);
         }
         return -(2 / Math.PI) * v;
     }
@@ -126,6 +203,9 @@ public class Audio : IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        Sound.Dispose();
+        for (int i = 0; i < ChannelsCount; i++)
+        {
+            Channels[i]?.Dispose();
+        }
     }
 }

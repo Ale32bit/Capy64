@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -19,9 +19,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.Runtime;
 
@@ -42,9 +40,6 @@ public class LuaState : IDisposable
         {
             Encoding = Encoding.UTF8,
         };
-
-        _parent.PushString("Capy64 " + Capy64.Version);
-        _parent.SetGlobal("_HOST");
 
         Sandbox.OpenLibraries(_parent);
         Sandbox.Patch(_parent);
@@ -75,7 +70,7 @@ public class LuaState : IDisposable
 
     private void InitPlugins()
     {
-        var allPlugins = new List<IPlugin>(Capy64.Instance.NativePlugins);
+        var allPlugins = new List<IComponent>(Capy64.Instance.NativePlugins);
         allPlugins.AddRange(Capy64.Instance.Plugins);
         foreach (var plugin in allPlugins)
         {

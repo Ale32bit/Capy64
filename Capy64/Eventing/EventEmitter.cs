@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -163,7 +163,8 @@ public class EventEmitter
 
     public void RaiseOverlay(OverlayEvent ev)
     {
-        if(OnOverlay is not null) {
+        if (OnOverlay is not null)
+        {
             OnOverlay(this, ev);
         }
     }

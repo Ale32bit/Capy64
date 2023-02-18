@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -15,12 +15,10 @@
 
 using Capy64.Core;
 using Capy64.Eventing.Events;
-using Capy64.Eventing;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Linq;
 using static Capy64.Eventing.InputManager;
-using Capy64.Runtime.Extensions;
 
 namespace Capy64.Runtime;
 
@@ -187,7 +185,8 @@ internal class EventEmitter
                 if (SDL.HasClipboardText())
                 {
                     var text = SDL.GetClipboardText();
-                    _runtime.QueueEvent("paste", LK => {
+                    _runtime.QueueEvent("paste", LK =>
+                    {
                         LK.PushString(text);
 
                         return 1;
@@ -199,7 +198,8 @@ internal class EventEmitter
 
     private void OnChar(object sender, CharEvent e)
     {
-        _runtime.QueueEvent("char", LK => {
+        _runtime.QueueEvent("char", LK =>
+        {
             LK.PushString(e.Character.ToString());
 
             return 1;

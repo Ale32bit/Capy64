@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -24,7 +24,7 @@ using System.IO;
 
 namespace Capy64.Runtime.Libraries;
 
-public class GPU : IPlugin
+public class GPU : IComponent
 {
 
     private static IGame _game;
@@ -281,10 +281,11 @@ public class GPU : IPlugin
         var y = (int)L.CheckNumber(2) - 1;
         var rad = (int)L.CheckNumber(3);
         var c = L.CheckInteger(4);
-        var s = (int)L.OptNumber(5, 1);
+        var t = (int)L.OptNumber(5, 1);
+        var s = (int)L.OptInteger(6, -1);
 
         Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
-        _game.Drawing.DrawCircle(new(x, y), rad, new Color(r, g, b), s);
+        _game.Drawing.DrawCircle(new(x, y), rad, new Color(r, g, b), t, s);
 
         return 0;
     }
@@ -386,7 +387,14 @@ public class GPU : IPlugin
         var t = L.CheckString(4);
 
         Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
-        _game.Drawing.DrawString(new Vector2(x, y), t, new Color(r, g, b));
+        try
+        {
+            _game.Drawing.DrawString(new Vector2(x, y), t, new Color(r, g, b));
+        }
+        catch (ArgumentException ex) // UTF-16 fuckery
+        {
+            L.Error(ex.Message);
+        }
 
         return 0;
     }
@@ -456,7 +464,7 @@ public class GPU : IPlugin
         var w = (int)L.CheckInteger(4);
         var h = (int)L.CheckInteger(5);
 
-        if(w * h != buffer.Length)
+        if (w * h != buffer.Length)
         {
             L.Error("width and height do not match buffer size");
         }

@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -15,7 +15,6 @@
 
 using Capy64.API;
 using Capy64.Core;
-using Capy64.Eventing;
 using Capy64.Integrations;
 using Capy64.Runtime;
 using Microsoft.Xna.Framework;
@@ -27,8 +26,8 @@ namespace Capy64;
 public interface IGame
 {
     Capy64 Game { get; }
-    IList<IPlugin> NativePlugins { get; }
-    IList<IPlugin> Plugins { get; }
+    IList<IComponent> NativePlugins { get; }
+    IList<IComponent> Plugins { get; }
     GameWindow Window { get; }
     Drawing Drawing { get; }
     Audio Audio { get; }

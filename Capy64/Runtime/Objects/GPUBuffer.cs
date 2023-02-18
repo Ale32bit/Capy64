@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -16,11 +16,10 @@
 using Capy64.API;
 using KeraLua;
 using System;
-using System.IO;
 
 namespace Capy64.Runtime.Objects;
 
-public class GPUBuffer : IPlugin
+public class GPUBuffer : IComponent
 {
     public const string ObjectType = "GPUBuffer";
 
@@ -111,9 +110,9 @@ public class GPUBuffer : IPlugin
 
         // ABGR to RGB
         value =
-            (value & 0x00_00_00_FFU) << 16 | // move R
+            ((value & 0x00_00_00_FFU) << 16) | // move R
             (value & 0x00_00_FF_00U) |       // move G
-            (value & 0x00_FF_00_00U) >> 16;  // move B
+            ((value & 0x00_FF_00_00U) >> 16);  // move B
 
         L.PushInteger(value);
 
@@ -146,11 +145,11 @@ public class GPUBuffer : IPlugin
 
         // RGB to ABGR
         value =
-            (value & 0x00_FF_00_00U) >> 16 | // move R
+            ((value & 0x00_FF_00_00U) >> 16) | // move R
             (value & 0x00_00_FF_00U) |       // move G
-            (value & 0x00_00_00_FFU) << 16 | // move B
+            ((value & 0x00_00_00_FFU) << 16) | // move B
             0xFF_00_00_00U;
-        
+
 
         buffer[key] = value;
 

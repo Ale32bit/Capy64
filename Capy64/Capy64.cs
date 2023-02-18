@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -17,8 +17,9 @@ using Capy64.API;
 using Capy64.Core;
 using Capy64.Eventing;
 using Capy64.Extensions;
-using Capy64.Runtime;
+using Capy64.Integrations;
 using Capy64.PluginManager;
+using Capy64.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,7 +28,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using static Capy64.Utils;
-using Capy64.Integrations;
 
 namespace Capy64;
 
@@ -41,8 +41,8 @@ public class Capy64 : Game, IGame
         "Capy64");
     public static Capy64 Instance { get; private set; }
     public Capy64 Game => this;
-    public IList<IPlugin> NativePlugins { get; private set; }
-    public IList<IPlugin> Plugins { get; private set; }
+    public IList<IComponent> NativePlugins { get; private set; }
+    public IList<IComponent> Plugins { get; private set; }
     public int Width { get; set; } = 400;
     public int Height { get; set; } = 300;
     public float Scale { get; set; } = 2f;
@@ -121,8 +121,8 @@ public class Capy64 : Game, IGame
 
         if (Window.IsMaximized())
         {
-            var vertical = bounds.Height - Height * Scale;
-            var horizontal = bounds.Width - Width * Scale;
+            var vertical = bounds.Height - (Height * Scale);
+            var horizontal = bounds.Width - (Width * Scale);
 
             Borders.Top = (int)Math.Floor(vertical / 2d);
             Borders.Bottom = (int)Math.Ceiling(vertical / 2d);
@@ -159,18 +159,18 @@ public class Capy64 : Game, IGame
         base.Initialize();
     }
 
-    private List<IPlugin> GetNativePlugins()
+    private List<IComponent> GetNativePlugins()
     {
-        var iType = typeof(IPlugin);
+        var iType = typeof(IComponent);
         var types = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(s => s.GetTypes())
             .Where(p => iType.IsAssignableFrom(p) && !p.IsInterface);
 
-        var plugins = new List<IPlugin>();
+        var plugins = new List<IComponent>();
 
         foreach (var type in types)
         {
-            var instance = (IPlugin)ActivatorUtilities.CreateInstance(_serviceProvider, type)!;
+            var instance = (IComponent)ActivatorUtilities.CreateInstance(_serviceProvider, type)!;
             plugins.Add(instance);
         }
         return plugins;

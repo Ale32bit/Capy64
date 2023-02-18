@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -37,6 +37,8 @@ internal class Sandbox
         L.OpenOS();
 
         L.OpenPackage();
+
+        L.SetTop(0);
     }
     internal static void Patch(Lua L)
     {
@@ -70,10 +72,11 @@ internal class Sandbox
         L.PushString("config");
         L.PushString(packageConfig);
         L.SetTable(-4);
+        L.Pop(1);
 
         // delete 3 and 4 searchers
         L.PushString("searchers");
-        L.GetTable(-3);
+        L.GetTable(-2);
 
         L.PushNil();
         L.SetInteger(-2, 3);
@@ -84,7 +87,7 @@ internal class Sandbox
         L.PushCFunction(L_Searcher);
         L.SetInteger(-2, 2);
 
-        L.Pop(L.GetTop());
+        L.Pop(2);
 
         // Replace loadfile with sandboxed one
         L.PushCFunction(L_Loadfile);
@@ -93,8 +96,6 @@ internal class Sandbox
         // Replace dofile with sandboxed one
         L.PushCFunction(L_Dofile);
         L.SetGlobal("dofile");
-
-        L.Pop(L.GetTop());
 
         // yeet dangerous os functions
         L.GetGlobal("os");
@@ -118,6 +119,8 @@ internal class Sandbox
         L.PushString("getenv");
         L.PushNil();
         L.SetTable(-3);
+
+        L.Pop(1);
     }
 
     internal static int L_Searcher(IntPtr state)

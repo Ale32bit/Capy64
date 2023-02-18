@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -24,7 +24,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration((context, c) =>
     {
         var settingsPath = Path.Combine(Capy64.Capy64.AppDataPath, "settings.json");
-        if(!Directory.Exists(Capy64.Capy64.AppDataPath))
+        if (!Directory.Exists(Capy64.Capy64.AppDataPath))
         {
             Directory.CreateDirectory(Capy64.Capy64.AppDataPath);
         }

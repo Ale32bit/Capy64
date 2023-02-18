@@ -23,8 +23,8 @@ local http = require("http")
 local event = require("event")
 
 
-local INDEX_URL = "https://raw.github.com/Capy64/CapyOS/deploy/index.json"
-local JSON_URL = "https://raw.github.com/Capy64/CapyOS/main/lib/json.lua"
+local INDEX_URL = "https://raw.github.com/Ale32bit/CapyOS/deploy/index.json"
+local JSON_URL = "https://raw.github.com/Ale32bit/CapyOS/main/lib/json.lua"
 
 local bootSleep = 2000
 local bg = 0x0

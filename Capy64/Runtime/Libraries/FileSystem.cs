@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -15,17 +15,16 @@
 
 using Capy64.API;
 using Capy64.Runtime.Extensions;
+using Capy64.Runtime.Objects;
 using KeraLua;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using Capy64.Runtime.Objects;
 
 namespace Capy64.Runtime.Libraries;
 
-public class FileSystem : IPlugin
+public class FileSystem : IComponent
 {
     public static string DataPath = Path.Combine(Capy64.AppDataPath, "data");
 
@@ -430,7 +429,7 @@ public class FileSystem : IPlugin
         var attr = File.GetAttributes(path);
         if (attr.HasFlag(FileAttributes.Directory))
         {
-            if(!recursive && Directory.GetFileSystemEntries(path).Any())
+            if (!recursive && Directory.GetFileSystemEntries(path).Any())
             {
                 L.Error("directory not empty");
                 return 0;

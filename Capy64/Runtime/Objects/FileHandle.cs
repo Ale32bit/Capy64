@@ -1,4 +1,4 @@
-﻿// This file is part of Capy64 - https://github.com/Capy64/Capy64
+﻿// This file is part of Capy64 - https://github.com/Ale32bit/Capy64
 // Copyright 2023 Alessandro "AlexDevs" Proto
 //
 // Licensed under the Apache License, Version 2.0 (the "License").
@@ -16,15 +16,11 @@
 using Capy64.API;
 using KeraLua;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Objects;
 
-public class FileHandle : IPlugin
+public class FileHandle : IComponent
 {
     public const string ObjectType = "file";
 
@@ -107,12 +103,13 @@ public class FileHandle : IPlugin
     {
         var modes = "nlLa";
         mode = mode.TrimStart('*');
-        if(string.IsNullOrEmpty(mode)) {
+        if (string.IsNullOrEmpty(mode))
+        {
             return '\0';
         }
 
         var i = modes.IndexOf(mode[0]);
-        if(i == -1)
+        if (i == -1)
             return '\0';
 
         return modes[i];
@@ -274,7 +271,7 @@ public class FileHandle : IPlugin
         var n = L.GetTop() - 1;
         var stream = CheckStream(L, false);
         L.ArgumentCheck(n <= maxargn, maxargn + 2, "too many arguments");
-        L.PushCopy(1);  
+        L.PushCopy(1);
         L.PushInteger(n);
         L.PushBoolean(false);
         L.Rotate(2, 3);
