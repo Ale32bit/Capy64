@@ -202,7 +202,16 @@ internal class Term : IComponent
         var charpos = realpos + CharOffset;
         _game.Drawing.DrawRectangle(realpos, new(CharWidth, CharHeight), bg, Math.Min(CharWidth, CharHeight));
         //_game.Drawing.DrawRectangle(realpos, new(CharWidth, CharHeight), Color.Red, 1);
-        _game.Drawing.DrawString(charpos, ch.ToString(), fg);
+
+        try
+        {
+            _game.Drawing.DrawString(charpos, ch.ToString(), fg);
+
+        }
+        catch (ArgumentException ex) // UTF-16 fuckery
+        {
+            _game.Drawing.DrawString(charpos, "\xFFFD", fg);
+        }
 
         if (!save)
             return;
@@ -316,14 +325,7 @@ internal class Term : IComponent
         if (!L.IsNone(1))
             str = L.ToString(1);
 
-        try
-        {
-            Write(str);
-        }
-        catch (ArgumentException ex) // UTF-16 fuckery
-        {
-            L.Error(ex.Message);
-        }
+        Write(str);
 
         return 0;
     }
