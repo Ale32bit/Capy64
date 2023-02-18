@@ -110,7 +110,7 @@ public class Machine : IComponent
         if (!L.IsNoneOrNil(1))
         {
             var newTitle = L.CheckString(1);
-            
+
             if (string.IsNullOrEmpty(newTitle))
             {
                 newTitle = "Capy64 " + Capy64.Version;
@@ -130,7 +130,10 @@ public class Machine : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        L.PushString(SDL.GetClipboardText());
+        if (SDL.HasClipboardText())
+            L.PushString(SDL.GetClipboardText());
+        else
+            L.PushNil();
 
         return 1;
     }
