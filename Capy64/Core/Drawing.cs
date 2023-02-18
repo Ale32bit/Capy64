@@ -154,9 +154,10 @@ public class Drawing : IDisposable
         _spriteBatch.DrawPoint(point, color, size);
     }
 
-    public void DrawCircle(Vector2 pos, int radius, Color color, int thickness = 1)
+    public void DrawCircle(Vector2 pos, int radius, Color color, int thickness = 1, int sides = -1)
     {
-        _spriteBatch.DrawCircle(pos, radius, radius * 4, color, thickness);
+        sides = sides < 0 ? radius * 4 : sides;
+        _spriteBatch.DrawCircle(pos, radius, sides, color, thickness);
     }
 
     public void DrawLine(Vector2 start, Vector2 end, Color color, float thickness = 1)
@@ -199,17 +200,22 @@ public class Drawing : IDisposable
         _spriteBatch.Draw(_whitePixel, position3, null, color, rotation, Vector2.Zero, scale, SpriteEffects.None, layerDepth);
     }
 
-    public void DrawTexture(Texture2D texture, Vector2 pos)
-    {
-        _spriteBatch.Draw(texture, pos, null, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
-    }
-
-    public void DrawBuffer(uint[] buffer, Rectangle rect)
+    public void DrawBuffer(uint[] buffer, Rectangle rect, Rectangle? source = null, Color? color = null, float rotation = 0f, Vector2? origin = null, float scale = 1f, SpriteEffects spriteEffects = 0)
     {
         var texture = new Texture2D(_graphicsDevice, rect.Width, rect.Height, false, SurfaceFormat.Color);
         texture.SetData(buffer);
 
-        DrawTexture(texture, new(rect.X, rect.Y));
+        _spriteBatch.Draw(
+            texture, // Texture
+            rect.Location.ToVector2(), // Position
+            source, // source
+            color ?? Color.White, // Color
+            rotation, // Rotation
+            origin ?? Vector2.Zero, // Origin
+            scale, // Scale
+            spriteEffects, // Flip effects
+            0f // layer depth
+        );
         _disposeTextures.Add(texture);
     }
 
