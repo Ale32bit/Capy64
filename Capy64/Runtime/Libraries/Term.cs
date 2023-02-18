@@ -61,8 +61,8 @@ internal class Term : IComponent
         ForegroundColor = Color.White;
         BackgroundColor = Color.Black;
 
-        cursorTexture = new(_game.Game.GraphicsDevice, 1, CharHeight);
-        var textureData = new Color[CharHeight];
+        cursorTexture = new(_game.Game.GraphicsDevice, 1, CharHeight - 3);
+        var textureData = new Color[CharHeight - 3];
         Array.Fill(textureData, Color.White);
         cursorTexture.SetData(textureData);
 
@@ -305,7 +305,7 @@ internal class Term : IComponent
         if (cursorState)
         {
             var realpos = ToRealPos(CursorPosition - Vector2.One);
-            var charpos = (realpos * _game.Scale) + CharOffset;
+            var charpos = (realpos * _game.Scale) + (CharOffset + new Vector2(0, 2)) * _game.Scale;
             _game.Game.SpriteBatch.Draw(cursorTexture, charpos, null, ForegroundColor, 0f, Vector2.Zero, _game.Scale, SpriteEffects.None, 0);
         }
     }
