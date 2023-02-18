@@ -14,6 +14,7 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Core;
 using KeraLua;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -61,6 +62,16 @@ public class Machine : IComponent
             name = "vibrate",
             function = L_Vibrate,
         },
+        new()
+        {
+            name = "setClipboard",
+            function = L_SetClipboard,
+        },
+        new()
+        {
+            name = "getClipboard",
+            function = L_GetClipboard,
+        },
         new(),
     };
 
@@ -99,6 +110,13 @@ public class Machine : IComponent
         if (!L.IsNoneOrNil(1))
         {
             var newTitle = L.CheckString(1);
+            
+            if (string.IsNullOrEmpty(newTitle))
+            {
+                newTitle = "Capy64 " + Capy64.Version;
+            }
+
+            newTitle = newTitle[..Math.Min(newTitle.Length, 256)];
 
             Capy64.Instance.Window.Title = newTitle;
         }
@@ -106,6 +124,26 @@ public class Machine : IComponent
         L.PushString(currentTitle);
 
         return 1;
+    }
+
+    private static int L_GetClipboard(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        L.PushString(SDL.GetClipboardText());
+
+        return 1;
+    }
+
+    private static int L_SetClipboard(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var newcontents = L.CheckString(1);
+
+        SDL.SetClipboardText(newcontents);
+
+        return 0;
     }
 
     private static int L_Version(IntPtr state)

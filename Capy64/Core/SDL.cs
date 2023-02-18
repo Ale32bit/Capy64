@@ -24,6 +24,11 @@ public class SDL
         return SDL2.UTF8_ToManaged(SDL2.Native_SDL_GetClipboardText(), true);
     }
 
+    public static void SetClipboardText(string contents)
+    {
+        SDL2.Native_SDL_SetClipboardText(contents);
+    }
+
     public static bool HasClipboardText()
     {
         return SDL2.SDL_HasClipboardText() == 1;
