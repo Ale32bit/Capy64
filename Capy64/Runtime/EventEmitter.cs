@@ -180,19 +180,6 @@ internal class EventEmitter
                 if (e.Key == Keys.C)
                     _runtime.QueueEvent("interrupt", LK => 0);
             }
-            else if (e.Key == Keys.V)
-            {
-                if (SDL.HasClipboardText())
-                {
-                    var text = SDL.GetClipboardText();
-                    _runtime.QueueEvent("paste", LK =>
-                    {
-                        LK.PushString(text);
-
-                        return 1;
-                    });
-                }
-            }
         }
     }
 
