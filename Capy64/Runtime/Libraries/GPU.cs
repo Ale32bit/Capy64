@@ -281,10 +281,11 @@ public class GPU : IComponent
         var y = (int)L.CheckNumber(2) - 1;
         var rad = (int)L.CheckNumber(3);
         var c = L.CheckInteger(4);
-        var s = (int)L.OptNumber(5, 1);
+        var t = (int)L.OptNumber(5, 1);
+        var s = (int)L.OptInteger(6, -1);
 
         Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
-        _game.Drawing.DrawCircle(new(x, y), rad, new Color(r, g, b), s);
+        _game.Drawing.DrawCircle(new(x, y), rad, new Color(r, g, b), t, s);
 
         return 0;
     }
