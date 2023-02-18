@@ -316,7 +316,14 @@ internal class Term : IComponent
         if (!L.IsNone(1))
             str = L.ToString(1);
 
-        Write(str);
+        try
+        {
+            Write(str);
+        }
+        catch (ArgumentException ex) // UTF-16 fuckery
+        {
+            L.Error(ex.Message);
+        }
 
         return 0;
     }

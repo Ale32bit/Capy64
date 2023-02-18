@@ -387,7 +387,14 @@ public class GPU : IComponent
         var t = L.CheckString(4);
 
         Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
-        _game.Drawing.DrawString(new Vector2(x, y), t, new Color(r, g, b));
+        try
+        {
+            _game.Drawing.DrawString(new Vector2(x, y), t, new Color(r, g, b));
+        }
+        catch (ArgumentException ex) // UTF-16 fuckery
+        {
+            L.Error(ex.Message);
+        }
 
         return 0;
     }
