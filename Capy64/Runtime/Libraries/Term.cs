@@ -30,6 +30,7 @@ internal class Term : IComponent
         public char Character;
         public Color Foreground;
         public Color Background;
+        public bool Underline;
     }
 
     public const int CharWidth = 6;
@@ -190,7 +191,7 @@ internal class Term : IComponent
         return new(termPos.X * CharWidth, termPos.Y * CharHeight);
     }
 
-    public static void PlotChar(Vector2 pos, char ch, Color? fgc = null, Color? bgc = null, bool save = true)
+    public static void PlotChar(Vector2 pos, char ch, Color? fgc = null, Color? bgc = null, bool underline = false, bool save = true)
     {
         if (pos.X < 0 || pos.Y < 0 || pos.X >= Width || pos.Y >= Height)
             return;
@@ -213,6 +214,11 @@ internal class Term : IComponent
             _game.Drawing.DrawString(charpos, "\xFFFD", fg);
         }
 
+        if(underline)
+        {
+            _game.Drawing.DrawLine(charpos + new Vector2(0, CharHeight), charpos + new Vector2(CharWidth, CharHeight), fg);
+        }
+
         if (!save)
             return;
 
@@ -221,6 +227,7 @@ internal class Term : IComponent
             Character = ch,
             Foreground = ForegroundColor,
             Background = BackgroundColor,
+            Underline = underline,
         };
     }
 
@@ -237,7 +244,7 @@ internal class Term : IComponent
                 Background = BackgroundColor,
             };
 
-        PlotChar(pos, ch.Character, ch.Foreground, ch.Background, false);
+        PlotChar(pos, ch.Character, ch.Foreground, ch.Background, ch.Underline, false);
     }
 
     public static void RedrawAll()
