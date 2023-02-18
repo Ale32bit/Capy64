@@ -51,15 +51,20 @@ public class Audio : IDisposable
         HQChannel.BufferNeeded += HQChannel_BufferNeeded;
     }
 
-    private void HQChannel_BufferNeeded(object sender, EventArgs e)
+    private static void EnqueueAudioNeedEvent(int i, int pending)
     {
-        var pending = HQChannel.PendingBufferCount;
         Capy64.Instance.LuaRuntime.QueueEvent("audio_need", LK =>
         {
-            LK.PushInteger(-1);
+            LK.PushInteger(i);
             LK.PushInteger(pending);
             return 2;
         });
+    }
+
+    private void HQChannel_BufferNeeded(object sender, EventArgs e)
+    {
+        var pending = HQChannel.PendingBufferCount;
+        EnqueueAudioNeedEvent(-1, pending);
     }
 
     private void Audio_BufferNeeded(object sender, EventArgs e)
@@ -70,15 +75,9 @@ public class Audio : IDisposable
             {
                 freeChannels[i] = true;
                 var pending = Channels[i].PendingBufferCount;
-                Capy64.Instance.LuaRuntime.QueueEvent("audio_need", LK =>
-                {
-                    LK.PushInteger(i);
-                    LK.PushInteger(pending);
-                    return 2;
-                });
+                EnqueueAudioNeedEvent(i, pending);
             }
         }
-
     }
 
     public int GetChannelId(int inp)
