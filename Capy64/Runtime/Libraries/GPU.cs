@@ -134,6 +134,11 @@ public class GPU : IComponent
             name = "loadImage",
             function = L_LoadImage,
         },
+        new()
+        {
+            name = "clear",
+            function = L_Clear,
+        },
         new(), // NULL
     };
 
@@ -516,5 +521,17 @@ public class GPU : IComponent
         texture.Dispose();
 
         return 3;
+    }
+
+    private static int L_Clear(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var c = L.OptInteger(1, 0x000000);
+
+        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        _game.Drawing.Clear(new Color(r, g, b));
+
+        return 0;
     }
 }
