@@ -399,7 +399,7 @@ internal class Term : IComponent
             L.ArgumentError(2, "number must be greater than 0");
         }
 
-        SetSize(w, h);
+        SetSize(w - 1, h);
 
         return 0;
     }
