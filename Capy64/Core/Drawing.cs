@@ -25,7 +25,7 @@ namespace Capy64.Core;
 
 public class Drawing : IDisposable
 {
-    private SpriteBatch _spriteBatch;
+    public SpriteBatch SpriteBatch;
     private GraphicsDevice _graphicsDevice;
     private readonly FontSystem _fontSystem;
     private Texture2D _whitePixel;
@@ -41,10 +41,10 @@ public class Drawing : IDisposable
             if (isDrawing)
                 End();
             _canvas = value;
-            _spriteBatch = new SpriteBatch(_canvas.GraphicsDevice);
+            SpriteBatch = new SpriteBatch(_canvas.GraphicsDevice);
             _graphicsDevice = _canvas.GraphicsDevice;
 
-            _whitePixel = new Texture2D(_spriteBatch.GraphicsDevice, 1, 1, mipmap: false, SurfaceFormat.Color);
+            _whitePixel = new Texture2D(SpriteBatch.GraphicsDevice, 1, 1, mipmap: false, SurfaceFormat.Color);
             _whitePixel.SetData(new Color[1] { Color.White });
             if (isDrawing)
                 Begin();
@@ -65,7 +65,7 @@ public class Drawing : IDisposable
         _isDrawing = true;
         _graphicsDevice.SetRenderTarget(_canvas);
         _graphicsDevice.DepthStencilState = new DepthStencilState() { DepthBufferEnable = true, };
-        _spriteBatch.Begin();
+        SpriteBatch.Begin();
     }
 
     public void End()
@@ -73,7 +73,7 @@ public class Drawing : IDisposable
         if (!_isDrawing)
             return;
 
-        _spriteBatch.End();
+        SpriteBatch.End();
         _graphicsDevice.SetRenderTarget(null);
 
         foreach (var t in _disposeTextures)
@@ -86,7 +86,7 @@ public class Drawing : IDisposable
     public void DrawString(Vector2 pos, string text, Color color, int size = 13)
     {
         var font = _fontSystem.GetFont(size);
-        _spriteBatch.DrawString(font, text, pos, color, layerDepth: 0);
+        SpriteBatch.DrawString(font, text, pos, color, layerDepth: 0);
     }
 
     public Vector2 MeasureString(string text, int size = 13)
@@ -151,18 +151,18 @@ public class Drawing : IDisposable
 
     public void DrawPoint(Vector2 point, Color color, int size = 1)
     {
-        _spriteBatch.DrawPoint(point, color, size);
+        SpriteBatch.DrawPoint(point, color, size);
     }
 
     public void DrawCircle(Vector2 pos, int radius, Color color, int thickness = 1, int sides = -1)
     {
         sides = sides < 0 ? radius * 4 : sides;
-        _spriteBatch.DrawCircle(pos, radius, sides, color, thickness);
+        SpriteBatch.DrawCircle(pos, radius, sides, color, thickness);
     }
 
     public void DrawLine(Vector2 start, Vector2 end, Color color, float thickness = 1)
     {
-        _spriteBatch.DrawLine(start, end, color, thickness);
+        SpriteBatch.DrawLine(start, end, color, thickness);
     }
 
     public void DrawRectangle(Vector2 pos, Size2 size, Color color, int thickness = 1, float rotation = 0f)
@@ -172,13 +172,13 @@ public class Drawing : IDisposable
 
     public void DrawPolygon(Vector2 pos, Vector2[] points, Color color, int thickness = 1)
     {
-        _spriteBatch.DrawPolygon(pos, points, color, thickness);
+        SpriteBatch.DrawPolygon(pos, points, color, thickness);
     }
 
     public void DrawEllipse(Vector2 pos, Vector2 radius, Color color, int thickness = 1)
     {
         var sides = (int)Math.Max(radius.X, radius.Y) * 4;
-        _spriteBatch.DrawEllipse(pos, radius, sides, color, thickness);
+        SpriteBatch.DrawEllipse(pos, radius, sides, color, thickness);
     }
 
     public void Clear(Color? color = default)
@@ -194,10 +194,10 @@ public class Drawing : IDisposable
         Vector2 position3 = new(rectangle.X, rectangle.Bottom - thickness);
         Vector2 scale = new(rectangle.Width, thickness);
         Vector2 scale2 = new(thickness, rectangle.Height);
-        _spriteBatch.Draw(_whitePixel, position, null, color, rotation, Vector2.Zero, scale, SpriteEffects.None, layerDepth);
-        _spriteBatch.Draw(_whitePixel, position, null, color, rotation, Vector2.Zero, scale2, SpriteEffects.None, layerDepth);
-        _spriteBatch.Draw(_whitePixel, position2, null, color, rotation, Vector2.Zero, scale2, SpriteEffects.None, layerDepth);
-        _spriteBatch.Draw(_whitePixel, position3, null, color, rotation, Vector2.Zero, scale, SpriteEffects.None, layerDepth);
+        SpriteBatch.Draw(_whitePixel, position, null, color, rotation, Vector2.Zero, scale, SpriteEffects.None, layerDepth);
+        SpriteBatch.Draw(_whitePixel, position, null, color, rotation, Vector2.Zero, scale2, SpriteEffects.None, layerDepth);
+        SpriteBatch.Draw(_whitePixel, position2, null, color, rotation, Vector2.Zero, scale2, SpriteEffects.None, layerDepth);
+        SpriteBatch.Draw(_whitePixel, position3, null, color, rotation, Vector2.Zero, scale, SpriteEffects.None, layerDepth);
     }
 
     public void DrawBuffer(uint[] buffer, Rectangle rect, Rectangle? source = null, Color? color = null, float rotation = 0f, Vector2? origin = null, float scale = 1f, SpriteEffects spriteEffects = 0)
@@ -205,7 +205,7 @@ public class Drawing : IDisposable
         var texture = new Texture2D(_graphicsDevice, rect.Width, rect.Height, false, SurfaceFormat.Color);
         texture.SetData(buffer);
 
-        _spriteBatch.Draw(
+        SpriteBatch.Draw(
             texture, // Texture
             rect.Location.ToVector2(), // Position
             source, // source
@@ -222,7 +222,7 @@ public class Drawing : IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        _spriteBatch.Dispose();
+        SpriteBatch.Dispose();
         _whitePixel.Dispose();
     }
 }

@@ -14,6 +14,7 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Core;
 using Capy64.Eventing.Events;
 using KeraLua;
 using Microsoft.Xna.Framework;
@@ -25,7 +26,7 @@ namespace Capy64.Runtime.Libraries;
 
 internal class Term : IComponent
 {
-    private struct Char
+    private struct TermChar
     {
         public char Character;
         public Color Foreground;
@@ -47,7 +48,7 @@ internal class Term : IComponent
     private static Vector2 _cursorPosition { get; set; }
     public static Color ForegroundColor { get; set; }
     public static Color BackgroundColor { get; set; }
-    private static Char?[] CharGrid;
+    private static TermChar?[] CharGrid;
 
     private static IGame _game;
     private static bool cursorState = false;
@@ -204,7 +205,7 @@ internal class Term : IComponent
         _game.Drawing.DrawRectangle(realpos, new(CharWidth, CharHeight), bg, Math.Min(CharWidth, CharHeight));
         //_game.Drawing.DrawRectangle(realpos, new(CharWidth, CharHeight), Color.Red, 1);
 
-        try
+        /*try
         {
             _game.Drawing.DrawString(charpos, ch.ToString(), fg);
 
@@ -212,7 +213,10 @@ internal class Term : IComponent
         catch (ArgumentException ex) // UTF-16 fuckery
         {
             _game.Drawing.DrawString(charpos, "\xFFFD", fg);
-        }
+        }*/
+
+        var rect = Charset.Coords[(int)ch];
+        _game.Drawing.SpriteBatch.Draw(Charset.Source, charpos, rect, fg);
 
         if(underline)
         {
@@ -222,7 +226,7 @@ internal class Term : IComponent
         if (!save)
             return;
 
-        CharGrid[(int)pos.X + ((int)pos.Y * Width)] = new Char
+        CharGrid[(int)pos.X + ((int)pos.Y * Width)] = new TermChar
         {
             Character = ch,
             Foreground = ForegroundColor,
@@ -237,7 +241,7 @@ internal class Term : IComponent
             return;
 
         var ch = CharGrid[(int)pos.X + ((int)pos.Y * Width)] ??
-            new Char
+            new TermChar
             {
                 Character = ' ',
                 Foreground = ForegroundColor,
@@ -312,7 +316,7 @@ internal class Term : IComponent
 
     private static void ClearGrid()
     {
-        CharGrid = new Char?[CharGrid.Length];
+        CharGrid = new TermChar?[CharGrid.Length];
         _game.Drawing.Clear(BackgroundColor);
     }
 
@@ -320,7 +324,16 @@ internal class Term : IComponent
     {
         foreach (var ch in text)
         {
-            PlotChar(_cursorPosition, ch);
+            PlotChar(_cursorPosition, (char)ch);
+            _cursorPosition = new(_cursorPosition.X + 1, _cursorPosition.Y);
+        }
+    }
+
+    public static void Write(byte[] buffer)
+    {
+        foreach (var b in buffer)
+        {
+            PlotChar(_cursorPosition, (char)b);
             _cursorPosition = new(_cursorPosition.X + 1, _cursorPosition.Y);
         }
     }
@@ -328,9 +341,9 @@ internal class Term : IComponent
     private static int L_Write(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-        string str = "";
+        byte[] str = new byte[0];
         if (!L.IsNone(1))
-            str = L.ToString(1);
+            str = L.ToBuffer(1);
 
         Write(str);
 
@@ -553,7 +566,7 @@ internal class Term : IComponent
         }
 
         var lineLength = Math.Abs(lines) * Width;
-        var newGrid = new Char?[CharGrid.Length];
+        var newGrid = new TermChar?[CharGrid.Length];
         if (lines < 0)
         {
             Array.Copy(CharGrid, lineLength, newGrid, 0, CharGrid.Length - lineLength);
@@ -614,7 +627,7 @@ internal class Term : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var text = L.CheckString(1);
+        var text = L.CheckBuffer(1);
         L.CheckType(2, LuaType.Table);
         L.CheckType(3, LuaType.Table);
 

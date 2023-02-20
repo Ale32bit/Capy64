@@ -185,9 +185,10 @@ internal class EventEmitter
 
     private void OnChar(object sender, CharEvent e)
     {
+        var i = (byte)Charset.GetIndex(e.Character);
         _runtime.QueueEvent("char", LK =>
         {
-            LK.PushString(e.Character.ToString());
+            LK.PushBuffer(new byte[] { i });
 
             return 1;
         });

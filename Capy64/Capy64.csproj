@@ -13,6 +13,9 @@
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 	</PropertyGroup>
 	<ItemGroup>
+		<Content Include="Assets\charset.png">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 		<Content Include="Assets\default.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
@@ -57,5 +60,8 @@
 	</Target>
 	<ItemGroup>
 	  <EditorConfigFiles Remove="C:\Users\Alex\source\repos\Capy64\Capy64\Capy64\.editorconfig" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="Assets\charset.png" />
 	</ItemGroup>
 </Project>
