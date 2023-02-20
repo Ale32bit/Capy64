@@ -14,6 +14,12 @@ Capy64 is a fantasy console that runs sandbox Lua 5.4.
 
 Create anything, from Hello Worlds to games!
 
+### CapyOS
+
+CapyOS is the default operating system installed automatically on first run.
+
+The repository for CapyOS can be found here https://github.com/Ale32bit/CapyOS
+
 ## Requirements
 
 * [.NET 7 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
