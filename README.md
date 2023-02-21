@@ -8,6 +8,12 @@
 [![License](https://img.shields.io/github/license/Ale32bit/Capy64)](https://github.com/Ale32bit/Capy64/blob/main/LICENSE)
 [![Release](https://img.shields.io/github/v/release/Ale32bit/Capy64?include_prereleases)](https://github.com/Ale32bit/Capy64/releases)
 
+<p align="left">
+    <a href="https://discord.gg/ZCXKGTM6Mm">
+        <img src="https://discordapp.com/api/guilds/1077529255610695720/widget.png?style=banner2" alt="Join our Discord"/>
+    </a>
+</p>
+
 ## About Capy64
 
 Capy64 is a fantasy console that runs sandbox Lua 5.4.
