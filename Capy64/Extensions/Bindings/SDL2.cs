@@ -20,7 +20,7 @@ namespace Capy64.Extensions.Bindings;
 
 public partial class SDL2
 {
-    private const string SDL = "SDL2.dll";
+    private const string SDL = "SDL2";
 
     [LibraryImport(SDL)]
     [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
