@@ -58,4 +58,16 @@
 	<ItemGroup>
 	  <EditorConfigFiles Remove="C:\Users\Alex\source\repos\Capy64\Capy64\Capy64\.editorconfig" />
 	</ItemGroup>
+
+	<PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+		<DefineConstants>_WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+		<DefineConstants>_LINUX</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+		<DefineConstants>_OSX</DefineConstants>
+	</PropertyGroup>
 </Project>

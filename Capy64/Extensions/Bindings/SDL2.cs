@@ -20,32 +20,40 @@ namespace Capy64.Extensions.Bindings;
 
 public partial class SDL2
 {
-    private const string SDL = "SDL2";
+#if _WINDOWS
+    private const string LibraryName = "SDL2.dll";
+#elif _LINUX
+    private const string LibraryName = "libSDL2-2.0.so.0";
+#elif _OSX
+    private const string LibraryName = "libSDL2.dylib";
+#else
+    private const string LibraryName = "SDL2";
+#endif
 
-    [LibraryImport(SDL)]
+    [LibraryImport(LibraryName)]
     [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     internal static partial void SDL_MaximizeWindow(IntPtr window);
 
-    [LibraryImport(SDL)]
+    [LibraryImport(LibraryName)]
     [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     internal static partial uint SDL_GetWindowFlags(IntPtr window);
 
-    [LibraryImport(SDL, EntryPoint = "SDL_GetClipboardText")]
+    [LibraryImport(LibraryName, EntryPoint = "SDL_GetClipboardText")]
     [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     internal static partial IntPtr Native_SDL_GetClipboardText();
 
     /// <summary>
     /// </summary>
     /// <returns>0 is false; 1 is true</returns>
-    [LibraryImport(SDL)]
+    [LibraryImport(LibraryName)]
     [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     internal static partial int SDL_HasClipboardText();
 
-    [LibraryImport(SDL, EntryPoint = "SDL_SetClipboardText", StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(LibraryName, EntryPoint = "SDL_SetClipboardText", StringMarshalling = StringMarshalling.Utf8)]
     [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     internal static partial int Native_SDL_SetClipboardText(string contents);
 
-    [LibraryImport(SDL)]
+    [LibraryImport(LibraryName)]
     [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     internal static partial void SDL_free(IntPtr memblock);
 
