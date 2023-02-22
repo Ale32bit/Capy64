@@ -17,6 +17,7 @@ using Capy64.API;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Capy64.Core;
 
@@ -44,7 +45,7 @@ public class Charset : IComponent
         '\u03B1', '\u00DF', '\u0393', '\u03C0', '\u03A3', '\u03C3', '\u00B5', '\u03C4', '\u03A6', '\u0398', '\u03A9', '\u03B4', '\u221E', '\u03C6', '\u03B5', '\u2229',
         '\u2261', '\u00B1', '\u2265', '\u2264', '\u2320', '\u2321', '\u00F7', '\u2248', '\u00B0', '\u2219', '\u00B7', '\u221A', '\u207F', '\u00B2', '\u25A0', '\u00A0',
     };
-    public static Dictionary<char, int> CharDict => _charMap;
+    public static Dictionary<char, int> CharMap => _charMap;
     public static Texture2D Source => _source;
     public static Rectangle[] Coords => _coords;
 
@@ -75,5 +76,34 @@ public class Charset : IComponent
             return index;
 
         return _charMap['?'];
+    }
+
+    public static byte[] Encode(string text, Encoding encoding = default)
+    {
+        encoding ??= Encoding.Default;
+        
+        return Encode(text.ToCharArray());
+    }
+
+    public static byte[] Encode(char[] text)
+    {
+        var bytes = new byte[text.Length];
+        for (int i = 0; i < text.Length; i++)
+        {
+            bytes[i] = (byte)_charMap[text[i]];
+        }
+
+        return bytes;
+    }
+
+    public static byte[] Decode(byte[] bytes, Encoding encoding = default)
+    {
+        encoding ??= Encoding.Default;
+        var chars = new char[bytes.Length];
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            chars[i] = Codepoints[bytes[i]];
+        }
+        return encoding.GetBytes(chars);
     }
 }

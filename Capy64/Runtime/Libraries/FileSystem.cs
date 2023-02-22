@@ -558,7 +558,7 @@ public class FileSystem : IComponent
         var fileStream = File.Open(path, fileMode, fileAccess, FileShare.ReadWrite | FileShare.Delete);
 
         ObjectManager.PushObject(L, fileStream);
-        L.SetMetaTable(FileHandle.ObjectType);
+        L.SetMetaTable(FileHandleLib.ObjectType);
 
         return 1;
     }

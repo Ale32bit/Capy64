@@ -14,13 +14,15 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Core;
 using KeraLua;
 using System;
 using System.IO;
+using System.Reflection.Metadata;
 
 namespace Capy64.Runtime.Objects;
 
-public class FileHandle : IComponent
+public class FileHandleLib : IComponent
 {
     public const string ObjectType = "file";
 
@@ -115,14 +117,14 @@ public class FileHandle : IComponent
         return modes[i];
     }
 
-    private static Stream ToStream(Lua L, bool gc = false)
+    private static FileHandle ToStream(Lua L, bool gc = false)
     {
-        return ObjectManager.ToObject<Stream>(L, 1, gc);
+        return ObjectManager.ToObject<FileHandle>(L, 1, gc);
     }
 
-    private static Stream CheckStream(Lua L, bool gc = false)
+    private static FileHandle CheckStream(Lua L, bool gc = false)
     {
-        var obj = ObjectManager.CheckObject<Stream>(L, 1, ObjectType, gc);
+        var obj = ObjectManager.CheckObject<FileHandle>(L, 1, ObjectType, gc);
         if (obj is null)
         {
             L.Error("attempt to use a closed file");
@@ -131,13 +133,15 @@ public class FileHandle : IComponent
         return obj;
     }
 
-    private static bool ReadNumber(Lua L, Stream stream)
+    private static bool ReadNumber(Lua L, FileHandle handle)
     {
+        var stream = handle.Stream;
         return false;
     }
 
-    private static bool ReadLine(Lua L, Stream stream, bool chop)
+    private static bool ReadLine(Lua L, FileHandle handle, bool chop)
     {
+        var stream = handle.Stream;
         var buffer = new byte[stream.Length];
         int i = 0;
         int c = 0;
@@ -153,32 +157,44 @@ public class FileHandle : IComponent
             buffer[i++] = (byte)c;
 
         Array.Resize(ref buffer, i);
+        if (!handle.BinaryMode)
+            buffer = Charset.Decode(buffer);
+
         L.PushBuffer(buffer);
 
         return c == '\n' || L.RawLen(-1) > 0;
     }
 
-    private static void ReadAll(Lua L, Stream stream)
+    private static void ReadAll(Lua L, FileHandle handle)
     {
+        var stream = handle.Stream;
         var buffer = new byte[stream.Length];
         var read = stream.Read(buffer, 0, buffer.Length);
         Array.Resize(ref buffer, read);
+        if (!handle.BinaryMode)
+            buffer = Charset.Decode(buffer);
+
         L.PushBuffer(buffer);
     }
 
-    private static bool ReadChars(Lua L, Stream stream, int n)
+    private static bool ReadChars(Lua L, FileHandle handle, int n)
     {
+        var stream = handle.Stream;
         var buffer = new byte[n];
         var read = stream.Read(buffer, 0, n);
         Array.Resize(ref buffer, read);
         L.PushBuffer(buffer);
+        if (!handle.BinaryMode)
+            buffer = Charset.Decode(buffer);
+
         return read != 0;
     }
 
     private static int L_Read(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-        var stream = CheckStream(L);
+        var handle = CheckStream(L);
+        var stream = handle.Stream;
 
         if (!stream.CanRead)
         {
@@ -196,7 +212,7 @@ public class FileHandle : IComponent
         bool success;
         if (L.Type(2) == LuaType.Number)
         {
-            success = ReadChars(L, stream, (int)L.ToNumber(2));
+            success = ReadChars(L, handle, (int)L.ToNumber(2));
         }
         else
         {
@@ -205,16 +221,16 @@ public class FileHandle : IComponent
             switch (mode)
             {
                 case 'n':
-                    success = ReadNumber(L, stream);
+                    success = ReadNumber(L, handle);
                     break;
                 case 'l':
-                    success = ReadLine(L, stream, true);
+                    success = ReadLine(L, handle, true);
                     break;
                 case 'L':
-                    success = ReadLine(L, stream, false);
+                    success = ReadLine(L, handle, false);
                     break;
                 case 'a':
-                    ReadAll(L, stream);
+                    ReadAll(L, handle);
                     success = true;
                     break;
                 default:
@@ -238,7 +254,9 @@ public class FileHandle : IComponent
 
         var nargs = L.GetTop();
 
-        var stream = CheckStream(L);
+        var handle = CheckStream(L);
+        var stream = handle.Stream;
+
         if (!stream.CanWrite)
         {
             L.PushNil();
@@ -284,7 +302,8 @@ public class FileHandle : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var stream = CheckStream(L, false);
+        var handle = CheckStream(L);
+        var stream = handle.Stream;
 
         stream.Flush();
 
@@ -295,7 +314,8 @@ public class FileHandle : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var stream = CheckStream(L, false);
+        var handle = CheckStream(L);
+        var stream = handle.Stream;
 
         var whence = L.CheckOption(2, "cur", new[]
         {
@@ -319,7 +339,7 @@ public class FileHandle : IComponent
         var L = Lua.FromIntPtr(state);
 
         var stream = CheckStream(L, true);
-        stream.Close();
+        stream.Dispose();
 
         return 0;
     }
@@ -345,8 +365,25 @@ public class FileHandle : IComponent
 
         var stream = ToStream(L, true);
         if (stream is not null)
-            stream.Close();
+            stream.Dispose();
 
         return 0;
+    }
+}
+
+public class FileHandle : IDisposable
+{
+    public Stream Stream { get; set; }
+    public bool BinaryMode { get; set; } = false;
+
+    public void Close()
+    {
+        Stream.Close();
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        Stream.Dispose();
     }
 }

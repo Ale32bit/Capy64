@@ -226,7 +226,7 @@ public class HTTP : IComponent
                 // arg 2, response data
                 ObjectManager.PushObject(L, stream);
                 //L.PushObject(stream);
-                L.SetMetaTable(FileHandle.ObjectType);
+                L.SetMetaTable(FileHandleLib.ObjectType);
                 /*if ((bool)options["binary"])
                     BinaryReadHandle.Push(LK, new(stream));
                 else
