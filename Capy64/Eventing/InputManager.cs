@@ -74,7 +74,7 @@ public class InputManager
     };
 
     public Texture2D Texture { get; set; }
-    public float WindowScale { get; set; }
+    public float WindowScale => Capy64.Instance.Scale;
     public const int MouseScrollDelta = 120;
 
     private Point mousePosition;
@@ -113,7 +113,7 @@ public class InputManager
         if (!isActive)
             return;
 
-        var rawPosition = state.Position;
+        var rawPosition = state.Position - new Point(Capy64.Instance.Borders.Left, Capy64.Instance.Borders.Top);
         var pos = new Point((int)(rawPosition.X / WindowScale), (int)(rawPosition.Y / WindowScale)) + new Point(1, 1);
 
         if (pos.X < 1 || pos.Y < 1 || pos.X > Texture.Width || pos.Y > Texture.Height)

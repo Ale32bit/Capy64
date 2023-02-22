@@ -306,6 +306,7 @@ internal class Term : IComponent
         {
             var realpos = ToRealPos(CursorPosition - Vector2.One);
             var charpos = (realpos * _game.Scale) + (CharOffset + new Vector2(0, 2)) * _game.Scale;
+            charpos += new Vector2(Capy64.Instance.Borders.Left, Capy64.Instance.Borders.Top);
             _game.Game.SpriteBatch.Draw(cursorTexture, charpos, null, ForegroundColor, 0f, Vector2.Zero, _game.Scale, SpriteEffects.None, 0);
         }
     }
