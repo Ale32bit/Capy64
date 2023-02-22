@@ -23,6 +23,7 @@ using Capy64.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -92,7 +93,7 @@ public class Capy64 : Game, IGame
         if (resize)
         {
             _graphics.PreferredBackBufferWidth = (int)(Width * Scale) + Borders.Left + Borders.Right;
-            _graphics.PreferredBackBufferHeight = (int)(Height * Scale) + Borders.Top + Borders.Right;
+            _graphics.PreferredBackBufferHeight = (int)(Height * Scale) + Borders.Top + Borders.Bottom;
             _graphics.ApplyChanges();
         }
 
@@ -107,7 +108,6 @@ public class Capy64 : Game, IGame
         Drawing.Canvas = renderTarget;
 
         _inputManager.Texture = renderTarget;
-        _inputManager.WindowScale = Scale;
 
         EventEmitter.RaiseScreenSizeChange();
     }
@@ -129,19 +129,34 @@ public class Capy64 : Game, IGame
 
             Borders.Left = (int)Math.Floor(horizontal / 2d);
             Borders.Right = (int)Math.Ceiling(horizontal / 2d);
+
+            UpdateSize(false);
         }
         else
         {
-            Borders = new Borders();
+            ResetBorder();
+            UpdateSize();
         }
 
-        UpdateSize(false);
+    }
+
+    private void ResetBorder()
+    {
+        var size = (int)(Scale * 1.5);
+        Borders = new Borders
+        {
+            Top = size,
+            Bottom = size,
+            Left = size,
+            Right = size
+        };
     }
 
     protected override void Initialize()
     {
         Window.Title = "Capy64 " + Version;
 
+        ResetBorder();
         UpdateSize();
 
         Window.AllowUserResizing = true;
@@ -205,6 +220,11 @@ public class Capy64 : Game, IGame
     protected override void Draw(GameTime gameTime)
     {
         SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
+        GraphicsDevice.Clear(new Color(0x11, 0x11, 0x11));
+
+        SpriteBatch.DrawRectangle(renderTarget.Bounds.Location.ToVector2() + new Vector2(Borders.Left, Borders.Top),
+            new Size2(renderTarget.Bounds.Width * Scale, renderTarget.Bounds.Height * Scale), Color.Black, Math.Min(renderTarget.Bounds.Width, renderTarget.Bounds.Height), 0);
+
         SpriteBatch.Draw(renderTarget, new(Borders.Left, Borders.Top), null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0);
 
         EventEmitter.RaiseOverlay(new()
