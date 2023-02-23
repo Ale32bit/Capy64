@@ -77,6 +77,7 @@ jobs:
         run: 7z a capy64-linux-x64.zip publish/linux-x64/**
 
   publish:
+    needs: [release-windows, release-linux]
     runs-on: ubuntu-latest
     permissions:
       contents: write
