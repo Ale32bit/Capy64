@@ -1,17 +1,23 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: Publish release draft
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag
+        required: true
+      prerelease:
+        description: Prerelease
+        type: boolean
+      generatenotes:
+        description: Generate release notes
+        type: boolean
 
 jobs:
-  build-windows:
+  release-windows:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v3
@@ -36,8 +42,13 @@ jobs:
           path: publish/win-x64/**
           if-no-files-found: error
 
-  build-linux:
+      - name: Zip Windows x64
+        run: 7z a capy64-windows-x64.zip publish/win-x64/**
+
+  release-linux:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v3
@@ -61,3 +72,25 @@ jobs:
           name: Linux-x64
           path: publish/linux-x64/**
           if-no-files-found: error
+
+      - name: Zip Linux x64
+        run: 7z a capy64-linux-x64.zip publish/linux-x64/**
+
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create Release
+        uses: ncipollo/release-action@v1.12.0
+        with:
+          commit: ${{ github.ref_name }}
+          tag: ${{ inputs.tag }}
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: "capy64-linux-x64.zip,capy64-windows-x64.zip"
+          draft: true
+          generateReleaseNotes: ${{ inputs.generatenotes }}
+          makeLatest: true
+          prerelease: ${{ inputs.prerelease }}
