@@ -71,7 +71,7 @@ public class TCP : IComponent
             {
                 _game.LuaRuntime.QueueEvent("tcp_connect", LK =>
                 {
-                    var handle = new FileHandle
+                    /*var handle = new FileHandle
                     {
                         Stream = client.GetStream(),
                         DefaultSize = client.ReceiveBufferSize,
@@ -79,7 +79,7 @@ public class TCP : IComponent
 
                     LK.PushInteger(id);
                     ObjectManager.PushObject(L, handle);
-                    L.SetMetaTable("file");
+                    L.SetMetaTable("file");*/
                     return 2;
                 });
             }
