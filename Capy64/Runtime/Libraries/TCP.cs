@@ -14,18 +14,21 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Runtime.Objects;
 using KeraLua;
+using System.IO;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Libraries;
 
 public class TCP : IComponent
 {
+    private static int Counter = 0;
     private static IGame _game;
     public TCP(IGame game)
     {
         _game = game;
+        Counter = 0;
     }
 
     private static LuaRegister[] TCPLib = new LuaRegister[]
@@ -40,14 +43,14 @@ public class TCP : IComponent
 
     public void LuaInit(Lua L)
     {
-        L.RequireF("tcp", OpenLib, false);
+        //L.RequireF("tcp", OpenLib, false);
     }
 
     public int OpenLib(nint state)
     {
         var L = Lua.FromIntPtr(state);
         L.NewLib(TCPLib);
-        return 0;
+        return 1;
     }
 
     private static int L_Connect(nint state)
@@ -58,17 +61,42 @@ public class TCP : IComponent
         var port = (int)L.CheckInteger(2);
         L.ArgumentCheck(port >= 0 && port <= 0xffff, 2, "port must be in range 0-65535");
 
-        var client = new TcpClient(host, port);
-
+        var client = new TcpClient();
+        var id = Counter++;
         var task = client.ConnectAsync(host, port);
-        task.ContinueWith(t => {
-            if(client.Connected)
+
+        task.ContinueWith(t =>
+        {
+            if (client.Connected)
             {
-                // todo: make logic do stuff
+                _game.LuaRuntime.QueueEvent("tcp_connect", LK =>
+                {
+                    var handle = new FileHandle
+                    {
+                        Stream = client.GetStream(),
+                        DefaultSize = client.ReceiveBufferSize,
+                    };
+
+                    LK.PushInteger(id);
+                    ObjectManager.PushObject(L, handle);
+                    L.SetMetaTable("file");
+                    return 2;
+                });
+            }
+            else
+            {
+                _game.LuaRuntime.QueueEvent("tcp_failure", LK =>
+                {
+                    LK.PushInteger(id);
+                    LK.PushString(t.Exception.Message);
+                    return 2;
+                });
             }
         });
 
-        return 0;
+        L.PushInteger(id);
+
+        return 1;
     }
 
 }
