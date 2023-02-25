@@ -53,6 +53,7 @@ public class Capy64 : Game, IGame
     public Eventing.EventEmitter EventEmitter { get; private set; }
     public DiscordIntegration Discord { get; set; }
 
+    public Color BorderColor { get; set; } = Color.Black;
     public Borders Borders = new()
     {
         Top = 0,
@@ -220,7 +221,7 @@ public class Capy64 : Game, IGame
     protected override void Draw(GameTime gameTime)
     {
         SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
-        GraphicsDevice.Clear(new Color(0x11, 0x11, 0x11));
+        GraphicsDevice.Clear(BorderColor);
 
         SpriteBatch.DrawRectangle(renderTarget.Bounds.Location.ToVector2() + new Vector2(Borders.Left, Borders.Top),
             new Size2(renderTarget.Bounds.Width * Scale, renderTarget.Bounds.Height * Scale), Color.Black, Math.Min(renderTarget.Bounds.Width, renderTarget.Bounds.Height), 0);

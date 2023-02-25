@@ -184,6 +184,7 @@ public class Drawing : IDisposable
     public void Clear(Color? color = default)
     {
         Color finalColor = color ?? Color.Black;
+        Capy64.Instance.BorderColor = finalColor;
         _graphicsDevice.Clear(finalColor);
     }
 
