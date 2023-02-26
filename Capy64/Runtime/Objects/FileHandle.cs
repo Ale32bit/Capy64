@@ -193,43 +193,46 @@ public class FileHandle : IComponent
             L.PushString("l");
         }
 
-        bool success;
-        if (L.Type(2) == LuaType.Number)
+        for (int i = 2; i <= nargs + 1; i++)
         {
-            success = ReadChars(L, stream, (int)L.ToNumber(2));
-        }
-        else
-        {
-            var p = L.CheckString(2);
-            var mode = CheckMode(p);
-            switch (mode)
+            bool success;
+            if (L.Type(i) == LuaType.Number)
             {
-                case 'n':
-                    success = ReadNumber(L, stream);
-                    break;
-                case 'l':
-                    success = ReadLine(L, stream, true);
-                    break;
-                case 'L':
-                    success = ReadLine(L, stream, false);
-                    break;
-                case 'a':
-                    ReadAll(L, stream);
-                    success = true;
-                    break;
-                default:
-                    return L.ArgumentError(2, "invalid format");
+                success = ReadChars(L, stream, (int)L.ToNumber(2));
+            }
+            else
+            {
+                var p = L.CheckString(i);
+                var mode = CheckMode(p);
+                switch (mode)
+                {
+                    case 'n':
+                        success = ReadNumber(L, stream);
+                        break;
+                    case 'l':
+                        success = ReadLine(L, stream, true);
+                        break;
+                    case 'L':
+                        success = ReadLine(L, stream, false);
+                        break;
+                    case 'a':
+                        ReadAll(L, stream);
+                        success = true;
+                        break;
+                    default:
+                        return L.ArgumentError(i, "invalid format");
+                }
+
             }
 
+            if (!success)
+            {
+                L.Pop(1);
+                L.PushNil();
+            }
         }
 
-        if (!success)
-        {
-            L.Pop(1);
-            L.PushNil();
-        }
-
-        return 1;
+        return nargs;
     }
 
     private static int L_Write(IntPtr state)
