@@ -555,12 +555,20 @@ public class FileSystem : IComponent
             }
         }
 
-        var fileStream = File.Open(path, fileMode, fileAccess, FileShare.ReadWrite | FileShare.Delete);
+        try
+        {
+            var fileStream = File.Open(path, fileMode, fileAccess, FileShare.ReadWrite | FileShare.Delete);
 
-        ObjectManager.PushObject(L, fileStream);
-        L.SetMetaTable(FileHandle.ObjectType);
+            ObjectManager.PushObject(L, fileStream);
+            L.SetMetaTable(FileHandle.ObjectType);
 
-        return 1;
+            return 1;
+        }
+        catch (Exception ex)
+        {
+            L.Error(ex.Message);
+        }
+        return 0;
     }
 
 }
