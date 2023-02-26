@@ -191,6 +191,7 @@ public class FileHandle : IComponent
         if (nargs == 0)
         {
             L.PushString("l");
+            nargs = 1;
         }
 
         for (int i = 2; i <= nargs + 1; i++)
