@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using static Capy64.Utils;
 
 namespace Capy64;
@@ -35,11 +36,24 @@ namespace Capy64;
 public class Capy64 : Game, IGame
 {
     public const string Version = "0.0.9-alpha";
-    public static string AppDataPath = Path.Combine(
-        Environment.GetFolderPath(
-            Environment.SpecialFolder.ApplicationData,
-            Environment.SpecialFolderOption.Create),
-        "Capy64");
+
+    public static string AppDataPath
+    {
+        get
+        {
+            string baseDir =
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) :
+                RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) :
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) :
+                    "./";
+
+            return Path.Combine(baseDir, "Capy64");
+        }
+    }
+
     public static Capy64 Instance { get; private set; }
     public Capy64 Game => this;
     public IList<IComponent> NativePlugins { get; private set; }
