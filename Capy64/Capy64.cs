@@ -58,8 +58,8 @@ public class Capy64 : Game, IGame
     public Capy64 Game => this;
     public IList<IComponent> NativePlugins { get; private set; }
     public IList<IComponent> Plugins { get; private set; }
-    public int Width { get; set; } = 400;
-    public int Height { get; set; } = 300;
+    public int Width { get; set; } = 320;
+    public int Height { get; set; } = 240;
     public float Scale { get; set; } = 2f;
     public Drawing Drawing { get; private set; }
     public Audio Audio { get; private set; }

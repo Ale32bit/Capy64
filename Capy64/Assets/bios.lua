@@ -34,7 +34,7 @@ term.setForeground(fg)
 term.setBackground(bg)
 term.clear()
 
-term.setSize(51, 19)
+term.setSize(53, 20)
 gpu.setScale(2)
 
 local w, h = term.getSize()
