@@ -123,12 +123,6 @@ internal class RuntimeManager : IComponent
         luaState.Thread.PushCFunction(L_Exit);
         luaState.Thread.SetGlobal("exit");
 
-        luaState.Thread.PushCFunction(L_SetConsole);
-        luaState.Thread.SetGlobal("setConsole");
-
-        luaState.Thread.PushCFunction(L_GetConsole);
-        luaState.Thread.SetGlobal("getConsole");
-
         var status = luaState.Thread.LoadFile("Assets/bios.lua");
         if (status != LuaStatus.OK)
         {
@@ -219,26 +213,6 @@ internal class RuntimeManager : IComponent
         return 0;
     }
 
-    private static int L_SetConsole(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        var status = L.ToBoolean(1);
-        _game.Window.ToggleConsole(status);
-
-        return 0;
-    }
-
-    private static int L_GetConsole(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        var status = _game.Window.IsConsoleVisible();
-        L.PushBoolean(status);
-
-        return 1;
-    }
-
     private void OnInit(object sender, EventArgs e)
     {
         Start();
@@ -246,6 +220,7 @@ internal class RuntimeManager : IComponent
 
     private void OnTick(object sender, TickEvent e)
     {
-        Resume();
+        if (e.IsActiveTick)
+            Resume();
     }
 }

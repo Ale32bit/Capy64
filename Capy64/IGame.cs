@@ -26,6 +26,7 @@ namespace Capy64;
 public interface IGame
 {
     Capy64 Game { get; }
+    EngineMode EngineMode { get; }
     IList<IComponent> NativePlugins { get; }
     IList<IComponent> Plugins { get; }
     GameWindow Window { get; }
