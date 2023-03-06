@@ -73,7 +73,7 @@ public class Event : IComponent
         return nargs;
     }
 
-    private static int L_Pull(IntPtr state)
+    public static int L_Pull(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 

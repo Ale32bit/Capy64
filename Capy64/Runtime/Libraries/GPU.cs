@@ -23,6 +23,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -123,8 +124,8 @@ public class GPU : IComponent
         },
         new()
         {
-            name = "loadImage",
-            function = L_LoadImage,
+            name = "loadImageAsync",
+            function = L_LoadImageAsync,
         },
         new()
         {
@@ -412,7 +413,7 @@ public class GPU : IComponent
         _game.Drawing.Canvas.GetData(buffer);
 
         ObjectManager.PushObject(L, buffer);
-        L.SetMetaTable(GPUBuffer.ObjectType);
+        L.SetMetaTable(GPUBufferMeta.ObjectType);
 
         return 1;
     }
@@ -421,9 +422,9 @@ public class GPU : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = GPUBuffer.CheckBuffer(L, false);
+        var buffer = GPUBufferMeta.CheckBuffer(L, false);
 
-        _game.Drawing.Canvas.SetData(buffer);
+        _game.Drawing.Canvas.SetData(buffer.Buffer);
 
         return 0;
     }
@@ -438,7 +439,7 @@ public class GPU : IComponent
         var buffer = new uint[width * height];
 
         ObjectManager.PushObject(L, buffer);
-        L.SetMetaTable(GPUBuffer.ObjectType);
+        L.SetMetaTable(GPUBufferMeta.ObjectType);
 
         return 1;
     }
@@ -447,30 +448,23 @@ public class GPU : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = GPUBuffer.CheckBuffer(L, false);
+        var buffer = GPUBufferMeta.CheckBuffer(L, false);
 
         var x = (int)L.CheckInteger(2) - 1;
         var y = (int)L.CheckInteger(3) - 1;
-        var w = (int)L.CheckInteger(4);
-        var h = (int)L.CheckInteger(5);
 
-        if (w * h != buffer.Length)
-        {
-            L.Error("width and height do not match buffer size");
-        }
-
-        _game.Drawing.DrawBuffer(buffer, new()
+        _game.Drawing.DrawBuffer(buffer.Buffer, new()
         {
             X = x,
             Y = y,
-            Width = w,
-            Height = h,
+            Width = buffer.Width,
+            Height = buffer.Height,
         });
 
         return 0;
     }
 
-    private static int L_LoadImage(IntPtr state)
+    private static int L_LoadImageAsync(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -484,6 +478,8 @@ public class GPU : IComponent
             return 0;
         }
 
+        var task = TaskMeta.Push(L, GPUBufferMeta.ObjectType);
+
         Texture2D texture;
         try
         {
@@ -491,44 +487,52 @@ public class GPU : IComponent
         }
         catch (Exception e)
         {
-            L.Error(e.Message);
-            return 0;
+            task.Reject(e.Message);
+            return 1;
         }
 
         var data = new uint[texture.Width * texture.Height];
         texture.GetData(data);
 
-        if (_game.EngineMode == EngineMode.Classic)
+        Task.Run(() =>
         {
-            for (int i = 0; i < data.Length; i++)
+            if (_game.EngineMode == EngineMode.Classic)
             {
-                var value = data[i];
+                for (int i = 0; i < data.Length; i++)
+                {
+                    var value = data[i];
 
-                // ABGR to RGB
-                value =
-                    ((value & 0x00_00_00_FFU) << 16) | // move R
-                    (value & 0x00_00_FF_00U) |       // move G
-                    ((value & 0x00_FF_00_00U) >> 16);  // move B
+                    // ABGR to RGB
+                    value =
+                        ((value & 0x00_00_00_FFU) << 16) | // move R
+                        (value & 0x00_00_FF_00U) |       // move G
+                        ((value & 0x00_FF_00_00U) >> 16);  // move B
 
-                value = ColorPalette.GetColor(value);
+                    value = ColorPalette.GetColor(value);
 
-                // RGB to ABGR
-                value =
-                    ((value & 0x00_FF_00_00U) >> 16) | // move R
-                    (value & 0x00_00_FF_00U) |       // move G
-                    ((value & 0x00_00_00_FFU) << 16) | // move B
-                    0xFF_00_00_00U;
+                    // RGB to ABGR
+                    value =
+                        ((value & 0x00_FF_00_00U) >> 16) | // move R
+                        (value & 0x00_00_FF_00U) |       // move G
+                        ((value & 0x00_00_00_FFU) << 16) | // move B
+                        0xFF_00_00_00U;
+
+                    data[i] = value;
+                }
             }
-        }
 
-        ObjectManager.PushObject(L, data);
-        L.SetMetaTable(GPUBuffer.ObjectType);
-        L.PushInteger(texture.Width);
-        L.PushInteger(texture.Height);
+            var buffer = new GPUBufferMeta.GPUBuffer
+            {
+                Buffer = data,
+                Height = texture.Height,
+                Width = texture.Width,
+            };
+            task.Fulfill(buffer);
 
-        texture.Dispose();
+            texture.Dispose();
+        });
 
-        return 3;
+        return 1;
     }
 
     private static int L_Clear(IntPtr state)

@@ -72,6 +72,11 @@ public class Machine : IComponent
             name = "getClipboard",
             function = L_GetClipboard,
         },
+        new()
+        {
+            name = "task",
+            function = L_Task,
+        },
         new(),
     };
 
@@ -84,6 +89,18 @@ public class Machine : IComponent
     {
         var L = Lua.FromIntPtr(state);
         L.NewLib(MachineLib);
+        return 1;
+    }
+
+    private static int L_Task(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var task = new Objects.TaskMeta.RuntimeTask("test");
+
+        ObjectManager.PushObject(L, task);
+        L.SetMetaTable(Objects.TaskMeta.ObjectType);
+
         return 1;
     }
 

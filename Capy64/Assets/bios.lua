@@ -62,13 +62,14 @@ local function drawVendorImage()
 
 	local w, h = gpu.getSize()
 	local ok, err = pcall(function()
-		local buffer<close>, width, height = gpu.loadImage("/boot/vendor.bmp")
+		local task<close> = gpu.loadImageAsync("/boot/vendor.bmp")
+		local buffer<close> = task:await()
 
 		local x, y = 
-			math.ceil((w / 2) - (width / 2)),
-			math.ceil((h / 2) - (height / 2))
+			math.ceil((w / 2) - (buffer.width / 2)),
+			math.ceil((h / 2) - (buffer.height / 2))
 
-		gpu.drawBuffer(buffer, x, y, width, height)
+		gpu.drawBuffer(buffer, x, y)
 	end)
 
 	if not ok then
