@@ -19,6 +19,7 @@ using Capy64.Runtime.Objects;
 using KeraLua;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -496,6 +497,29 @@ public class GPU : IComponent
 
         var data = new uint[texture.Width * texture.Height];
         texture.GetData(data);
+
+        if (_game.EngineMode == EngineMode.Classic)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                var value = data[i];
+
+                // ABGR to RGB
+                value =
+                    ((value & 0x00_00_00_FFU) << 16) | // move R
+                    (value & 0x00_00_FF_00U) |       // move G
+                    ((value & 0x00_FF_00_00U) >> 16);  // move B
+
+                value = ColorPalette.GetColor(value);
+
+                // RGB to ABGR
+                value =
+                    ((value & 0x00_FF_00_00U) >> 16) | // move R
+                    (value & 0x00_00_FF_00U) |       // move G
+                    ((value & 0x00_00_00_FFU) << 16) | // move B
+                    0xFF_00_00_00U;
+            }
+        }
 
         ObjectManager.PushObject(L, data);
         L.SetMetaTable(GPUBuffer.ObjectType);
