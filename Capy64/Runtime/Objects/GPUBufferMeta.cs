@@ -14,14 +14,22 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Core;
 using KeraLua;
 using System;
 
 namespace Capy64.Runtime.Objects;
 
-public class GPUBuffer : IComponent
+public class GPUBufferMeta : IComponent
 {
     public const string ObjectType = "GPUBuffer";
+
+    public struct GPUBuffer
+    {
+        public uint[] Buffer { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+    }
 
     private static LuaRegister[] MetaMethods = new LuaRegister[]
     {
@@ -59,9 +67,23 @@ public class GPUBuffer : IComponent
         new(),
     };
 
+    private static IGame _game;
+    public GPUBufferMeta(IGame game)
+    {
+        _game = game;
+    }
+
     public void LuaInit(Lua L)
     {
         CreateMeta(L);
+    }
+
+    public static uint GetColor(uint color)
+    {
+        if (_game.EngineMode == EngineMode.Classic)
+            return ColorPalette.GetColor(color);
+
+        return color;
     }
 
     public static void CreateMeta(Lua L)
@@ -70,18 +92,18 @@ public class GPUBuffer : IComponent
         L.SetFuncs(MetaMethods, 0);
     }
 
-    public static uint[] ToBuffer(Lua L, bool gc = false)
+    public static GPUBuffer ToBuffer(Lua L, bool gc = false)
     {
-        return ObjectManager.ToObject<uint[]>(L, 1, gc);
+        return ObjectManager.ToObject<GPUBuffer>(L, 1, gc);
     }
 
-    public static uint[] CheckBuffer(Lua L, bool gc = false)
+    public static GPUBuffer CheckBuffer(Lua L, bool gc = false)
     {
-        var obj = ObjectManager.CheckObject<uint[]>(L, 1, ObjectType, gc);
-        if (obj is null)
+        var obj = ObjectManager.CheckObject<GPUBuffer>(L, 1, ObjectType, gc);
+        if (obj.Buffer is null)
         {
             L.Error("attempt to use a closed buffer");
-            return null;
+            return default;
         }
         return obj;
     }
@@ -94,19 +116,27 @@ public class GPUBuffer : IComponent
 
         if (!L.IsInteger(2))
         {
-            L.PushNil();
+            var vkey = L.ToString(2);
+
+            if (vkey == "width")
+                L.PushInteger(buffer.Width);
+            else if (vkey == "height")
+                L.PushInteger(buffer.Height);
+            else
+                L.PushNil();
+
             return 1;
         }
 
         var key = L.ToInteger(2);
 
-        if (key < 0 || key >= buffer.Length)
+        if (key < 0 || key >= buffer.Buffer.Length)
         {
             L.PushNil();
             return 1;
         }
 
-        var value = buffer[key];
+        var value = buffer.Buffer[key];
 
         // ABGR to RGB
         value =
@@ -131,7 +161,7 @@ public class GPUBuffer : IComponent
 
         var key = L.ToInteger(2);
 
-        if (key < 0 || key >= buffer.Length)
+        if (key < 0 || key >= buffer.Buffer.Length)
         {
             return 0;
         }
@@ -142,6 +172,7 @@ public class GPUBuffer : IComponent
         }
 
         var value = (uint)L.ToInteger(3);
+        value = GetColor(value);
 
         // RGB to ABGR
         value =
@@ -151,7 +182,7 @@ public class GPUBuffer : IComponent
             0xFF_00_00_00U;
 
 
-        buffer[key] = value;
+        buffer.Buffer[key] = value;
 
         return 0;
     }
@@ -171,7 +202,7 @@ public class GPUBuffer : IComponent
 
         var buffer = CheckBuffer(L, false);
 
-        L.PushInteger(buffer.LongLength);
+        L.PushInteger(buffer.Buffer.LongLength);
 
         return 1;
     }
@@ -180,7 +211,7 @@ public class GPUBuffer : IComponent
     {
         var L = Lua.FromIntPtr(state);
         var buffer = ToBuffer(L);
-        if (buffer is not null)
+        if (buffer.Buffer is not null)
         {
             L.PushString("GPUBuffer ({0:X})", (ulong)&buffer);
         }

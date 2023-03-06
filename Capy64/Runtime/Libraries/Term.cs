@@ -14,6 +14,7 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Core;
 using Capy64.Eventing.Events;
 using KeraLua;
 using Microsoft.Xna.Framework;
@@ -172,6 +173,13 @@ internal class Term : IComponent
         var l = Lua.FromIntPtr(state);
         l.NewLib(TermLib);
         return 1;
+    }
+
+    public static void GetColor(uint c, out byte r, out byte g, out byte b)
+    {
+        if (_game.EngineMode == EngineMode.Classic)
+            c = ColorPalette.GetColor(c);
+        UnpackRGB(c, out r, out g, out b);
     }
 
     public static void UpdateSize(bool resize = true)
@@ -388,6 +396,12 @@ internal class Term : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
+        if(_game.EngineMode == EngineMode.Classic)
+        {
+            L.PushBoolean(false);
+            return 1;
+        }
+
         var w = (int)L.CheckNumber(1);
         var h = (int)L.CheckNumber(2);
 
@@ -402,7 +416,8 @@ internal class Term : IComponent
 
         SetSize(w, h);
 
-        return 0;
+        L.PushBoolean(true);
+        return 1;
     }
 
     private static int L_GetForegroundColor(IntPtr state)
@@ -427,12 +442,14 @@ internal class Term : IComponent
             r = (byte)L.CheckNumber(1);
             g = (byte)L.CheckNumber(2);
             b = (byte)L.CheckNumber(3);
+            UnpackRGB(ColorPalette.GetColor(r, g, b), out r, out g, out b);
+
         }
         // packed RGB value
         else if (argsn == 1)
         {
             var c = (uint)L.CheckInteger(1);
-            UnpackRGB(c, out r, out g, out b);
+            GetColor(c, out r, out g, out b);
         }
         else
         {
@@ -467,12 +484,13 @@ internal class Term : IComponent
             r = (byte)L.CheckNumber(1);
             g = (byte)L.CheckNumber(2);
             b = (byte)L.CheckNumber(3);
+            UnpackRGB(ColorPalette.GetColor(r, g, b), out r, out g, out b);
         }
         // packed RGB value
         else if (argsn == 1)
         {
             var c = (uint)L.CheckInteger(1);
-            UnpackRGB(c, out r, out g, out b);
+            GetColor(c, out r, out g, out b);
         }
         else
         {

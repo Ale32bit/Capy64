@@ -35,7 +35,6 @@ term.setBackground(bg)
 term.clear()
 
 term.setSize(53, 20)
-gpu.setScale(2)
 
 local w, h = term.getSize()
 
@@ -63,13 +62,14 @@ local function drawVendorImage()
 
 	local w, h = gpu.getSize()
 	local ok, err = pcall(function()
-		local buffer<close>, width, height = gpu.loadImage("/boot/vendor.bmp")
+		local task<close> = gpu.loadImageAsync("/boot/vendor.bmp")
+		local buffer<close> = task:await()
 
 		local x, y = 
-			math.ceil((w / 2) - (width / 2)),
-			math.ceil((h / 2) - (height / 2))
+			math.ceil((w / 2) - (buffer.width / 2)),
+			math.ceil((h / 2) - (buffer.height / 2))
 
-		gpu.drawBuffer(buffer, x, y, width, height)
+		gpu.drawBuffer(buffer, x, y)
 	end)
 
 	if not ok then
@@ -157,11 +157,6 @@ local function installOS()
 	promptKey()
 end
 
-local function toggleConsole()
-	local status = getConsole()
-	setConsole(not status)
-end
-
 term.setBlink(false)
 
 local function setupScreen()
@@ -169,10 +164,6 @@ local function setupScreen()
 		{
 			"Open data folder",
 			openDataFolder,
-		},
-		{
-			"Toggle console window",
-			toggleConsole,
 		},
 		{
 			"Install default OS",

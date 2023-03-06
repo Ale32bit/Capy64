@@ -1,4 +1,8 @@
 {
+  "EngineMode": 0,
+  "Window": {
+    "Scale": 2
+  },
   "HTTP": {
     "Enable": true,
     "Blacklist": [],

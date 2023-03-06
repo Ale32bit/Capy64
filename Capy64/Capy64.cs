@@ -20,6 +20,7 @@ using Capy64.Extensions;
 using Capy64.Integrations;
 using Capy64.PluginManager;
 using Capy64.Runtime;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -33,9 +34,29 @@ using static Capy64.Utils;
 
 namespace Capy64;
 
+public enum EngineMode
+{
+    Classic,
+    Free
+}
+
+
 public class Capy64 : Game, IGame
 {
-    public const string Version = "0.0.9-alpha";
+    public const string Version = "0.0.10-alpha";
+
+    public static class DefaultParameters
+    {
+        public const int Width = 318;
+        public const int Height = 240;
+        public const float Scale = 2f;
+        public const float BorderMultiplier = 1.5f;
+        public readonly static EngineMode EngineMode = EngineMode.Classic;
+
+        public const int ClassicTickrate = 20;
+        public const int FreeTickrate = 60;
+    }
+
 
     public static string AppDataPath
     {
@@ -56,11 +77,12 @@ public class Capy64 : Game, IGame
 
     public static Capy64 Instance { get; private set; }
     public Capy64 Game => this;
+    public EngineMode EngineMode { get; private set; } = EngineMode.Classic;
     public IList<IComponent> NativePlugins { get; private set; }
     public IList<IComponent> Plugins { get; private set; }
-    public int Width { get; set; } = 320;
-    public int Height { get; set; } = 240;
-    public float Scale { get; set; } = 2f;
+    public int Width { get; set; } = DefaultParameters.Width;
+    public int Height { get; set; } = DefaultParameters.Height;
+    public float Scale { get; set; } = DefaultParameters.Scale;
     public Drawing Drawing { get; private set; }
     public Audio Audio { get; private set; }
     public LuaState LuaRuntime { get; set; }
@@ -83,6 +105,7 @@ public class Capy64 : Game, IGame
     private readonly GraphicsDeviceManager _graphics;
     private IServiceProvider _serviceProvider;
     private ulong _totalTicks = 0;
+    private ulong tickrate = 0;
 
     public Capy64()
     {
@@ -101,6 +124,27 @@ public class Capy64 : Game, IGame
     public void ConfigureServices(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
+    }
+
+    public void SetEngineMode(EngineMode mode)
+    {
+        switch (mode)
+        {
+            case EngineMode.Classic:
+                tickrate = DefaultParameters.ClassicTickrate;
+                Width = DefaultParameters.Width;
+                Height = DefaultParameters.Height;
+                Window.AllowUserResizing = false;
+                ResetBorder();
+
+                break;
+
+            case EngineMode.Free:
+                tickrate = DefaultParameters.FreeTickrate;
+                Window.AllowUserResizing = true;
+                break;
+        }
+        UpdateSize(true);
     }
 
     public void UpdateSize(bool resize = true)
@@ -157,7 +201,7 @@ public class Capy64 : Game, IGame
 
     private void ResetBorder()
     {
-        var size = (int)(Scale * 1.5);
+        var size = (int)(Scale * DefaultParameters.BorderMultiplier);
         Borders = new Borders
         {
             Top = size,
@@ -169,7 +213,11 @@ public class Capy64 : Game, IGame
 
     protected override void Initialize()
     {
+        var configuration = _serviceProvider.GetService<IConfiguration>();
+
         Window.Title = "Capy64 " + Version;
+
+        Scale = configuration.GetValue("Window:Scale", DefaultParameters.Scale);
 
         ResetBorder();
         UpdateSize();
@@ -178,6 +226,8 @@ public class Capy64 : Game, IGame
         Window.ClientSizeChanged += OnWindowSizeChange;
 
         InactiveSleepTime = new TimeSpan(0);
+
+        SetEngineMode(configuration.GetValue<EngineMode>("EngineMode", DefaultParameters.EngineMode));
 
         Audio = new Audio();
 
@@ -222,7 +272,8 @@ public class Capy64 : Game, IGame
         EventEmitter.RaiseTick(new()
         {
             GameTime = gameTime,
-            TotalTicks = _totalTicks
+            TotalTicks = _totalTicks,
+            IsActiveTick = _totalTicks % (60 / tickrate) == 0,
         });
 
         Drawing.End();

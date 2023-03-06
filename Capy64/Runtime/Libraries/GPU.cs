@@ -14,13 +14,16 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Core;
 using Capy64.Runtime.Objects;
 using KeraLua;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -43,16 +46,6 @@ public class GPU : IComponent
         {
             name = "setSize",
             function = L_SetSize,
-        },
-        new()
-        {
-            name = "getScale",
-            function = L_GetScale,
-        },
-        new()
-        {
-            name = "setScale",
-            function = L_SetScale,
         },
         new()
         {
@@ -131,8 +124,8 @@ public class GPU : IComponent
         },
         new()
         {
-            name = "loadImage",
-            function = L_LoadImage,
+            name = "loadImageAsync",
+            function = L_LoadImageAsync,
         },
         new()
         {
@@ -153,6 +146,14 @@ public class GPU : IComponent
         l.NewLib(gpuLib);
         return 1;
     }
+
+    public static void GetColor(uint c, out byte r, out byte g, out byte b)
+    {
+        if (_game.EngineMode == EngineMode.Classic)
+            c = ColorPalette.GetColor(c);
+        Utils.UnpackRGB(c, out r, out g, out b);
+    }
+
     private static int L_GetSize(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
@@ -167,6 +168,12 @@ public class GPU : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
+        if (_game.EngineMode == EngineMode.Classic)
+        {
+            L.PushBoolean(false);
+            return 1;
+        }
+
         var w = L.CheckInteger(1);
         var h = L.CheckInteger(2);
 
@@ -175,29 +182,9 @@ public class GPU : IComponent
 
         _game.UpdateSize();
 
-        return 0;
-    }
-
-    private static int L_GetScale(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        L.PushNumber(_game.Scale);
+        L.PushBoolean(true);
 
         return 1;
-    }
-
-    private static int L_SetScale(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        var s = L.CheckNumber(1);
-
-        _game.Scale = (float)s;
-
-        _game.UpdateSize();
-
-        return 0;
     }
 
     private static int L_GetPixel(IntPtr state)
@@ -222,7 +209,7 @@ public class GPU : IComponent
         var y = (int)L.CheckNumber(2) - 1;
         var c = L.CheckInteger(3);
 
-        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        GetColor((uint)c, out var r, out var g, out var b);
         _game.Drawing.Plot(new Point(x, y), new Color(r, g, b));
 
         return 0;
@@ -257,7 +244,7 @@ public class GPU : IComponent
             pts.Add(new Point(x, y));
         }
 
-        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        GetColor((uint)c, out var r, out var g, out var b);
         _game.Drawing.Plot(pts, new(r, g, b));
 
         return 0;
@@ -272,7 +259,7 @@ public class GPU : IComponent
         var c = L.CheckInteger(3);
         var s = (int)L.OptNumber(4, 1);
 
-        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        GetColor((uint)c, out var r, out var g, out var b);
         _game.Drawing.DrawPoint(new(x, y), new Color(r, g, b), s);
 
         return 0;
@@ -289,7 +276,7 @@ public class GPU : IComponent
         var t = (int)L.OptNumber(5, 1);
         var s = (int)L.OptInteger(6, -1);
 
-        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        GetColor((uint)c, out var r, out var g, out var b);
         _game.Drawing.DrawCircle(new(x, y), rad, new Color(r, g, b), t, s);
 
         return 0;
@@ -306,7 +293,7 @@ public class GPU : IComponent
         var c = L.CheckInteger(5);
         var s = (int)L.OptNumber(6, 1);
 
-        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        GetColor((uint)c, out var r, out var g, out var b);
         _game.Drawing.DrawLine(new(x1, y1), new(x2, y2), new Color(r, g, b), s);
 
         return 0;
@@ -323,7 +310,7 @@ public class GPU : IComponent
         var c = L.CheckInteger(5);
         var s = (int)L.OptNumber(6, 1);
 
-        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        GetColor((uint)c, out var r, out var g, out var b);
         _game.Drawing.DrawRectangle(new(x, y), new(w, h), new Color(r, g, b), s);
 
         return 0;
@@ -359,7 +346,7 @@ public class GPU : IComponent
             pts.Add(new(xp, yp));
         }
 
-        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        GetColor((uint)c, out var r, out var g, out var b);
         _game.Drawing.DrawPolygon(new(x, y), pts.ToArray(), new(r, g, b), s);
 
         return 0;
@@ -376,7 +363,7 @@ public class GPU : IComponent
         var c = L.CheckInteger(5);
         var s = (int)L.OptNumber(6, 1);
 
-        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        GetColor((uint)c, out var r, out var g, out var b);
         _game.Drawing.DrawEllipse(new(x, y), new(rx, ry), new Color(r, g, b), s);
 
         return 0;
@@ -391,7 +378,7 @@ public class GPU : IComponent
         var c = L.CheckInteger(3);
         var t = L.CheckString(4);
 
-        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        GetColor((uint)c, out var r, out var g, out var b);
         try
         {
             _game.Drawing.DrawString(new Vector2(x, y), t, new Color(r, g, b));
@@ -426,8 +413,7 @@ public class GPU : IComponent
         _game.Drawing.Canvas.GetData(buffer);
 
         ObjectManager.PushObject(L, buffer);
-        //L.PushObject(buffer);
-        L.SetMetaTable(GPUBuffer.ObjectType);
+        L.SetMetaTable(GPUBufferMeta.ObjectType);
 
         return 1;
     }
@@ -436,9 +422,9 @@ public class GPU : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = GPUBuffer.CheckBuffer(L, false);
+        var buffer = GPUBufferMeta.CheckBuffer(L, false);
 
-        _game.Drawing.Canvas.SetData(buffer);
+        _game.Drawing.Canvas.SetData(buffer.Buffer);
 
         return 0;
     }
@@ -453,7 +439,7 @@ public class GPU : IComponent
         var buffer = new uint[width * height];
 
         ObjectManager.PushObject(L, buffer);
-        L.SetMetaTable(GPUBuffer.ObjectType);
+        L.SetMetaTable(GPUBufferMeta.ObjectType);
 
         return 1;
     }
@@ -462,30 +448,23 @@ public class GPU : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var buffer = GPUBuffer.CheckBuffer(L, false);
+        var buffer = GPUBufferMeta.CheckBuffer(L, false);
 
         var x = (int)L.CheckInteger(2) - 1;
         var y = (int)L.CheckInteger(3) - 1;
-        var w = (int)L.CheckInteger(4);
-        var h = (int)L.CheckInteger(5);
 
-        if (w * h != buffer.Length)
-        {
-            L.Error("width and height do not match buffer size");
-        }
-
-        _game.Drawing.DrawBuffer(buffer, new()
+        _game.Drawing.DrawBuffer(buffer.Buffer, new()
         {
             X = x,
             Y = y,
-            Width = w,
-            Height = h,
+            Width = buffer.Width,
+            Height = buffer.Height,
         });
 
         return 0;
     }
 
-    private static int L_LoadImage(IntPtr state)
+    private static int L_LoadImageAsync(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
@@ -499,6 +478,8 @@ public class GPU : IComponent
             return 0;
         }
 
+        var task = TaskMeta.Push(L, GPUBufferMeta.ObjectType);
+
         Texture2D texture;
         try
         {
@@ -506,21 +487,52 @@ public class GPU : IComponent
         }
         catch (Exception e)
         {
-            L.Error(e.Message);
-            return 0;
+            task.Reject(e.Message);
+            return 1;
         }
 
         var data = new uint[texture.Width * texture.Height];
         texture.GetData(data);
 
-        ObjectManager.PushObject(L, data);
-        L.SetMetaTable(GPUBuffer.ObjectType);
-        L.PushInteger(texture.Width);
-        L.PushInteger(texture.Height);
+        Task.Run(() =>
+        {
+            if (_game.EngineMode == EngineMode.Classic)
+            {
+                for (int i = 0; i < data.Length; i++)
+                {
+                    var value = data[i];
 
-        texture.Dispose();
+                    // ABGR to RGB
+                    value =
+                        ((value & 0x00_00_00_FFU) << 16) | // move R
+                        (value & 0x00_00_FF_00U) |       // move G
+                        ((value & 0x00_FF_00_00U) >> 16);  // move B
 
-        return 3;
+                    value = ColorPalette.GetColor(value);
+
+                    // RGB to ABGR
+                    value =
+                        ((value & 0x00_FF_00_00U) >> 16) | // move R
+                        (value & 0x00_00_FF_00U) |       // move G
+                        ((value & 0x00_00_00_FFU) << 16) | // move B
+                        0xFF_00_00_00U;
+
+                    data[i] = value;
+                }
+            }
+
+            var buffer = new GPUBufferMeta.GPUBuffer
+            {
+                Buffer = data,
+                Height = texture.Height,
+                Width = texture.Width,
+            };
+            task.Fulfill(buffer);
+
+            texture.Dispose();
+        });
+
+        return 1;
     }
 
     private static int L_Clear(IntPtr state)
@@ -529,7 +541,7 @@ public class GPU : IComponent
 
         var c = L.OptInteger(1, 0x000000);
 
-        Utils.UnpackRGB((uint)c, out var r, out var g, out var b);
+        GetColor((uint)c, out var r, out var g, out var b);
         _game.Drawing.Clear(new Color(r, g, b));
 
         return 0;
