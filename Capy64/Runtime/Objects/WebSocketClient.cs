@@ -171,11 +171,11 @@ public class WebSocketClient : IComponent
         var buffer = ToObject(L);
         if (buffer is not null)
         {
-            L.PushString("GPUBuffer ({0:X})", (ulong)&buffer);
+            L.PushString("WebSocket ({0:X})", (ulong)&buffer);
         }
         else
         {
-            L.PushString("GPUBuffer (closed)");
+            L.PushString("WebSocket (closed)");
         }
         return 1;
     }
