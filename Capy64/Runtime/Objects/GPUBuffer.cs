@@ -14,6 +14,7 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Core;
 using KeraLua;
 using System;
 
@@ -59,9 +60,22 @@ public class GPUBuffer : IComponent
         new(),
     };
 
+    private static IGame _game;
+    public GPUBuffer(IGame game) { 
+        _game = game;
+    }
+
     public void LuaInit(Lua L)
     {
         CreateMeta(L);
+    }
+
+    public static uint GetColor(uint color)
+    {
+        if(_game.EngineMode == EngineMode.Classic)
+            return ColorPalette.GetColor(color);
+
+        return color;
     }
 
     public static void CreateMeta(Lua L)
@@ -142,6 +156,7 @@ public class GPUBuffer : IComponent
         }
 
         var value = (uint)L.ToInteger(3);
+        value = GetColor(value);
 
         // RGB to ABGR
         value =
