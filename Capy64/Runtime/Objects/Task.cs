@@ -57,25 +57,6 @@ public class TaskMeta : IComponent
         public string Error { get; private set; }
         public int DataIndex { get; private set; } = 0;
 
-        public void Fulfill<T>(T obj)
-        {
-            /*Status = TaskStatus.Succeeded;
-
-            Result = obj;
-
-            _game.LuaRuntime.QueueEvent("task_finish", LK =>
-            {
-                LK.PushString(Guid.ToString());
-
-                ObjectManager.PushObject(LK, obj);
-                LK.SetMetaTable(Name);
-
-                LK.PushNil();
-
-                return 3;
-            });*/
-        }
-
         public void Fulfill(Action<Lua> lk)
         {
             Status = TaskStatus.Succeeded;
