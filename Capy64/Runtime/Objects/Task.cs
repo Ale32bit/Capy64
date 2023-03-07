@@ -54,7 +54,6 @@ public class TaskMeta : IComponent
         public Guid Guid { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = "object";
         public TaskStatus Status { get; set; } = TaskStatus.Running;
-        public object Result { get; private set; }
         public string Error { get; private set; }
         public int DataIndex { get; private set; } = 0;
 
@@ -233,9 +232,28 @@ public class TaskMeta : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        WaitForTask(L);
+        var task = CheckTask(L, false);
 
-        return 0;
+        if (task.Status == TaskStatus.Succeeded)
+        {
+            // Push copy of value on top and move it to L
+            tasks.PushCopy(task.DataIndex);
+            tasks.XMove(L, 1);
+
+            L.PushNil();
+        }
+        else if (task.Status == TaskStatus.Failed)
+        {
+            L.PushNil();
+            L.PushString(task.Error);
+        }
+        else if (task.Status == TaskStatus.Running)
+        {
+            WaitForTask(L);
+            return 0;
+        }
+
+        return 2;
     }
 
     private static int LK_Await(IntPtr state, int status, nint ctx)
