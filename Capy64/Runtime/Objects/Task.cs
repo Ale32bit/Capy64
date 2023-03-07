@@ -77,13 +77,20 @@ public class TaskMeta : IComponent
         {
             Status = TaskStatus.Succeeded;
 
-            Result = lk;
-
             _game.LuaRuntime.QueueEvent("task_finish", LK =>
             {
                 LK.PushString(Guid.ToString());
 
-                lk(LK);
+                // Create Lua thread to store Lua native result data
+                Result = LK.NewThread();
+                var thread = (Lua)Result;
+                LK.Pop(1);
+
+                lk(thread);
+
+                // Push copy of value on top and move it to LK
+                thread.PushCopy(-1);
+                thread.XMove(LK, 1);
 
                 LK.PushNil();
 
@@ -139,7 +146,7 @@ public class TaskMeta : IComponent
         new()
         {
             name = "getError",
-            function = L_GetResult,
+            function = L_GetError,
         },
         new(),
     };
@@ -282,10 +289,11 @@ public class TaskMeta : IComponent
 
         if (task.Status == TaskStatus.Succeeded)
         {
-            if (task.Result is Action<Lua> lk)
+            if (task.Result is Lua thread)
             {
-                // todo: make use of first-generated data
-                lk(L);
+                // Push copy of value on top and move it to LK
+                thread.PushCopy(-1);
+                thread.XMove(L, 1);
             }
             else
             {

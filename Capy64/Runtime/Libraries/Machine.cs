@@ -96,10 +96,12 @@ public class Machine : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var task = new Objects.TaskMeta.RuntimeTask("test");
-
-        ObjectManager.PushObject(L, task);
-        L.SetMetaTable(Objects.TaskMeta.ObjectType);
+        var task = Objects.TaskMeta.Push(L, "test");
+        task.Fulfill(lk => {
+            lk.NewTable();
+            lk.PushString("value");
+            lk.SetField(-2, "key");
+        });
 
         return 1;
     }
