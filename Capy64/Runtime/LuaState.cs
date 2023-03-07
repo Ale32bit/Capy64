@@ -26,7 +26,7 @@ namespace Capy64.Runtime;
 public class LuaState : IDisposable
 {
     public Lua Thread;
-    private readonly Lua _parent;
+    public readonly Lua Parent;
 
     private readonly ConcurrentQueue<LuaEvent> _queue = new();
 
@@ -36,25 +36,21 @@ public class LuaState : IDisposable
 
     public LuaState()
     {
-        _parent = new Lua(false)
+        Parent = new Lua(false)
         {
             Encoding = Encoding.UTF8,
         };
 
-        Sandbox.OpenLibraries(_parent);
-        Sandbox.Patch(_parent);
+        Sandbox.OpenLibraries(Parent);
+        Sandbox.Patch(Parent);
 
-        Thread = _parent.NewThread();
+        Thread = Parent.NewThread();
 
         Thread.SetHook(LH_YieldTimeout, LuaHookMask.Count, 7000);
         yieldTimeoutTimer.Elapsed += (sender, ev) =>
         {
             yieldTimedOut = true;
         };
-
-        InitPlugins();
-
-        Thread.SetTop(0);
     }
 
     private static void LH_YieldTimeout(IntPtr state, IntPtr ar)
@@ -66,6 +62,13 @@ public class LuaState : IDisposable
             L.Error("no yield timeout");
             Console.WriteLine("tick");
         }
+    }
+
+    public void Init()
+    {
+        InitPlugins();
+
+        Thread.SetTop(0);
     }
 
     private void InitPlugins()
@@ -192,6 +195,6 @@ public class LuaState : IDisposable
         GC.SuppressFinalize(this);
         _queue.Clear();
         Thread.Close();
-        _parent.Close();
+        Parent.Close();
     }
 }

@@ -25,6 +25,7 @@ using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Libraries;
 #nullable enable
@@ -198,19 +199,15 @@ public class HTTP : IComponent
 
         var requestId = _requestId++;
 
+        var luaTask = TaskMeta.Push(L, "HTTPRequest");
+
         var reqTask = _httpClient.SendAsync(request);
         reqTask.ContinueWith(async (task) =>
         {
 
             if (task.IsFaulted || task.IsCanceled)
             {
-                _game.LuaRuntime.QueueEvent("http_failure", LK =>
-                {
-                    LK.PushInteger(requestId);
-                    LK.PushString(task.Exception?.Message);
-
-                    return 2;
-                });
+                luaTask.Reject(task.Exception?.Message);
                 return;
             }
 
@@ -218,22 +215,14 @@ public class HTTP : IComponent
 
             var stream = await response.Content.ReadAsStreamAsync();
 
-            _game.LuaRuntime.QueueEvent("http_response", LK =>
+            luaTask.Fulfill(LK =>
             {
-                // arg 1, request id
-                LK.PushInteger(requestId);
-
-                // arg 2, response data
-                ObjectManager.PushObject(L, stream);
-                //L.PushObject(stream);
-                L.SetMetaTable(FileHandle.ObjectType);
-                /*if ((bool)options["binary"])
-                    BinaryReadHandle.Push(LK, new(stream));
-                else
-                    ReadHandle.Push(LK, new(stream));*/
-
-                // arg 3, response info
                 LK.NewTable();
+
+                LK.PushString("content");
+                ObjectManager.PushObject(LK, stream);
+                LK.SetMetaTable(FileHandle.ObjectType);
+                LK.SetTable(-3);
 
                 LK.PushString("success");
                 LK.PushBoolean(response.IsSuccessStatusCode);
@@ -258,14 +247,8 @@ public class HTTP : IComponent
                 }
 
                 LK.SetTable(-3);
-
-                return 3;
-
             });
-
         });
-
-        L.PushInteger(requestId);
 
         return 1;
     }

@@ -44,19 +44,23 @@ public class TaskMeta : IComponent
     }
     public class RuntimeTask
     {
-        public RuntimeTask(string typeName)
+        public RuntimeTask(string name)
         {
-            TypeName = typeName;
+            Name = name;
         }
+
+        public RuntimeTask() { }
+
         public Guid Guid { get; set; } = Guid.NewGuid();
-        public string TypeName { get; set; }
+        public string Name { get; set; } = "object";
         public TaskStatus Status { get; set; } = TaskStatus.Running;
         public object Result { get; private set; }
         public string Error { get; private set; }
+        public int DataIndex { get; private set; } = 0;
 
         public void Fulfill<T>(T obj)
         {
-            Status = TaskStatus.Succeeded;
+            /*Status = TaskStatus.Succeeded;
 
             Result = obj;
 
@@ -65,32 +69,30 @@ public class TaskMeta : IComponent
                 LK.PushString(Guid.ToString());
 
                 ObjectManager.PushObject(LK, obj);
-                LK.SetMetaTable(TypeName);
+                LK.SetMetaTable(Name);
 
                 LK.PushNil();
 
                 return 3;
-            });
+            });*/
         }
 
         public void Fulfill(Action<Lua> lk)
         {
             Status = TaskStatus.Succeeded;
 
+            var container = tasks.NewThread();
+            lk(container);
+            container.XMove(tasks, 1);
+            tasks.Replace(-2);
+            DataIndex = tasks.GetTop();
+
             _game.LuaRuntime.QueueEvent("task_finish", LK =>
             {
                 LK.PushString(Guid.ToString());
 
-                // Create Lua thread to store Lua native result data
-                Result = LK.NewThread();
-                var thread = (Lua)Result;
-                LK.Pop(1);
-
-                lk(thread);
-
-                // Push copy of value on top and move it to LK
-                thread.PushCopy(-1);
-                thread.XMove(LK, 1);
+                tasks.PushCopy(DataIndex);
+                tasks.XMove(LK, 1);
 
                 LK.PushNil();
 
@@ -176,8 +178,11 @@ public class TaskMeta : IComponent
         new(),
     };
 
+    private static Lua tasks;
     public void LuaInit(Lua L)
     {
+        tasks = _game.LuaRuntime.Parent.NewThread();
+
         CreateMeta(L);
     }
 
@@ -211,7 +216,7 @@ public class TaskMeta : IComponent
         var obj = ObjectManager.CheckObject<RuntimeTask>(L, 1, ObjectType, gc);
         if (obj is null)
         {
-            L.Error("attempt to use a closed file");
+            L.Error("attempt to use a closed task");
             return null;
         }
         return obj;
@@ -265,7 +270,7 @@ public class TaskMeta : IComponent
 
         var task = CheckTask(L, false);
 
-        L.PushString(task.TypeName);
+        L.PushString(task.Name);
 
         return 1;
     }
@@ -289,17 +294,9 @@ public class TaskMeta : IComponent
 
         if (task.Status == TaskStatus.Succeeded)
         {
-            if (task.Result is Lua thread)
-            {
-                // Push copy of value on top and move it to LK
-                thread.PushCopy(-1);
-                thread.XMove(L, 1);
-            }
-            else
-            {
-                ObjectManager.PushObject(L, task.Result);
-                L.SetMetaTable(task.TypeName);
-            }
+            // Push copy of value on top and move it to L
+            tasks.PushCopy(task.DataIndex);
+            tasks.XMove(L, 1);
         }
         else
         {
@@ -329,6 +326,21 @@ public class TaskMeta : IComponent
 
     private static int LM_GC(IntPtr state)
     {
+        var L = Lua.FromIntPtr(state);
+
+        var task = ToTask(L, true);
+        if (task is null)
+            return 0;
+
+        // todo: add cleanup to remove nil values at top of stack
+
+        if (tasks.GetTop() == task.DataIndex)
+            tasks.SetTop(task.DataIndex - 1);
+        else
+        {
+            tasks.PushNil();
+            tasks.Replace(task.DataIndex);
+        }
         return 0;
     }
 
@@ -336,7 +348,7 @@ public class TaskMeta : IComponent
     {
         var L = Lua.FromIntPtr(state);
         var task = ToTask(L);
-        L.PushString("Task<{0}>: {1} ({2})", task?.TypeName, task?.Guid, task?.Status);
+        L.PushString("Task<{0}>: {1} ({2})", task?.Name, task?.Guid, task?.Status);
 
         return 1;
     }

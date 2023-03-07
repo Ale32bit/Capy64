@@ -100,6 +100,7 @@ internal class RuntimeManager : IComponent
 
         luaState = new LuaState();
         _game.LuaRuntime = luaState;
+        luaState.Init();
 
         emitter = new(_game.EventEmitter, luaState);
 
@@ -136,6 +137,7 @@ internal class RuntimeManager : IComponent
 
         luaState = new LuaState();
         _game.LuaRuntime = luaState;
+        luaState.Init();
 
         emitter = new(_game.EventEmitter, luaState);
 

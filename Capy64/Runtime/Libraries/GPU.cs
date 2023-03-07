@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -527,7 +528,12 @@ public class GPU : IComponent
                 Height = texture.Height,
                 Width = texture.Width,
             };
-            task.Fulfill(buffer);
+
+            task.Fulfill(lk =>
+            {
+                ObjectManager.PushObject(lk, buffer);
+                lk.SetMetaTable(GPUBufferMeta.ObjectType);
+            });
 
             texture.Dispose();
         });
