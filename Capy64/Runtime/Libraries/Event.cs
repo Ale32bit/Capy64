@@ -21,6 +21,11 @@ namespace Capy64.Runtime.Libraries;
 
 public class Event : IComponent
 {
+    private const int MaxPushQueue = 64;
+    private static int PushQueue = 0;
+
+    private static Lua UserQueue;
+
     private static IGame _game;
     public Event(IGame game)
     {
@@ -49,6 +54,10 @@ public class Event : IComponent
 
     public void LuaInit(Lua L)
     {
+        PushQueue = 0;
+
+        UserQueue = _game.LuaRuntime.Parent.NewThread();
+
         L.RequireF("event", OpenLib, false);
     }
 
@@ -109,15 +118,22 @@ public class Event : IComponent
 
         var eventName = L.CheckString(1);
 
+        if (PushQueue >= MaxPushQueue)
+            L.Error("maximum event queue exceeded");
+
+        PushQueue++;
         var nargs = L.GetTop();
-        var parsState = L.NewThread();
-        L.Pop(1);
+        var parsState = UserQueue.NewThread();
         L.XMove(parsState, nargs - 1);
 
         _game.LuaRuntime.QueueEvent(eventName, LK =>
         {
+            PushQueue--;
+            var parsState = UserQueue.ToThread(-1);
             var nargs = parsState.GetTop();
             parsState.XMove(LK, nargs);
+            parsState.Close();
+            UserQueue.Pop(1);
 
             return nargs;
         });
