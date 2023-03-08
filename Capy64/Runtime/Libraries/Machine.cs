@@ -72,11 +72,6 @@ public class Machine : IComponent
             name = "getClipboard",
             function = L_GetClipboard,
         },
-        new()
-        {
-            name = "task",
-            function = L_Task,
-        },
         new(),
     };
 
@@ -89,20 +84,6 @@ public class Machine : IComponent
     {
         var L = Lua.FromIntPtr(state);
         L.NewLib(MachineLib);
-        return 1;
-    }
-
-    private static int L_Task(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        var task = Objects.TaskMeta.Push(L, "test");
-        task.Fulfill(lk => {
-            lk.NewTable();
-            lk.PushString("value");
-            lk.SetField(-2, "key");
-        });
-
         return 1;
     }
 

@@ -178,6 +178,11 @@ public class TaskMeta : IComponent
 
     public static RuntimeTask Push(Lua L, string typeName)
     {
+        if(!tasks.CheckStack(1))
+        {
+            L.Error("tasks limit exceeded");
+        }
+
         var task = new RuntimeTask(typeName);
 
         ObjectManager.PushObject(L, task);
