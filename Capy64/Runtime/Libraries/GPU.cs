@@ -410,10 +410,18 @@ public class GPU : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
+
         var buffer = new uint[_game.Width * _game.Height];
         _game.Drawing.Canvas.GetData(buffer);
 
-        ObjectManager.PushObject(L, buffer);
+        var gpuBuffer = new GPUBufferMeta.GPUBuffer
+        {
+            Buffer = buffer,
+            Width = _game.Width,
+            Height = _game.Height,
+        };
+
+        ObjectManager.PushObject(L, gpuBuffer);
         L.SetMetaTable(GPUBufferMeta.ObjectType);
 
         return 1;
@@ -434,12 +442,19 @@ public class GPU : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var width = L.OptInteger(1, _game.Width);
-        var height = L.OptInteger(2, _game.Height);
+        var width = (int)L.OptInteger(1, _game.Width);
+        var height = (int)L.OptInteger(2, _game.Height);
 
         var buffer = new uint[width * height];
 
-        ObjectManager.PushObject(L, buffer);
+        var gpuBuffer = new GPUBufferMeta.GPUBuffer
+        {
+            Buffer = buffer,
+            Width = width,
+            Height = height,
+        };
+
+        ObjectManager.PushObject(L, gpuBuffer);
         L.SetMetaTable(GPUBufferMeta.ObjectType);
 
         return 1;
