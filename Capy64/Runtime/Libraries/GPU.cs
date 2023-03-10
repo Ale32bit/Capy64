@@ -150,8 +150,8 @@ public class GPU : IComponent
 
     public static void GetColor(uint c, out byte r, out byte g, out byte b)
     {
-        if (_game.EngineMode == EngineMode.Classic)
-            c = ColorPalette.GetColor(c);
+        /*if (_game.EngineMode == EngineMode.Classic)
+            c = ColorPalette.GetColor(c);*/
         Utils.UnpackRGB(c, out r, out g, out b);
     }
 
@@ -512,7 +512,7 @@ public class GPU : IComponent
 
         Task.Run(() =>
         {
-            if (_game.EngineMode == EngineMode.Classic)
+            /*if (_game.EngineMode == EngineMode.Classic)
             {
                 for (int i = 0; i < data.Length; i++)
                 {
@@ -535,7 +535,7 @@ public class GPU : IComponent
 
                     data[i] = value;
                 }
-            }
+            }*/
 
             var buffer = new GPUBufferMeta.GPUBuffer
             {

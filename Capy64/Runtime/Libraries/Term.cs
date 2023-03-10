@@ -177,8 +177,8 @@ internal class Term : IComponent
 
     public static void GetColor(uint c, out byte r, out byte g, out byte b)
     {
-        if (_game.EngineMode == EngineMode.Classic)
-            c = ColorPalette.GetColor(c);
+        /*if (_game.EngineMode == EngineMode.Classic)
+            c = ColorPalette.GetColor(c);*/
         UnpackRGB(c, out r, out g, out b);
     }
 
@@ -442,7 +442,7 @@ internal class Term : IComponent
             r = (byte)L.CheckNumber(1);
             g = (byte)L.CheckNumber(2);
             b = (byte)L.CheckNumber(3);
-            UnpackRGB(ColorPalette.GetColor(r, g, b), out r, out g, out b);
+            //UnpackRGB(ColorPalette.GetColor(r, g, b), out r, out g, out b);
 
         }
         // packed RGB value
@@ -484,7 +484,7 @@ internal class Term : IComponent
             r = (byte)L.CheckNumber(1);
             g = (byte)L.CheckNumber(2);
             b = (byte)L.CheckNumber(3);
-            UnpackRGB(ColorPalette.GetColor(r, g, b), out r, out g, out b);
+            //UnpackRGB(ColorPalette.GetColor(r, g, b), out r, out g, out b);
         }
         // packed RGB value
         else if (argsn == 1)

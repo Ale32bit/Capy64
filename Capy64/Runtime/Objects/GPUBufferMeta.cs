@@ -80,8 +80,8 @@ public class GPUBufferMeta : IComponent
 
     public static uint GetColor(uint color)
     {
-        if (_game.EngineMode == EngineMode.Classic)
-            return ColorPalette.GetColor(color);
+        /*if (_game.EngineMode == EngineMode.Classic)
+            return ColorPalette.GetColor(color);*/
 
         return color;
     }
