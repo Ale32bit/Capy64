@@ -14,6 +14,7 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Runtime.Objects;
 using KeraLua;
 using System;
 using System.Collections.Concurrent;
@@ -28,6 +29,11 @@ class Timer : IComponent
         {
             name = "start",
             function = L_StartTimer,
+        },
+        new()
+        {
+            name = "delay",
+            function = L_Delay,
         },
         new()
         {
@@ -88,17 +94,46 @@ class Timer : IComponent
 
         timer.Elapsed += (o, e) =>
         {
-            timers.TryRemove(timerId, out _);
-
-            _game.LuaRuntime.QueueEvent("timer", LK =>
+            _game.LuaRuntime.QueueEvent("timer", lk =>
             {
-                LK.PushInteger(timerId);
+                lk.PushInteger(timerId);
 
                 return 1;
             });
+            timers.TryRemove(timerId, out _);
         };
 
         L.PushInteger(timerId);
+        return 1;
+    }
+
+    private static int L_Delay(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var delay = L.CheckNumber(1);
+        L.ArgumentCheck(delay > 0, 1, "delay must be greater than 0");
+
+        var task = TaskMeta.Push(L, "timer");
+
+        var timerId = _timerId++;
+        var timer = new System.Timers.Timer
+        {
+            AutoReset = false,
+            Enabled = true,
+            Interval = delay,
+        };
+
+        timers[timerId] = timer;
+
+        timer.Elapsed += (o, e) =>
+        {
+            task.Fulfill(lk => {
+                lk.PushInteger(timerId);
+            });
+            timers.TryRemove(timerId, out _);
+        };
+
         return 1;
     }
 
