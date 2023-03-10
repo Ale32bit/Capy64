@@ -28,7 +28,7 @@ public class PanicScreen
         Term.ForegroundColor = ForegroundColor;
         Term.BackgroundColor = BackgroundColor;
         Term.SetCursorBlink(false);
-        Term.SetSize(53, 20);
+        Term.SetSize(57, 23);
         Term.Clear();
 
         var title = " Capy64 ";

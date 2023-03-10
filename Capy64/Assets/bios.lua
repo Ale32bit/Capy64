@@ -96,19 +96,15 @@ local function printError( text )
 end
 
 local function hget(url, headers)
-	local requestId = http.requestAsync(url, nil, headers, {binary = true})
+	local response, err = http.requestAsync(url, nul, headers, {binary = true}):await()
 
-	local ev, rId, par, info
-	repeat
-		ev, rId, par, info = event.pull("http_response", "http_failure")
-	until rId == requestId
-
-	if ev == "http_failure" then
-		return nil, par
+	if not response then
+		return nil, err
 	end
-	local content = par:read("a")
-	par:close()
-	return content, info
+
+	local content = response.content:read("a")
+	response.content:close()
+	return content, response
 end
 
 local function promptKey()
