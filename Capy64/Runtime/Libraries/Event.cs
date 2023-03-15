@@ -14,6 +14,7 @@
 // limitations under the License.
 
 using Capy64.API;
+using Capy64.Runtime.Objects;
 using KeraLua;
 using System;
 
@@ -25,6 +26,8 @@ public class Event : IComponent
     private static int PushQueue = 0;
 
     private static Lua UserQueue;
+
+    private static bool FrozenTaskAwaiter = false;
 
     private static IGame _game;
     public Event(IGame game)
@@ -49,14 +52,35 @@ public class Event : IComponent
             name = "push",
             function = L_Push,
         },
+        new()
+        {
+            name = "setAwaiter",
+            function = L_SetTaskAwaiter,
+        },
+        new()
+        {
+            name = "fulfill",
+            function = L_Fulfill,
+        },
+        new()
+        {
+            name = "reject",
+            function = L_Reject,
+        },
+        new()
+        {
+            name = "newTask",
+            function = L_NewTask,
+        },
         new(),
     };
 
     public void LuaInit(Lua L)
     {
         PushQueue = 0;
-
         UserQueue = _game.LuaRuntime.Parent.NewThread();
+
+        FrozenTaskAwaiter = false;
 
         L.RequireF("event", OpenLib, false);
     }
@@ -139,5 +163,87 @@ public class Event : IComponent
         });
 
         return 0;
+    }
+
+    private static int L_SetTaskAwaiter(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        L.CheckType(1, LuaType.Function);
+
+        if (FrozenTaskAwaiter)
+        {
+            L.Error("awaiter is frozen");
+        }
+
+        FrozenTaskAwaiter = L.ToBoolean(2);
+
+        L.GetMetaTable(TaskMeta.ObjectType);
+        L.GetField(-1, "__index");
+
+        L.Rotate(1, -1);
+        L.SetField(-2, "await");
+        L.Pop(2);
+
+        return 0;
+    }
+
+    private static int L_Fulfill(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var task = TaskMeta.CheckTask(L, false);
+        L.CheckAny(2);
+
+        if(!task.UserTask)
+        {
+            L.Error("attempt to fulfill machine task");
+        }
+
+        if (task.Status != TaskMeta.TaskStatus.Running)
+        {
+            L.Error("attempt to fulfill a finished task");
+        }
+
+        task.Fulfill(lk =>
+        {
+            L.XMove(lk, 1);
+        });
+
+        return 0;
+    }
+
+    private static int L_Reject(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var task = TaskMeta.CheckTask(L, false);
+        var error = L.CheckString(2);
+
+        if (!task.UserTask)
+        {
+            L.Error("attempt to reject machine task");
+        }
+
+        if(task.Status != TaskMeta.TaskStatus.Running)
+        {
+            L.Error("attempt to reject a finished task");
+        }
+
+        task.Reject(error);
+
+        return 0;
+    }
+
+    private static int L_NewTask(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        var name = L.OptString(1, "object");
+
+        var task = TaskMeta.Push(L, name);
+        task.UserTask = true;
+
+        return 1;
     }
 }

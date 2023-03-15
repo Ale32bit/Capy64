@@ -56,6 +56,7 @@ public class TaskMeta : IComponent
         public TaskStatus Status { get; set; } = TaskStatus.Running;
         public string Error { get; private set; }
         public int DataIndex { get; private set; } = 0;
+        public bool UserTask { get; set; } = false;
 
         public void Fulfill(Action<Lua> lk)
         {
@@ -191,12 +192,12 @@ public class TaskMeta : IComponent
         return task;
     }
 
-    private static RuntimeTask ToTask(Lua L, bool gc = false)
+    public static RuntimeTask ToTask(Lua L, bool gc = false)
     {
         return ObjectManager.ToObject<RuntimeTask>(L, 1, gc);
     }
 
-    private static RuntimeTask CheckTask(Lua L, bool gc = false)
+    public static RuntimeTask CheckTask(Lua L, bool gc = false)
     {
         var obj = ObjectManager.CheckObject<RuntimeTask>(L, 1, ObjectType, gc);
         if (obj is null)
@@ -217,6 +218,8 @@ public class TaskMeta : IComponent
     private static int L_Await(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
+
+        L.Warning("Native task awaiter should be avoided", false);
 
         var task = CheckTask(L, false);
 
