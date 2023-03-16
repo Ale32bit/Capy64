@@ -65,8 +65,18 @@ public class TaskMeta : IComponent
             var container = tasks.NewThread();
             lk(container);
             container.XMove(tasks, 1);
-            tasks.Replace(-2);
-            DataIndex = tasks.GetTop();
+            tasks.Remove(-2);
+            var emptySpot = FindSpot();
+            if (emptySpot > -1)
+            {
+                tasks.Replace(emptySpot);
+                DataIndex = emptySpot;
+            }
+            else
+            {
+                DataIndex = tasks.GetTop();
+            }
+
 
             _game.LuaRuntime.QueueEvent("task_finish", LK =>
             {
@@ -179,7 +189,7 @@ public class TaskMeta : IComponent
 
     public static RuntimeTask Push(Lua L, string typeName)
     {
-        if(!tasks.CheckStack(1))
+        if (!tasks.CheckStack(1))
         {
             L.Error("tasks limit exceeded");
         }
@@ -206,6 +216,34 @@ public class TaskMeta : IComponent
             return null;
         }
         return obj;
+    }
+
+    private static int FindSpot()
+    {
+        var top = tasks.GetTop();
+        for (int i = 1; i <= top; i++)
+        {
+            if (tasks.IsNil(i))
+                return i;
+        }
+
+        return -1;
+    }
+
+    private static void GCTasks()
+    {
+        var top = tasks.GetTop();
+        int peak = 0;
+        for (int i = top; i > 0; i--)
+        {
+            if (!tasks.IsNil(i))
+            {
+                peak = i;
+                break;
+            }
+        }
+
+        tasks.SetTop(peak);
     }
 
     private static void WaitForTask(Lua L)
@@ -339,15 +377,14 @@ public class TaskMeta : IComponent
         if (task is null)
             return 0;
 
-        // todo: add cleanup to remove nil values at top of stack
-
-        if (tasks.GetTop() == task.DataIndex)
-            tasks.SetTop(task.DataIndex - 1);
-        else
+        if (task.DataIndex >= 0)
         {
             tasks.PushNil();
             tasks.Replace(task.DataIndex);
         }
+
+        GCTasks();
+
         return 0;
     }
 
