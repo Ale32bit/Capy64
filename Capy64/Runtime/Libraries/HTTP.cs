@@ -315,19 +315,14 @@ public class HTTP : IComponent
             L.Pop(1);
         }
 
+        var clientTask = TaskMeta.Push(L, WebSocketClient.ObjectType);
 
         var connectTask = wsClient.ConnectAsync(uri, CancellationToken.None);
         connectTask.ContinueWith(async task =>
         {
             if (task.IsFaulted || task.IsCanceled)
             {
-                _game.LuaRuntime.QueueEvent("websocket_failure", LK =>
-                {
-                    LK.PushInteger(requestId);
-                    LK.PushString(task.Exception?.Message);
-
-                    return 2;
-                });
+                clientTask.Reject(task.Exception?.Message);
                 return;
             }
 
@@ -336,14 +331,10 @@ public class HTTP : IComponent
             var handle = new WebSocketClient.Client(wsClient, requestId);
             WebSocketConnections.Add(handle);
 
-            _game.LuaRuntime.QueueEvent("websocket_connect", LK =>
+            clientTask.Fulfill(LK =>
             {
-                LK.PushInteger(requestId);
-
                 ObjectManager.PushObject(LK, handle);
                 LK.SetMetaTable(WebSocketClient.ObjectType);
-
-                return 2;
             });
 
             var buffer = new byte[4096];

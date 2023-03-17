@@ -29,21 +29,6 @@ public class WebSocketClient : IComponent
 
     public record Client(ClientWebSocket Socket, long RequestId);
 
-    public void LuaInit(Lua L)
-    {
-        CreateMeta(L);
-    }
-
-    public static void CreateMeta(Lua L)
-    {
-        L.NewMetaTable(ObjectType);
-        L.SetFuncs(MetaMethods, 0);
-        L.NewLibTable(Methods);
-        L.SetFuncs(Methods, 0);
-        L.SetField(-2, "__index");
-        L.Pop(1);
-    }
-
     internal static LuaRegister[] Methods = new LuaRegister[]
     {
         new()
@@ -89,12 +74,20 @@ public class WebSocketClient : IComponent
         new(),
     };
 
-    private static readonly Dictionary<string, LuaFunction> functions = new()
+    public void LuaInit(Lua L)
     {
-        ["getRequestID"] = L_GetRequestId,
-        ["send"] = L_Send,
-        ["closeAsync"] = L_CloseAsync,
-    };
+        CreateMeta(L);
+    }
+
+    public static void CreateMeta(Lua L)
+    {
+        L.NewMetaTable(ObjectType);
+        L.SetFuncs(MetaMethods, 0);
+        L.NewLibTable(Methods);
+        L.SetFuncs(Methods, 0);
+        L.SetField(-2, "__index");
+        L.Pop(1);
+    }
 
     public static Client ToObject(Lua L, bool gc = false)
     {
