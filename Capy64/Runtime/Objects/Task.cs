@@ -44,27 +44,32 @@ public class TaskMeta : IComponent
     }
     public class RuntimeTask
     {
-        public RuntimeTask(string name)
+        public RuntimeTask(string name = "object")
         {
             Name = name;
         }
 
-        public RuntimeTask() { }
-
         public Guid Guid { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = "object";
+        public string Name { get; set; }
         public TaskStatus Status { get; set; } = TaskStatus.Running;
         public string Error { get; private set; }
         public int DataIndex { get; private set; } = 0;
         public bool UserTask { get; set; } = false;
 
+        /// <summary>
+        /// Pops one element at the top of the container (lk) stack and uses it as task value.
+        /// 
+        /// The container must contain a value and cannot be nil.
+        /// </summary>
+        /// <param name="lk"></param>
+        /// <exception cref="Exception">Throws if the value nil or the stack is empty</exception>
         public void Fulfill(Action<Lua> lk)
         {
             Status = TaskStatus.Succeeded;
 
             var container = tasks.NewThread();
             lk(container);
-            if(container.IsNil(-1))
+            if(container.IsNoneOrNil(-1))
             {
                 throw new Exception("Task result cannot be nil");
             }
@@ -95,6 +100,11 @@ public class TaskMeta : IComponent
             });
         }
 
+        /// <summary>
+        /// Rejects the task with an error message.
+        /// </summary>
+        /// <param name="error"></param>
+        /// <param name="args"></param>
         public void Reject(string error, params object[] args)
         {
             Status = TaskStatus.Failed;
