@@ -32,7 +32,7 @@ public class Audio : IDisposable
     public const int SampleRate = 16000;
     public const int HQSampleRate = 48000;
     public const AudioChannels AudioChannel = AudioChannels.Mono;
-    public const int ChannelsCount = 5;
+    public const int ChannelsCount = 8;
     public readonly DynamicSoundEffectInstance[] Channels = new DynamicSoundEffectInstance[ChannelsCount];
     private bool[] freeChannels = new bool[ChannelsCount];
 
