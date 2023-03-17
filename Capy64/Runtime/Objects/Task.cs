@@ -64,6 +64,10 @@ public class TaskMeta : IComponent
 
             var container = tasks.NewThread();
             lk(container);
+            if(container.IsNil(-1))
+            {
+                throw new Exception("Task result cannot be nil");
+            }
             container.XMove(tasks, 1);
             tasks.Remove(-2);
             var emptySpot = FindSpot();

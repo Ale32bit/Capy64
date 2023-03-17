@@ -194,6 +194,7 @@ public class Event : IComponent
 
         var task = TaskMeta.CheckTask(L, false);
         L.CheckAny(2);
+        L.ArgumentCheck(!L.IsNil(2), 2, "value cannot be nil");
 
         if(!task.UserTask)
         {
