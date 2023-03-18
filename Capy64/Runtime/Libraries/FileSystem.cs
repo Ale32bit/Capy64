@@ -509,7 +509,7 @@ public class FileSystem : IComponent
         var mode = L.OptString(2, "r");
 
         var errorMessage = "invalid file mode";
-        if (mode.Length < 1 && mode.Length > 2)
+        if (mode.Length < 1)
         {
             L.ArgumentError(2, errorMessage);
             return 0;
@@ -539,20 +539,6 @@ public class FileSystem : IComponent
             default:
                 L.ArgumentError(2, errorMessage);
                 return 0;
-        }
-
-        bool binaryMode = false;
-        if (mode.Length == 2)
-        {
-            if (mode[1] == 'b')
-            {
-                binaryMode = true;
-            }
-            else
-            {
-                L.ArgumentError(2, errorMessage);
-                return 0;
-            }
         }
 
         try
