@@ -33,17 +33,17 @@ jobs:
         run: dotnet test --no-build --verbosity normal
 
       - name: Publish for Windows x64
-        run: dotnet publish Capy64/Capy64.csproj -c Release --no-self-contained -a x64 --os win -p:PublishSingleFile=true -o publish/win-x64
+        run: dotnet publish Capy64/Capy64.csproj -c Release --no-self-contained -a x64 --os win -p:PublishSingleFile=true -o capy64-windows-x64
 
       - name: Upload Windows x64 artifact
         uses: actions/upload-artifact@v3.1.2
         with:
           name: Windows-x64
-          path: publish/win-x64/**
+          path: capy64-windows-x64/**
           if-no-files-found: error
 
       - name: Zip Windows x64
-        run: 7z a capy64-windows-x64.zip publish/win-x64/**
+        run: 7z a capy64-windows-x64.zip capy64-windows-x64/**
 
   release-linux:
     runs-on: ubuntu-latest
@@ -64,17 +64,17 @@ jobs:
         run: dotnet test --no-build --verbosity normal
 
       - name: Publish for Linux x64
-        run: dotnet publish Capy64/Capy64.csproj -c Release --no-self-contained -a x64 --os linux -p:PublishSingleFile=true -o publish/linux-x64
+        run: dotnet publish Capy64/Capy64.csproj -c Release --no-self-contained -a x64 --os linux -p:PublishSingleFile=true -o capy64-linux-x64
 
       - name: Upload Linux x64 artifact
         uses: actions/upload-artifact@v3.1.2
         with:
           name: Linux-x64
-          path: publish/linux-x64/**
+          path: capy64-linux-x64/**
           if-no-files-found: error
 
       - name: Zip Linux x64
-        run: 7z a capy64-linux-x64.zip publish/linux-x64/**
+        run: 7z a capy64-linux-x64.zip capy64-linux-x64/**
 
   publish:
     needs: [release-windows, release-linux]
