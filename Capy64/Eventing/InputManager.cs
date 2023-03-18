@@ -52,7 +52,7 @@ public class InputManager
         Ctrl = LCtrl | RCtrl,
     }
 
-    private static Keys[] IgnoredTextInputKeys =
+    private static readonly Keys[] IgnoredTextInputKeys =
     {
         Keys.Enter,
         Keys.Back,
@@ -74,7 +74,7 @@ public class InputManager
     };
 
     public Texture2D Texture { get; set; }
-    public float WindowScale => Capy64.Instance.Scale;
+    public static float WindowScale => Capy64.Instance.Scale;
     public const int MouseScrollDelta = 120;
 
     private Point mousePosition;
@@ -82,7 +82,7 @@ public class InputManager
     private int hMouseScroll;
 
     private Modifiers keyboardMods = 0;
-    private HashSet<Keys> pressedKeys = new();
+    private readonly HashSet<Keys> pressedKeys = new();
 
     private readonly Game _game;
     private readonly EventEmitter _eventEmitter;

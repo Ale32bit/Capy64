@@ -14,7 +14,6 @@
 // limitations under the License.
 
 using Capy64.API;
-using Capy64.Core;
 using KeraLua;
 using System;
 
@@ -31,7 +30,7 @@ public class GPUBufferMeta : IComponent
         public int Height { get; set; }
     }
 
-    private static LuaRegister[] MetaMethods = new LuaRegister[]
+    private static readonly LuaRegister[] MetaMethods = new LuaRegister[]
     {
         new()
         {

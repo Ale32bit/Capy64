@@ -23,7 +23,7 @@ namespace Capy64.Runtime.Libraries;
 
 class Timer : IComponent
 {
-    private LuaRegister[] TimerLib = new LuaRegister[]
+    private readonly LuaRegister[] TimerLib = new LuaRegister[]
     {
         new()
         {
@@ -47,7 +47,7 @@ class Timer : IComponent
     private static IGame _game;
     private static uint _timerId = 0;
 
-    private static ConcurrentDictionary<uint, System.Timers.Timer> timers = new();
+    private static readonly ConcurrentDictionary<uint, System.Timers.Timer> timers = new();
     public Timer(IGame game)
     {
         _game = game;
@@ -128,7 +128,8 @@ class Timer : IComponent
 
         timer.Elapsed += (o, e) =>
         {
-            task.Fulfill(lk => {
+            task.Fulfill(lk =>
+            {
                 lk.PushInteger(timerId);
             });
             timers.TryRemove(timerId, out _);

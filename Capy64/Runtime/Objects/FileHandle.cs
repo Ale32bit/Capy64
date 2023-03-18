@@ -24,7 +24,7 @@ public class FileHandle : IComponent
 {
     public const string ObjectType = "file";
 
-    private static LuaRegister[] Methods = new LuaRegister[]
+    private static readonly LuaRegister[] Methods = new LuaRegister[]
     {
         new()
         {
@@ -59,7 +59,7 @@ public class FileHandle : IComponent
         new(),
     };
 
-    private static LuaRegister[] MetaMethods = new LuaRegister[]
+    private static readonly LuaRegister[] MetaMethods = new LuaRegister[]
     {
         new()
         {
@@ -348,8 +348,7 @@ public class FileHandle : IComponent
         var L = Lua.FromIntPtr(state);
 
         var stream = ToStream(L, true);
-        if (stream is not null)
-            stream.Close();
+        stream?.Close();
 
         return 0;
     }

@@ -14,15 +14,8 @@
 // limitations under the License.
 
 using Capy64.API;
-using Cyotek.Drawing.BitmapFont;
 using KeraLua;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Objects;
 
@@ -69,7 +62,7 @@ public class TaskMeta : IComponent
 
             var container = tasks.NewThread();
             lk(container);
-            if(container.IsNoneOrNil(-1))
+            if (container.IsNoneOrNil(-1))
             {
                 throw new Exception("Task result cannot be nil");
             }
@@ -123,7 +116,7 @@ public class TaskMeta : IComponent
         }
     }
 
-    private static LuaRegister[] Methods = new LuaRegister[]
+    private static readonly LuaRegister[] Methods = new LuaRegister[]
     {
         new()
         {
@@ -158,7 +151,7 @@ public class TaskMeta : IComponent
         new(),
     };
 
-    private static LuaRegister[] MetaMethods = new LuaRegister[]
+    private static readonly LuaRegister[] MetaMethods = new LuaRegister[]
     {
         new()
         {

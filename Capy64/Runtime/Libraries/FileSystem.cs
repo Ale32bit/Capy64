@@ -37,7 +37,7 @@ public class FileSystem : IComponent
     }
 
     // functions to add to the library, always end libraries with null
-    private LuaRegister[] FsLib = new LuaRegister[] {
+    private readonly LuaRegister[] FsLib = new LuaRegister[] {
         new()
         {
             name = "list",

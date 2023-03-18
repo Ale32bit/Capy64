@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Capy64.Core;
 using Capy64.Eventing.Events;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -24,8 +23,8 @@ namespace Capy64.Runtime;
 
 internal class EventEmitter
 {
-    private Eventing.EventEmitter _eventEmitter;
-    private LuaState _runtime;
+    private readonly Eventing.EventEmitter _eventEmitter;
+    private readonly LuaState _runtime;
     private const int rebootDelay = 30;
     private int heldReboot = 0;
 

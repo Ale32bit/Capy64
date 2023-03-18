@@ -31,7 +31,7 @@ public class Drawing : IDisposable
     private Texture2D _whitePixel;
     private RenderTarget2D _canvas;
     private bool _isDrawing;
-    private HashSet<Texture2D> _disposeTextures = new();
+    private readonly HashSet<Texture2D> _disposeTextures = new();
     public RenderTarget2D Canvas
     {
         get => _canvas;

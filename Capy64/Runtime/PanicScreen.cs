@@ -21,7 +21,7 @@ namespace Capy64.Runtime;
 public class PanicScreen
 {
     public static Color ForegroundColor = Color.White;
-    public static Color BackgroundColor = new Color(0, 51, 187);
+    public static Color BackgroundColor = new(0, 51, 187);
 
     public static void Render(string error, string details = null)
     {
@@ -47,7 +47,7 @@ public class PanicScreen
         {
             Print(details);
         }
-        Term.SetCursorPosition(1, 19);
+        Term.SetCursorPosition(1, 23);
         Print("Hold CTRL + ALT + INSERT to reboot.");
     }
 

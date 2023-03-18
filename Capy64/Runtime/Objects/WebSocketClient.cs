@@ -17,7 +17,6 @@ using Capy64.API;
 using Capy64.Runtime.Libraries;
 using KeraLua;
 using System;
-using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading;
 

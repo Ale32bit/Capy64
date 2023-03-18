@@ -35,7 +35,7 @@ public class Event : IComponent
         _game = game;
     }
 
-    private static LuaRegister[] EventLib = new LuaRegister[]
+    private static readonly LuaRegister[] EventLib = new LuaRegister[]
     {
         new()
         {
@@ -196,7 +196,7 @@ public class Event : IComponent
         L.CheckAny(2);
         L.ArgumentCheck(!L.IsNil(2), 2, "value cannot be nil");
 
-        if(!task.UserTask)
+        if (!task.UserTask)
         {
             L.Error("attempt to fulfill machine task");
         }
@@ -226,7 +226,7 @@ public class Event : IComponent
             L.Error("attempt to reject machine task");
         }
 
-        if(task.Status != TaskMeta.TaskStatus.Running)
+        if (task.Status != TaskMeta.TaskStatus.Running)
         {
             L.Error("attempt to reject a finished task");
         }

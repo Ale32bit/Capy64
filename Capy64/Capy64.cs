@@ -43,7 +43,7 @@ public enum EngineMode
 
 public class Capy64 : Game, IGame
 {
-    public const string Version = "0.0.10-alpha";
+    public const string Version = "1.0.0-beta";
 
     public static class DefaultParameters
     {
@@ -51,7 +51,7 @@ public class Capy64 : Game, IGame
         public const int Height = 240;
         public const float Scale = 2f;
         public const float BorderMultiplier = 1.5f;
-        public readonly static EngineMode EngineMode = EngineMode.Classic;
+        public static readonly EngineMode EngineMode = EngineMode.Classic;
 
         public const int ClassicTickrate = 20;
         public const int FreeTickrate = 60;

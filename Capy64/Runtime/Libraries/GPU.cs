@@ -14,17 +14,14 @@
 // limitations under the License.
 
 using Capy64.API;
-using Capy64.Core;
 using Capy64.Runtime.Objects;
 using KeraLua;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -37,7 +34,7 @@ public class GPU : IComponent
         _game = game;
     }
 
-    private LuaRegister[] gpuLib = new LuaRegister[] {
+    private readonly LuaRegister[] gpuLib = new LuaRegister[] {
         new()
         {
             name = "getSize",

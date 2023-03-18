@@ -15,7 +15,6 @@
 
 using Capy64.API;
 using Capy64.Eventing.Events;
-using Capy64.Extensions;
 using Capy64.Runtime.Libraries;
 using KeraLua;
 using System;

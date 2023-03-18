@@ -14,9 +14,7 @@
 // limitations under the License.
 
 using Capy64.API;
-using Capy64.Runtime.Objects;
 using KeraLua;
-using System.IO;
 using System.Net.Sockets;
 
 namespace Capy64.Runtime.Libraries;
@@ -31,7 +29,7 @@ public class TCP : IComponent
         Counter = 0;
     }
 
-    private static LuaRegister[] TCPLib = new LuaRegister[]
+    private static readonly LuaRegister[] TCPLib = new LuaRegister[]
     {
         new()
         {

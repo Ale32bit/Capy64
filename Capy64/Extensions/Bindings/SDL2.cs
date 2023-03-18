@@ -105,7 +105,7 @@ public partial class SDL2
         }
         char* chars = stackalloc char[len];
         int strLen = System.Text.Encoding.UTF8.GetChars((byte*)s, len, chars, len);
-        string result = new string(chars, 0, strLen);
+        string result = new(chars, 0, strLen);
 #endif
 
         /* Some SDL functions will malloc, we have to free! */

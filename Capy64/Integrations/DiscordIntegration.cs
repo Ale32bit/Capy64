@@ -32,9 +32,10 @@ public class DiscordIntegration : IComponent
         _configuration = configuration;
 
         var discordConfig = _configuration.GetSection("Integrations:Discord");
-        Client = new(discordConfig["ApplicationId"]);
-
-        Client.Logger = new ConsoleLogger() { Level = DiscordRPC.Logging.LogLevel.Warning };
+        Client = new(discordConfig["ApplicationId"])
+        {
+            Logger = new ConsoleLogger() { Level = LogLevel.Warning }
+        };
 
         Client.OnReady += OnReady;
 
@@ -46,6 +47,7 @@ public class DiscordIntegration : IComponent
         }
     }
 
+#nullable enable
     public void SetPresence(string details, string? state = null)
     {
         Client.SetPresence(new RichPresence()

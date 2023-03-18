@@ -32,7 +32,7 @@ public class Audio : IComponent
         _game.EventEmitter.OnClose += OnClose;
     }
 
-    private static LuaRegister[] AudioLib = new LuaRegister[]
+    private static readonly LuaRegister[] AudioLib = new LuaRegister[]
     {
         new()
         {

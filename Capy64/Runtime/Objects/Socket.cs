@@ -16,10 +16,6 @@
 using Capy64.API;
 using KeraLua;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Objects;
 
@@ -33,18 +29,18 @@ public class Socket : IDisposable
 
 public class SocketLib : IComponent
 {
-    private static IGame _game;
+    private static readonly IGame _game;
     public SocketLib(IGame game)
     {
 
     }
 
-    private static LuaRegister[] Methods = new LuaRegister[] {
+    private static readonly LuaRegister[] Methods = new LuaRegister[] {
 
         new(),
     };
 
-    private static LuaRegister[] MetaMethods = new LuaRegister[] {
+    private static readonly LuaRegister[] MetaMethods = new LuaRegister[] {
         new()
         {
             name = "__index",

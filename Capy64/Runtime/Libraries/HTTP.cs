@@ -25,7 +25,6 @@ using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Libraries;
 #nullable enable
@@ -171,7 +170,7 @@ public class HTTP : IComponent
                         options["method"] = L.CheckString(-2);
                         break;
                     case "binary":
-                        options["binary"] = L.IsBoolean(-2) ? L.ToBoolean(-2) : false;
+                        options["binary"] = L.ToBoolean(-2);
                         break;
                 }
 

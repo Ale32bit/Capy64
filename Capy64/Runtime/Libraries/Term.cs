@@ -14,7 +14,6 @@
 // limitations under the License.
 
 using Capy64.API;
-using Capy64.Core;
 using Capy64.Eventing.Events;
 using KeraLua;
 using Microsoft.Xna.Framework;
@@ -73,7 +72,7 @@ internal class Term : IComponent
         _game.EventEmitter.OnScreenSizeChange += OnScreenSizeChange;
     }
 
-    private LuaRegister[] TermLib = new LuaRegister[]
+    private readonly LuaRegister[] TermLib = new LuaRegister[]
     {
         new()
         {
@@ -217,12 +216,12 @@ internal class Term : IComponent
             _game.Drawing.DrawString(charpos, ch.ToString(), fg);
 
         }
-        catch (ArgumentException ex) // UTF-16 fuckery
+        catch (ArgumentException) // UTF-16 fuckery
         {
             _game.Drawing.DrawString(charpos, "\xFFFD", fg);
         }
 
-        if(underline)
+        if (underline)
         {
             _game.Drawing.DrawLine(charpos + new Vector2(0, CharHeight), charpos + new Vector2(CharWidth, CharHeight), fg);
         }
@@ -313,7 +312,7 @@ internal class Term : IComponent
         if (cursorState)
         {
             var realpos = ToRealPos(CursorPosition - Vector2.One);
-            var charpos = (realpos * _game.Scale) + (CharOffset + new Vector2(0, 2)) * _game.Scale;
+            var charpos = (realpos * _game.Scale) + ((CharOffset + new Vector2(0, 2)) * _game.Scale);
             charpos += new Vector2(Capy64.Instance.Borders.Left, Capy64.Instance.Borders.Top);
             _game.Game.SpriteBatch.Draw(cursorTexture, charpos, null, ForegroundColor, 0f, Vector2.Zero, _game.Scale, SpriteEffects.None, 0);
         }
@@ -396,7 +395,7 @@ internal class Term : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        if(_game.EngineMode == EngineMode.Classic)
+        if (_game.EngineMode == EngineMode.Classic)
         {
             L.PushBoolean(false);
             return 1;
@@ -538,8 +537,6 @@ internal class Term : IComponent
 
     private static int L_Clear(IntPtr state)
     {
-        var L = Lua.FromIntPtr(state);
-
         Clear();
 
         return 0;
@@ -553,8 +550,6 @@ internal class Term : IComponent
 
     private static int L_ClearLine(IntPtr state)
     {
-        var L = Lua.FromIntPtr(state);
-
         ClearLine();
 
         return 0;

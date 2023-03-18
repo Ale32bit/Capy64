@@ -30,7 +30,7 @@ public class Machine : IComponent
         _game = game;
     }
 
-    private static LuaRegister[] MachineLib = new LuaRegister[]
+    private static readonly LuaRegister[] MachineLib = new LuaRegister[]
     {
         new()
         {

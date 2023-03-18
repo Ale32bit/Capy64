@@ -23,7 +23,7 @@ namespace Capy64.Runtime;
 
 public class ObjectManager : IComponent
 {
-    private static ConcurrentDictionary<nint, object> _objects = new();
+    private static readonly ConcurrentDictionary<nint, object> _objects = new();
 
     private static IGame _game;
     public ObjectManager(IGame game)
