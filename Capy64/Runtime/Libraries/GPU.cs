@@ -284,7 +284,7 @@ public class GPU : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var x1 = (int)L.CheckNumber(1);
+        var x1 = (int)L.CheckNumber(1) - 1; // do not question, please
         var y1 = (int)L.CheckNumber(2);
         var x2 = (int)L.CheckNumber(3);
         var y2 = (int)L.CheckNumber(4);
