@@ -19,12 +19,7 @@ local gpu = require("gpu")
 local fs = require("fs")
 local machine = require("machine")
 local audio = require("audio")
-local http = require("http")
 local event = require("event")
-
-
-local INDEX_URL = "https://raw.github.com/Ale32bit/CapyOS/deploy/index.json"
-local JSON_URL = "https://raw.github.com/Ale32bit/CapyOS/main/lib/json.lua"
 
 local bootSleep = 2000
 local bg = 0x0
@@ -95,62 +90,9 @@ local function printError( text )
 	term.setForeground(0xffffff)
 end
 
-local function hget(url, headers)
-	local response, err = http.requestAsync(url, nul, headers, {binary = true}):await()
-
-	if not response then
-		return nil, err
-	end
-
-	local content = response.content:read("a")
-	response.content:close()
-	return content, response
-end
-
 local function promptKey()
 	print("Press any key to continue")
 	event.pull("key_down")
-end
-
-local function installOS()
-	term.clear()
-	term.setPos(1, 1)
-
-	print("Installing CapyOS...")
-
-	local jsonLib, par = hget(JSON_URL)
-	if not jsonLib then
-		printError(par)
-		promptKey()
-		return
-	end
-
-	local json = load(jsonLib)()
-	local indexData, par = hget(INDEX_URL)
-	if not indexData then
-		printError(par)
-		promptKey()
-		return
-	end
-	local index = json.decode(indexData)
-
-	for i, v in ipairs(index) do
-		local dirname = fs.getDir(v.path) 
-		if not fs.exists(dirname) then
-			fs.makeDir(dirname)
-		end
-		print("Downloading " .. v.path)
-		local fileContent = hget(v.raw_url)
-		local f = fs.open(v.path, "w")
-		f:write(fileContent)
-		f:close()
-		print("Written to " .. v.path)
-	end
-
-	flagInstalled()
-
-	print("CapyOS installed!")
-	promptKey()
 end
 
 term.setBlink(false)
@@ -244,10 +186,6 @@ local function bootScreen()
 end
 
 audio.beep(1000, 0.2, 0.2, "square")
-
-if shouldInstallOS() then
-	installOS()
-end
 
 bootScreen()
 

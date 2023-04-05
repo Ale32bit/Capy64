@@ -97,6 +97,8 @@ internal class RuntimeManager : IComponent
     {
         _game.Discord.SetPresence("Booting up...");
 
+        InstallOS(false);
+
         luaState = new LuaState();
         _game.LuaRuntime = luaState;
         luaState.Init();
@@ -114,16 +116,13 @@ internal class RuntimeManager : IComponent
         luaState.Thread.PushCFunction(L_OpenDataFolder);
         luaState.Thread.SetGlobal("openDataFolder");
 
-        luaState.Thread.PushCFunction(L_ShouldInstallOS);
-        luaState.Thread.SetGlobal("shouldInstallOS");
-
-        luaState.Thread.PushCFunction(L_FlagInstalled);
-        luaState.Thread.SetGlobal("flagInstalled");
+        luaState.Thread.PushCFunction(L_InstallOS);
+        luaState.Thread.SetGlobal("installOS");
 
         luaState.Thread.PushCFunction(L_Exit);
         luaState.Thread.SetGlobal("exit");
 
-        var status = luaState.Thread.LoadFile("Assets/bios.lua");
+        var status = luaState.Thread.LoadFile("Assets/Lua/bios.lua");
         if (status != LuaStatus.OK)
         {
             throw new LuaException(luaState.Thread.ToString(-1));
@@ -132,8 +131,6 @@ internal class RuntimeManager : IComponent
 
     private void InitOS()
     {
-        _game.Discord.SetPresence("On CapyOS");
-
         luaState = new LuaState();
         _game.LuaRuntime = luaState;
         luaState.Init();
@@ -147,6 +144,11 @@ internal class RuntimeManager : IComponent
         });
 
         emitter.Register();
+
+        if (!File.Exists(Path.Combine(FileSystem.DataPath, "init.lua")))
+        {
+            throw new LuaException("Operating System not found\nMissing init.lua");
+        }
 
         var initContent = File.ReadAllText(Path.Combine(FileSystem.DataPath, "init.lua"));
         var status = luaState.Thread.LoadString(initContent, "=init.lua");
@@ -173,6 +175,16 @@ internal class RuntimeManager : IComponent
         _game.Exit();
     }
 
+    public static void InstallOS(bool force = false)
+    {
+        var installedFilePath = Path.Combine(Capy64.AppDataPath, ".installed");
+        if (!File.Exists(installedFilePath) || force)
+        {
+            FileSystem.CopyDirectory("Assets/Lua/CapyOS", FileSystem.DataPath, true, true);
+            File.Create(installedFilePath).Dispose();
+        }
+    }
+
     private static int L_OpenDataFolder(IntPtr state)
     {
         var path = FileSystem.DataPath;
@@ -189,22 +201,9 @@ internal class RuntimeManager : IComponent
         return 0;
     }
 
-    private static int L_ShouldInstallOS(IntPtr state)
+    private static int L_InstallOS(IntPtr state)
     {
-        var L = Lua.FromIntPtr(state);
-        var installedFilePath = Path.Combine(Capy64.AppDataPath, ".installed");
-
-        L.PushBoolean(!File.Exists(installedFilePath));
-
-        return 1;
-    }
-
-    private static int L_FlagInstalled(IntPtr state)
-    {
-        var installedFilePath = Path.Combine(Capy64.AppDataPath, ".installed");
-        if (!File.Exists(installedFilePath))
-            File.Create(installedFilePath).Dispose();
-
+        InstallOS(true);
         return 0;
     }
 
