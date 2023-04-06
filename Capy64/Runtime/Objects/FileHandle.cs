@@ -17,6 +17,7 @@ using Capy64.API;
 using KeraLua;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace Capy64.Runtime.Objects;
 
@@ -133,7 +134,16 @@ public class FileHandle : IComponent
 
     private static bool ReadNumber(Lua L, Stream stream)
     {
-        return false;
+        var str = ReadNumberHelper.ReadNumber(stream);
+        if (L.StringToNumber(str))
+        {
+            return true;
+        }
+        else
+        {
+            L.PushNil();
+            return false;
+        }
     }
 
     private static bool ReadLine(Lua L, Stream stream, bool chop)
@@ -351,5 +361,115 @@ public class FileHandle : IComponent
         stream?.Close();
 
         return 0;
+    }
+
+    private static class ReadNumberHelper
+    {
+        static bool isdigit(char c)
+        {
+            return "0123456789"
+                .Contains(c, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        static bool isxdigit(char c)
+        {
+            return "0123456789abcdef"
+                .Contains(c, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        static bool isspace(char c)
+        {
+            return new char[] {
+                ' ',
+                '\n',
+                '\t',
+                '\v',
+                '\f',
+                '\r',
+            }.Contains(c);
+        }
+
+        static bool nextc(RN rn)
+        {
+            if (rn.n >= 200) // buffer overflow?
+            {
+                rn.buff[0] = '\0'; // invalidate result
+                return false; // fail
+            }
+            else
+            {
+                rn.buff[rn.n] = rn.c; // save current char
+                rn.n++;
+                rn.c = (char)rn.f.ReadByte(); // read next one
+                return true;
+            }
+        }
+
+        static bool test2(RN rn, string set)
+        {
+            if (rn.c == set[0] || rn.c == set[1])
+            {
+                return nextc(rn);
+            }
+            return false;
+        }
+
+        static int readdigits(RN rn, bool hex)
+        {
+            int count = 0;
+            while ((hex ? isxdigit(rn.c) : isdigit(rn.c)) && nextc(rn))
+                count++;
+            return count;
+        }
+
+
+        /// <summary>
+        /// https://www.lua.org/source/5.4/liolib.c.html#read_number
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static string ReadNumber(Stream stream)
+        {
+            RN rn = new()
+            {
+                buff = new char[201]
+            };
+
+            int count = 0;
+            bool hex = false;
+            string decp = "..";
+            rn.f = stream;
+            rn.n = 0;
+
+            do
+            {
+                rn.c = (char)rn.f.ReadByte();
+            } while (isspace(rn.c)); /* skip spaces */
+
+            test2(rn, "+-"); /* optional sign */
+            if (test2(rn, "00"))
+            {
+                if (test2(rn, "xX")) hex = true; /* numeral is hexadecimal */
+                else count = 1; /* count initial '0' as a valid digit */
+            }
+            count += readdigits(rn, hex); // integral part
+            if (test2(rn, decp))  // decimal point?
+                count += readdigits(rn, hex);  // fractional part
+            if (count > 0 && test2(rn, (hex ? "pP" : "eE")))
+            {  /* exponent mark? */
+                test2(rn, "-+");  /* exponent sign */
+                readdigits(rn, false);  /* exponent digits */
+            }
+            rn.f.Position += -1;
+            return new string(rn.buff);
+        }
+
+        public class RN
+        {
+            public Stream f;
+            public char c;
+            public int n;
+            public char[] buff;
+        }
     }
 }
