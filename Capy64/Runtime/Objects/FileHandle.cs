@@ -16,8 +16,11 @@
 using Capy64.API;
 using KeraLua;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using static Capy64.Runtime.Constants;
 
 namespace Capy64.Runtime.Objects;
 
@@ -134,7 +137,7 @@ public class FileHandle : IComponent
 
     private static bool ReadNumber(Lua L, Stream stream)
     {
-        var str = ReadNumberHelper.ReadNumber(stream);
+        var str = ReadHelper.ReadNumber(stream);
         if (L.StringToNumber(str))
         {
             return true;
@@ -197,53 +200,66 @@ public class FileHandle : IComponent
             return 2;
         }
 
+        return G_Read(L, stream, 1);
+    }
+
+    private static int G_Read(Lua L, Stream f, int first)
+    {
         var nargs = L.GetTop() - 1;
-        if (nargs == 0)
-        {
-            L.PushString("l");
-            nargs = 1;
-        }
+        int n;
+        bool success;
 
-        for (int i = 2; i <= nargs + 1; i++)
+        if (nargs == 0) // no arguments?
         {
-            bool success;
-            if (L.Type(i) == LuaType.Number)
+            success = ReadLine(L, f, true);
+            n = first + 1; // to return 1 result
+        }
+        else
+        {
+            // ensure stack space for all results and for auxlib's buffer
+            L.CheckStack(nargs + MINSTACK, "too many arguments");
+            success = true;
+            for (n = first; (nargs-- > 0) && success; n++)
             {
-                success = ReadChars(L, stream, (int)L.ToNumber(2));
-            }
-            else
-            {
-                var p = L.CheckString(i);
-                var mode = CheckMode(p);
-                switch (mode)
+                if (L.Type(n) == LuaType.Number)
                 {
-                    case 'n':
-                        success = ReadNumber(L, stream);
-                        break;
-                    case 'l':
-                        success = ReadLine(L, stream, true);
-                        break;
-                    case 'L':
-                        success = ReadLine(L, stream, false);
-                        break;
-                    case 'a':
-                        ReadAll(L, stream);
-                        success = true;
-                        break;
-                    default:
-                        return L.ArgumentError(i, "invalid format");
+                    var l = (int)L.CheckInteger(n);
+                    success = (l == 0) ? f.Position == f.Length : ReadChars(L, f, l);
                 }
+                else
+                {
+                    var p = L.CheckString(n);
+                    var mode = CheckMode(p);
+                    switch (mode)
+                    {
+                        case 'n': // number
+                            success = ReadNumber(L, f);
+                            break;
+                        case 'l': // line
+                            success = ReadLine(L, f, true);
+                            break;
+                        case 'L': // line with end-of-line
+                            success = ReadLine(L, f, false);
+                            break;
+                        case 'a': // file
+                            ReadAll(L, f); // read entire file
+                            success = true; // always success
+                            break;
+                        default:
+                            return L.ArgumentError(n, "invalid format");
+                    }
 
-            }
-
-            if (!success)
-            {
-                L.Pop(1);
-                L.PushNil();
+                }
             }
         }
 
-        return nargs;
+        if (!success)
+        {
+            L.Pop(1);
+            L.PushNil();
+        }
+
+        return n - first;
     }
 
     private static int L_Write(IntPtr state)
@@ -278,7 +294,6 @@ public class FileHandle : IComponent
 
     private static int L_Lines(IntPtr state)
     {
-        return 0;
         var L = Lua.FromIntPtr(state);
         var maxargn = 250;
 
@@ -289,9 +304,49 @@ public class FileHandle : IComponent
         L.PushInteger(n);
         L.PushBoolean(false);
         L.Rotate(2, 3);
-        L.PushCClosure(null, 3 + n); // todo
+        L.PushCClosure(IO_ReadLine, 3 + n);
 
         return 1;
+    }
+
+    private static int IO_ReadLine(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+        var stream = ObjectManager.ToObject<Stream>(L, Lua.UpValueIndex(1), false);
+        int i;
+        int n = (int)L.ToInteger(Lua.UpValueIndex(2));
+        if (stream is null)
+        {
+            return L.Error("file is already closed");
+        }
+        L.SetTop(1);
+        L.CheckStack(n, "too many arguments");
+        for (i = 1; i <= n; i++)
+        {
+            L.PushCopy(Lua.UpValueIndex(3 + i));
+        }
+        n = G_Read(L, stream, 2);
+        Debug.Assert(n > 0);
+        if (L.ToBoolean(-n))
+        {
+            return n;
+        }
+        else
+        {
+            if (n > 1)
+            {
+                return L.Error(L.ToString(-n + 1));
+            }
+            if (L.ToBoolean(Lua.UpValueIndex(3)))
+            {
+                L.SetTop(0);
+                L.PushCopy(Lua.UpValueIndex(1));
+                stream.Close();
+            }
+        }
+
+
+        return 0;
     }
 
     private static int L_Flush(IntPtr state)
@@ -363,7 +418,7 @@ public class FileHandle : IComponent
         return 0;
     }
 
-    private static class ReadNumberHelper
+    private static class ReadHelper
     {
         static bool isdigit(char c)
         {
@@ -387,6 +442,12 @@ public class FileHandle : IComponent
                 '\f',
                 '\r',
             }.Contains(c);
+        }
+
+        static bool test_eof(Lua L, Stream f)
+        {
+            L.PushString("");
+            return f.Position != f.Length;
         }
 
         static bool nextc(RN rn)

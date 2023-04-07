@@ -18,4 +18,6 @@ namespace Capy64.Runtime;
 public class Constants
 {
     public const int MULTRET = -1;
+    public const int MINSTACK = 20;
+    public const int MAXLENNUM = 200;
 }
