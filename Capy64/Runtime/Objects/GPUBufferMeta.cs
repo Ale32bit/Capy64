@@ -137,8 +137,9 @@ public class GPUBufferMeta : IComponent
 
         var value = buffer.Buffer[key];
 
-        // ABGR to RGB
+        // ABGR to ARGB
         value =
+            (value & 0xFF_00_00_00U) |
             ((value & 0x00_00_00_FFU) << 16) | // move R
             (value & 0x00_00_FF_00U) |       // move G
             ((value & 0x00_FF_00_00U) >> 16);  // move B
@@ -173,13 +174,12 @@ public class GPUBufferMeta : IComponent
         var value = (uint)L.ToInteger(3);
         value = GetColor(value);
 
-        // RGB to ABGR
+        // ARGB to ABGR
         value =
+            (value & 0xFF_00_00_00U) |
             ((value & 0x00_FF_00_00U) >> 16) | // move R
             (value & 0x00_00_FF_00U) |       // move G
-            ((value & 0x00_00_00_FFU) << 16) | // move B
-            0xFF_00_00_00U;
-
+            ((value & 0x00_00_00_FFU) << 16); // move B
 
         buffer.Buffer[key] = value;
 
