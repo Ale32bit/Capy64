@@ -24,6 +24,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
@@ -53,7 +54,7 @@ public class Capy64 : Game, IGame
         public const float BorderMultiplier = 1.5f;
         public static readonly EngineMode EngineMode = EngineMode.Classic;
 
-        public const int ClassicTickrate = 20;
+        public const int ClassicTickrate = 30;
         public const int FreeTickrate = 60;
     }
 
@@ -230,6 +231,9 @@ public class Capy64 : Game, IGame
         SetEngineMode(configuration.GetValue<EngineMode>("EngineMode", DefaultParameters.EngineMode));
 
         Audio = new Audio();
+        var cursorTexture = Texture2D.FromFile(GraphicsDevice, "Assets/cursor.png");
+        var cursor = MouseCursor.FromTexture2D(cursorTexture, 0, 0);
+        Mouse.SetCursor(cursor);
 
         NativePlugins = GetNativePlugins();
         Plugins = PluginLoader.LoadAllPlugins("plugins", _serviceProvider);
