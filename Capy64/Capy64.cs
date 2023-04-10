@@ -231,9 +231,6 @@ public class Capy64 : Game, IGame
         SetEngineMode(configuration.GetValue<EngineMode>("EngineMode", DefaultParameters.EngineMode));
 
         Audio = new Audio();
-        var cursorTexture = Texture2D.FromFile(GraphicsDevice, "Assets/cursor.png");
-        var cursor = MouseCursor.FromTexture2D(cursorTexture, 0, 0);
-        Mouse.SetCursor(cursor);
 
         NativePlugins = GetNativePlugins();
         Plugins = PluginLoader.LoadAllPlugins("plugins", _serviceProvider);
