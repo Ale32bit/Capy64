@@ -6,7 +6,7 @@ local machine = require("machine")
 local exit = false
 local shell = {}
 
-shell.path = "./?;./?.lua;/bin/?.lua"
+shell.path = "./?;./?.lua;/bin/?.lua;/sys/bin/?.lua"
 shell.homePath = "/home"
 
 local currentDir = shell.homePath

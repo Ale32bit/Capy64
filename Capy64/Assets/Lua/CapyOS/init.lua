@@ -1,10 +1,11 @@
-local version = "0.0.2"
+local version = "0.0.3"
+local systemDirectory = "/sys"
 
 print("Starting CapyOS")
 
 local term = require("term")
 local fs = require("fs")
-local gpu = require("gpu")
+local machine = require("machine")
 
 local nPrint = print
 local function showError(err)
@@ -26,11 +27,12 @@ function os.version()
 end
 
 term.setPos(1, 1)
-term.write(_HOST)
+term.write(machine.version())
+term.setPos(1, 3)
 
-local files = fs.list("/boot/autorun")
+local files = fs.list(fs.combine(systemDirectory, "boot/autorun"))
 for i = 1, #files do
-    local func, err = loadfile("/boot/autorun/" .. files[i])
+    local func, err = loadfile(fs.combine(systemDirectory, "boot/autorun", files[i]))
     if not func then
         showError(err)
         break

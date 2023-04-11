@@ -51,13 +51,13 @@ local function writeCenter(text)
 end
 
 local function drawVendorImage()
-	if not fs.exists("/boot/vendor.bmp") then
+	if not fs.exists("/sys/vendor.bmp") then
 		return
 	end
 
 	local w, h = gpu.getSize()
 	local ok, err = pcall(function()
-		local task<close> = gpu.loadImageAsync("/boot/vendor.bmp")
+		local task<close> = gpu.loadImageAsync("/sys/vendor.bmp")
 		local buffer<close> = task:await()
 
 		local x, y = 
@@ -95,6 +95,11 @@ local function promptKey()
 	event.pull("key_down")
 end
 
+local function installDefaultOS()
+	fs.delete("/sys", true)
+	installOS()
+end
+
 term.setBlink(false)
 
 local function setupScreen()
@@ -105,7 +110,7 @@ local function setupScreen()
 		},
 		{
 			"Install default OS",
-			installOS,
+			installDefaultOS,
 		},
 		{
 			"Exit setup",

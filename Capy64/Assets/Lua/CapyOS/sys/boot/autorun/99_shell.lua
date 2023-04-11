@@ -10,6 +10,6 @@ term.setPos(1, 1)
 term.write(os.version())
 term.setPos(1, 2)
 
-dofile("/bin/shell.lua")
+dofile("/sys/bin/shell.lua")
 
 machine.shutdown()
