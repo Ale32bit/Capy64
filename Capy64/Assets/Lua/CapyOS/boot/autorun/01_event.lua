@@ -1,5 +1,17 @@
 local event = require("event")
 
+function event.pull(...)
+    local ev = table.pack(coroutine.yield(...))
+    if ev[1] == "interrupt" then
+        error("Interrupted", 2)
+    end
+    return table.unpack(ev)
+end
+
+function event.pullRaw(...)
+    return coroutine.yield(...)
+end
+
 local function awaiter(task)
     local status = task:getStatus()
     local uuid = task:getID()
