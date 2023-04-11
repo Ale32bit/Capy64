@@ -96,7 +96,9 @@ local function promptKey()
 end
 
 local function installDefaultOS()
-	fs.delete("/sys", true)
+	if fs.exists("/sys") then
+		fs.delete("/sys", true)
+	end
 	installOS()
 end
 
