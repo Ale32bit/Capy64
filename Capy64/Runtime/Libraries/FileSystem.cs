@@ -426,19 +426,26 @@ public class FileSystem : IComponent
             L.Error("path not found");
         }
 
-        var attr = File.GetAttributes(path);
-        if (attr.HasFlag(FileAttributes.Directory))
+        try
         {
-            if (!recursive && Directory.GetFileSystemEntries(path).Any())
+            var attr = File.GetAttributes(path);
+            if (attr.HasFlag(FileAttributes.Directory))
             {
-                L.Error("directory not empty");
-                return 0;
+                if (!recursive && Directory.GetFileSystemEntries(path).Any())
+                {
+                    L.Error("directory not empty");
+                    return 0;
+                }
+                Directory.Delete(path, recursive);
             }
-            Directory.Delete(path, recursive);
+            else
+            {
+                File.Delete(path);
+            }
         }
-        else
+        catch (Exception e)
         {
-            File.Delete(path);
+            return L.Error(e.Message);
         }
 
         return 0;
