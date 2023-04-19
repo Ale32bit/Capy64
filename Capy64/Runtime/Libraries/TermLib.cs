@@ -23,7 +23,7 @@ using static Capy64.Utils;
 
 namespace Capy64.Runtime.Libraries;
 
-internal class Term : IComponent
+internal class TermLib : IComponent
 {
     private struct Char
     {
@@ -53,7 +53,7 @@ internal class Term : IComponent
     private static bool cursorState = false;
     private static bool enableCursor = true;
     private static Texture2D cursorTexture;
-    public Term(IGame game)
+    public TermLib(IGame game)
     {
         _game = game;
 
@@ -72,7 +72,7 @@ internal class Term : IComponent
         _game.EventEmitter.OnScreenSizeChange += OnScreenSizeChange;
     }
 
-    private readonly LuaRegister[] TermLib = new LuaRegister[]
+    private readonly LuaRegister[] Library = new LuaRegister[]
     {
         new()
         {
@@ -170,7 +170,7 @@ internal class Term : IComponent
     public int Open(IntPtr state)
     {
         var l = Lua.FromIntPtr(state);
-        l.NewLib(TermLib);
+        l.NewLib(Library);
         return 1;
     }
 

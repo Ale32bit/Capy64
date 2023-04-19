@@ -89,6 +89,7 @@ public class Capy64 : Game, IGame
     public LuaState LuaRuntime { get; set; }
     public Eventing.EventEmitter EventEmitter { get; private set; }
     public DiscordIntegration Discord { get; set; }
+    public int TickRate => tickrate;
 
     public Color BorderColor { get; set; } = Color.Black;
     public Borders Borders = new()
@@ -106,7 +107,8 @@ public class Capy64 : Game, IGame
     private readonly GraphicsDeviceManager _graphics;
     private IServiceProvider _serviceProvider;
     private ulong _totalTicks = 0;
-    private ulong tickrate = 0;
+    private int tickrate = 0;
+    private int everyTick => 60 / tickrate;
 
     public Capy64()
     {
@@ -274,7 +276,7 @@ public class Capy64 : Game, IGame
         {
             GameTime = gameTime,
             TotalTicks = _totalTicks,
-            IsActiveTick = _totalTicks % (60 / tickrate) == 0,
+            IsActiveTick = (int)_totalTicks % everyTick  == 0,
         });
 
         Drawing.End();

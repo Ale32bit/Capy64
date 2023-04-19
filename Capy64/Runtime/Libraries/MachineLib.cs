@@ -22,15 +22,15 @@ using System;
 
 namespace Capy64.Runtime.Libraries;
 
-public class Machine : IComponent
+public class MachineLib : IComponent
 {
     private static IGame _game;
-    public Machine(IGame game)
+    public MachineLib(IGame game)
     {
         _game = game;
     }
 
-    private static readonly LuaRegister[] MachineLib = new LuaRegister[]
+    private static readonly LuaRegister[] Library = new LuaRegister[]
     {
         new()
         {
@@ -83,7 +83,7 @@ public class Machine : IComponent
     private static int OpenLib(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-        L.NewLib(MachineLib);
+        L.NewLib(Library);
         return 1;
     }
 

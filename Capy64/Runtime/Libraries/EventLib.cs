@@ -20,7 +20,7 @@ using System;
 
 namespace Capy64.Runtime.Libraries;
 
-public class Event : IComponent
+public class EventLib : IComponent
 {
     private const int MaxPushQueue = 64;
     private static int PushQueue = 0;
@@ -30,12 +30,12 @@ public class Event : IComponent
     private static bool FrozenTaskAwaiter = false;
 
     private static IGame _game;
-    public Event(IGame game)
+    public EventLib(IGame game)
     {
         _game = game;
     }
 
-    private static readonly LuaRegister[] EventLib = new LuaRegister[]
+    private static readonly LuaRegister[] Library = new LuaRegister[]
     {
         new()
         {
@@ -88,7 +88,7 @@ public class Event : IComponent
     private static int OpenLib(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-        L.NewLib(EventLib);
+        L.NewLib(Library);
         return 1;
     }
 

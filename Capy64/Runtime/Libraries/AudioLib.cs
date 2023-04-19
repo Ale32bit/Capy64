@@ -21,18 +21,18 @@ using static Capy64.Core.Audio;
 
 namespace Capy64.Runtime.Libraries;
 
-public class Audio : IComponent
+public class AudioLib : IComponent
 {
     private const int queueLimit = 8;
 
     private static IGame _game;
-    public Audio(IGame game)
+    public AudioLib(IGame game)
     {
         _game = game;
         _game.EventEmitter.OnClose += OnClose;
     }
 
-    private static readonly LuaRegister[] AudioLib = new LuaRegister[]
+    private static readonly LuaRegister[] Library = new LuaRegister[]
     {
         new()
         {
@@ -85,7 +85,7 @@ public class Audio : IComponent
     private static int OpenLib(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-        L.NewLib(AudioLib);
+        L.NewLib(Library);
         return 1;
     }
 

@@ -21,9 +21,15 @@ using System.Collections.Concurrent;
 
 namespace Capy64.Runtime.Libraries;
 
-class Timer : IComponent
+class TimerLib : IComponent
 {
-    private readonly LuaRegister[] TimerLib = new LuaRegister[]
+    public class Timer
+    {
+        public int RemainingTicks = 0;
+        public TaskMeta.RuntimeTask? Task;
+    }
+
+    private readonly LuaRegister[] Library = new LuaRegister[]
     {
         new()
         {
@@ -47,21 +53,50 @@ class Timer : IComponent
     private static IGame _game;
     private static uint _timerId = 0;
 
-    private static readonly ConcurrentDictionary<uint, System.Timers.Timer> timers = new();
-    public Timer(IGame game)
+    private static readonly ConcurrentDictionary<uint, Timer> timers = new();
+    public TimerLib(IGame game)
     {
         _game = game;
+
+        _game.EventEmitter.OnTick += OnTick;
+    }
+
+    private void OnTick(object sender, Eventing.Events.TickEvent e)
+    {
+        if (e.IsActiveTick)
+        {
+            foreach (var t in timers)
+            {
+                var timer = t.Value;
+                timer.RemainingTicks--;
+                if (timer.RemainingTicks <= 0)
+                {
+                    if (timer.Task == null)
+                    {
+                        _game.LuaRuntime.QueueEvent("timer", lk =>
+                        {
+                            lk.PushInteger(t.Key);
+
+                            return 1;
+                        });
+                    }
+                    else
+                    {
+                        timer.Task.Fulfill(lk =>
+                        {
+                            lk.PushInteger(t.Key);
+                        });
+                    }
+
+                    timers.TryRemove(t.Key, out _);
+                }
+            }
+        }
     }
 
     public void LuaInit(Lua state)
     {
         _timerId = 0;
-
-        foreach (var pair in timers)
-        {
-            pair.Value.Stop();
-            pair.Value.Dispose();
-        }
 
         timers.Clear();
 
@@ -71,36 +106,23 @@ class Timer : IComponent
     private int Open(IntPtr state)
     {
         var l = Lua.FromIntPtr(state);
-        l.NewLib(TimerLib);
+        l.NewLib(Library);
         return 1;
     }
+
+
 
     private static int L_StartTimer(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
 
         var delay = L.CheckNumber(1);
-        L.ArgumentCheck(delay > 0, 1, "delay must be greater than 0");
 
         var timerId = _timerId++;
-        var timer = new System.Timers.Timer
+
+        timers[timerId] = new Timer
         {
-            AutoReset = false,
-            Enabled = true,
-            Interval = delay,
-        };
-
-        timers[timerId] = timer;
-
-        timer.Elapsed += (o, e) =>
-        {
-            _game.LuaRuntime.QueueEvent("timer", lk =>
-            {
-                lk.PushInteger(timerId);
-
-                return 1;
-            });
-            timers.TryRemove(timerId, out _);
+            RemainingTicks = (int)(delay * Capy64.Instance.TickRate)
         };
 
         L.PushInteger(timerId);
@@ -112,27 +134,15 @@ class Timer : IComponent
         var L = Lua.FromIntPtr(state);
 
         var delay = L.CheckNumber(1);
-        L.ArgumentCheck(delay > 0, 1, "delay must be greater than 0");
 
         var task = TaskMeta.Push(L, "timer");
 
         var timerId = _timerId++;
-        var timer = new System.Timers.Timer
-        {
-            AutoReset = false,
-            Enabled = true,
-            Interval = delay,
-        };
 
-        timers[timerId] = timer;
-
-        timer.Elapsed += (o, e) =>
+        timers[timerId] = new Timer
         {
-            task.Fulfill(lk =>
-            {
-                lk.PushInteger(timerId);
-            });
-            timers.TryRemove(timerId, out _);
+            RemainingTicks = (int)(delay * Capy64.Instance.TickRate),
+            Task = task,
         };
 
         return 1;

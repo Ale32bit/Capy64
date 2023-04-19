@@ -152,7 +152,7 @@ public class WebSocketClient : IComponent
                 });
             });
 
-        HTTP.WebSocketConnections.Remove(client);
+        HTTPLib.WebSocketConnections.Remove(client);
 
         return 0;
     }

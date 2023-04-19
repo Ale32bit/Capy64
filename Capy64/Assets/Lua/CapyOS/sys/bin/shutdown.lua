@@ -3,6 +3,6 @@ local machine = require("machine")
 
 print("Goodbye!")
 
-timer.sleep(1000)
+timer.sleep(1)
 
 machine.shutdown()

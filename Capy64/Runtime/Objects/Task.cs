@@ -255,7 +255,7 @@ public class TaskMeta : IComponent
 
     private static void WaitForTask(Lua L)
     {
-        L.PushCFunction(Libraries.Event.L_Pull);
+        L.PushCFunction(Libraries.EventLib.L_Pull);
         L.PushString("task_finish");
         L.CallK(1, 4, 0, LK_Await);
     }

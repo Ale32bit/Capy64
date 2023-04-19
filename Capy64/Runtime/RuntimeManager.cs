@@ -145,12 +145,12 @@ internal class RuntimeManager : IComponent
 
         emitter.Register();
 
-        if (!File.Exists(Path.Combine(FileSystem.DataPath, "init.lua")))
+        if (!File.Exists(Path.Combine(FileSystemLib.DataPath, "init.lua")))
         {
             throw new LuaException("Operating System not found\nMissing init.lua");
         }
 
-        var initContent = File.ReadAllText(Path.Combine(FileSystem.DataPath, "init.lua"));
+        var initContent = File.ReadAllText(Path.Combine(FileSystemLib.DataPath, "init.lua"));
         var status = luaState.Thread.LoadString(initContent, "=init.lua");
         if (status != LuaStatus.OK)
         {
@@ -180,14 +180,14 @@ internal class RuntimeManager : IComponent
         var installedFilePath = Path.Combine(Capy64.AppDataPath, ".installed");
         if (!File.Exists(installedFilePath) || force)
         {
-            FileSystem.CopyDirectory("Assets/Lua/CapyOS", FileSystem.DataPath, true, true);
+            FileSystemLib.CopyDirectory("Assets/Lua/CapyOS", FileSystemLib.DataPath, true, true);
             File.Create(installedFilePath).Dispose();
         }
     }
 
     private static int L_OpenDataFolder(IntPtr state)
     {
-        var path = FileSystem.DataPath;
+        var path = FileSystemLib.DataPath;
         switch (Environment.OSVersion.Platform)
         {
             case PlatformID.Win32NT:

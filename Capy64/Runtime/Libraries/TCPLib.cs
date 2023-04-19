@@ -19,17 +19,17 @@ using System.Net.Sockets;
 
 namespace Capy64.Runtime.Libraries;
 
-public class TCP : IComponent
+public class TCPLib : IComponent
 {
     private static int Counter = 0;
     private static IGame _game;
-    public TCP(IGame game)
+    public TCPLib(IGame game)
     {
         _game = game;
         Counter = 0;
     }
 
-    private static readonly LuaRegister[] TCPLib = new LuaRegister[]
+    private static readonly LuaRegister[] Library = new LuaRegister[]
     {
         new()
         {
@@ -47,7 +47,7 @@ public class TCP : IComponent
     public int OpenLib(nint state)
     {
         var L = Lua.FromIntPtr(state);
-        L.NewLib(TCPLib);
+        L.NewLib(Library);
         return 1;
     }
 

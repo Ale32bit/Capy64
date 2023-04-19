@@ -28,7 +28,7 @@ using System.Threading;
 
 namespace Capy64.Runtime.Libraries;
 #nullable enable
-public class HTTP : IComponent
+public class HTTPLib : IComponent
 {
     private static IGame _game;
     private static HttpClient _httpClient;
@@ -38,7 +38,7 @@ public class HTTP : IComponent
     public static readonly string UserAgent = $"Capy64/{Capy64.Version}";
 
     private static IConfiguration _configuration;
-    private readonly LuaRegister[] HttpLib = new LuaRegister[]
+    private readonly LuaRegister[] Library = new LuaRegister[]
     {
         new()
         {
@@ -57,7 +57,7 @@ public class HTTP : IComponent
         },
         new(),
     };
-    public HTTP(IGame game, IConfiguration configuration)
+    public HTTPLib(IGame game, IConfiguration configuration)
     {
         _game = game;
         _requestId = 0;
@@ -75,7 +75,7 @@ public class HTTP : IComponent
     private int Open(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
-        L.NewLib(HttpLib);
+        L.NewLib(Library);
         return 1;
     }
 

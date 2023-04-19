@@ -51,7 +51,7 @@ local function draw()
 end
 
 -- no idea why it's needed
-timer.sleep(1)
+timer.sleep(0)
 
 draw()
 

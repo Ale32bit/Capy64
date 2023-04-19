@@ -192,7 +192,7 @@ internal class Sandbox
         var errorMessage = new StringBuilder();
         foreach (var possiblePath in possiblePaths)
         {
-            var path = FileSystem.Resolve(possiblePath);
+            var path = FileSystemLib.Resolve(possiblePath);
             var info = new FileInfo(path);
             if (!info.Exists)
             {
@@ -229,7 +229,7 @@ internal class Sandbox
         bool hasMode = !L.IsNone(2);
         bool hasEnv = !L.IsNone(3);
 
-        var path = FileSystem.Resolve(filename);
+        var path = FileSystemLib.Resolve(filename);
 
         var fileInfo = new FileInfo(path);
         if (!fileInfo.Exists)

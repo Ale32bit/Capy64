@@ -21,7 +21,7 @@ local machine = require("machine")
 local audio = require("audio")
 local event = require("event")
 
-local bootSleep = 2000
+local bootSleep = 2
 local bg = 0x0
 local fg = 0xffffff
 

@@ -25,29 +25,29 @@ public class PanicScreen
 
     public static void Render(string error, string details = null)
     {
-        Term.ForegroundColor = ForegroundColor;
-        Term.BackgroundColor = BackgroundColor;
-        Term.SetCursorBlink(false);
-        Term.SetSize(57, 23);
-        Term.Clear();
+        TermLib.ForegroundColor = ForegroundColor;
+        TermLib.BackgroundColor = BackgroundColor;
+        TermLib.SetCursorBlink(false);
+        TermLib.SetSize(57, 23);
+        TermLib.Clear();
 
         var title = " Capy64 ";
-        var halfX = (Term.Width / 2) + 1;
-        Term.SetCursorPosition(halfX - (title.Length / 2), 2);
-        Term.ForegroundColor = BackgroundColor;
-        Term.BackgroundColor = ForegroundColor;
-        Term.Write(title);
+        var halfX = (TermLib.Width / 2) + 1;
+        TermLib.SetCursorPosition(halfX - (title.Length / 2), 2);
+        TermLib.ForegroundColor = BackgroundColor;
+        TermLib.BackgroundColor = ForegroundColor;
+        TermLib.Write(title);
 
-        Term.ForegroundColor = ForegroundColor;
-        Term.BackgroundColor = BackgroundColor;
-        Term.SetCursorPosition(1, 4);
+        TermLib.ForegroundColor = ForegroundColor;
+        TermLib.BackgroundColor = BackgroundColor;
+        TermLib.SetCursorPosition(1, 4);
         Print(error + '\n');
 
         if (details is not null)
         {
             Print(details);
         }
-        Term.SetCursorPosition(1, 23);
+        TermLib.SetCursorPosition(1, 23);
         Print("Hold CTRL + ALT + INSERT to reboot.");
     }
 
@@ -55,12 +55,12 @@ public class PanicScreen
     {
         foreach (var ch in txt)
         {
-            Term.Write(ch.ToString());
-            if (Term.CursorPosition.X >= Term.Width || ch == '\n')
+            TermLib.Write(ch.ToString());
+            if (TermLib.CursorPosition.X >= TermLib.Width || ch == '\n')
             {
-                Term.SetCursorPosition(1, (int)Term.CursorPosition.Y + 1);
+                TermLib.SetCursorPosition(1, (int)TermLib.CursorPosition.Y + 1);
             }
         }
-        Term.SetCursorPosition(1, (int)Term.CursorPosition.Y + 1);
+        TermLib.SetCursorPosition(1, (int)TermLib.CursorPosition.Y + 1);
     }
 }

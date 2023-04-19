@@ -24,11 +24,11 @@ using System.Linq;
 
 namespace Capy64.Runtime.Libraries;
 
-public class FileSystem : IComponent
+public class FileSystemLib : IComponent
 {
     public static string DataPath = Path.Combine(Capy64.AppDataPath, "data");
 
-    public FileSystem()
+    public FileSystemLib()
     {
         if (!Directory.Exists(DataPath))
         {
@@ -37,7 +37,7 @@ public class FileSystem : IComponent
     }
 
     // functions to add to the library, always end libraries with null
-    private readonly LuaRegister[] FsLib = new LuaRegister[] {
+    private readonly LuaRegister[] Library = new LuaRegister[] {
         new()
         {
             name = "list",
@@ -120,7 +120,7 @@ public class FileSystem : IComponent
     private int Open(IntPtr state)
     {
         var l = Lua.FromIntPtr(state);
-        l.NewLib(FsLib);
+        l.NewLib(Library);
         return 1;
     }
 

@@ -25,16 +25,16 @@ using System.Threading.Tasks;
 
 namespace Capy64.Runtime.Libraries;
 
-public class GPU : IComponent
+public class GPULib : IComponent
 {
 
     private static IGame _game;
-    public GPU(IGame game)
+    public GPULib(IGame game)
     {
         _game = game;
     }
 
-    private readonly LuaRegister[] gpuLib = new LuaRegister[] {
+    private readonly LuaRegister[] Library = new LuaRegister[] {
         new()
         {
             name = "getSize",
@@ -141,7 +141,7 @@ public class GPU : IComponent
     public int OpenLib(IntPtr state)
     {
         var l = Lua.FromIntPtr(state);
-        l.NewLib(gpuLib);
+        l.NewLib(Library);
         return 1;
     }
 
@@ -483,7 +483,7 @@ public class GPU : IComponent
 
         var path = L.CheckString(1);
 
-        path = FileSystem.Resolve(path);
+        path = FileSystemLib.Resolve(path);
 
         if (!File.Exists(path))
         {

@@ -30,7 +30,7 @@ local function melt()
         end
         gpu.setBuffer(buffer)
 
-        timer.delay(10):await()
+        timer.delay(0):await()
     end
 end
 
@@ -66,7 +66,7 @@ local function random()
             )
         end
 
-        timer.delay(100):await()
+        timer.delay(0.1):await()
     end
 end
 
