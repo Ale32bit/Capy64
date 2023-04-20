@@ -94,9 +94,13 @@ public class MachineLib : IComponent
         return 0;
     }
 
-    private static int L_Reboot(IntPtr _)
+    private static int L_Reboot(IntPtr state)
     {
+        var L = Lua.FromIntPtr(state);
+
         RuntimeManager.Reboot();
+
+        L.Yield(0);
 
         return 0;
     }
