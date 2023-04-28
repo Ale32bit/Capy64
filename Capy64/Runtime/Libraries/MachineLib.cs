@@ -189,13 +189,20 @@ public class MachineLib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var left = (float)L.CheckNumber(1);
-        var right = (float)L.OptNumber(2, left);
+        var lMotor = (float)L.CheckNumber(1);
+        var rMotor = (float)L.OptNumber(2, lMotor);
 
-        left = Math.Clamp(left, 0, 1);
-        right = Math.Clamp(right, 0, 1);
+        var lTrigger = (float)L.OptNumber(3, 0);
+        var rTrigger = (float)L.OptNumber(4, lTrigger);
+        
 
-        GamePad.SetVibration(PlayerIndex.One, left, right);
+        lMotor = Math.Clamp(lMotor, 0, 1);
+        rMotor = Math.Clamp(rMotor, 0, 1);
+
+        lTrigger = Math.Clamp(lTrigger, 0, 1);
+        rTrigger = Math.Clamp(rTrigger, 0, 1);
+
+        GamePad.SetVibration(PlayerIndex.One, lMotor, rMotor, lTrigger, rTrigger);
 
         return 0;
     }
