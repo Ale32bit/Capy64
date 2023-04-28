@@ -39,16 +39,6 @@ public class EventLib : IComponent
     {
         new()
         {
-            name = "pull",
-            function = L_Pull,
-        },
-        new()
-        {
-            name = "pullRaw",
-            function = L_PullRaw
-        },
-        new()
-        {
             name = "push",
             function = L_Push,
         },
@@ -90,50 +80,6 @@ public class EventLib : IComponent
         var L = Lua.FromIntPtr(state);
         L.NewLib(Library);
         return 1;
-    }
-
-    private static int LK_Pull(IntPtr state, int status, IntPtr ctx)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        if (L.ToString(1) == "interrupt")
-        {
-            L.Error("interrupt");
-        }
-
-        var nargs = L.GetTop();
-
-        return nargs;
-    }
-
-    public static int L_Pull(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        var nargs = L.GetTop();
-        for (int i = 1; i <= nargs; i++)
-        {
-            L.CheckString(i);
-        }
-
-        L.YieldK(nargs, 0, LK_Pull);
-
-        return 0;
-    }
-
-    private static int L_PullRaw(IntPtr state)
-    {
-        var L = Lua.FromIntPtr(state);
-
-        var nargs = L.GetTop();
-        for (int i = 1; i <= nargs; i++)
-        {
-            L.CheckString(i);
-        }
-
-        L.Yield(nargs);
-
-        return 0;
     }
 
     private static int L_Push(IntPtr state)
