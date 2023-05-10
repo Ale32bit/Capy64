@@ -113,6 +113,8 @@ internal class RuntimeManager : IComponent
 
         emitter.Register();
 
+        LoadFirmware();
+
         luaState.Thread.PushCFunction(L_OpenDataFolder);
         luaState.Thread.SetGlobal("openDataFolder");
 
@@ -145,6 +147,8 @@ internal class RuntimeManager : IComponent
 
         emitter.Register();
 
+        LoadFirmware();
+
         if (!File.Exists(Path.Combine(FileSystemLib.DataPath, "init.lua")))
         {
             throw new LuaException("Operating System not found\nMissing init.lua");
@@ -153,6 +157,16 @@ internal class RuntimeManager : IComponent
         var initContent = File.ReadAllText(Path.Combine(FileSystemLib.DataPath, "init.lua"));
         var status = luaState.Thread.LoadString(initContent, "=init.lua");
         if (status != LuaStatus.OK)
+        {
+            throw new LuaException(luaState.Thread.ToString(-1));
+        }
+    }
+
+    private void LoadFirmware()
+    {
+        var firmwareContent = File.ReadAllText("Assets/Lua/firmware.lua");
+        var errored = luaState.Thread.DoString(firmwareContent);
+        if(errored)
         {
             throw new LuaException(luaState.Thread.ToString(-1));
         }
