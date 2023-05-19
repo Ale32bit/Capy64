@@ -121,6 +121,20 @@ internal class Sandbox
         L.SetTable(-3);
 
         L.Pop(1);
+
+        // Replace debug.debug with a dummy function to avoid stalling the program
+        L.GetGlobal("debug");
+
+        L.PushString("debug");
+        L.PushCFunction(L_Dummy);
+        L.SetTable(-3);
+
+        L.Pop(1);
+    }
+    
+    internal static int L_Dummy(IntPtr state)
+    {
+        return 0;
     }
 
     internal static int L_Searcher(IntPtr state)

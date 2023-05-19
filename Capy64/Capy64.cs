@@ -41,7 +41,6 @@ public enum EngineMode
     Free
 }
 
-
 public class Capy64 : Game, IGame
 {
     public const string Version = "1.0.0-beta";
@@ -59,18 +58,20 @@ public class Capy64 : Game, IGame
     }
 
 
-    public static string AppDataPath
-    {
-        get
-        {
+    public static string AppDataPath {
+        get {
             string baseDir =
-                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create) :
-                RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) :
-                RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) :
-                    "./";
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ?
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create)
+                    : RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                        ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData,
+                            Environment.SpecialFolderOption.Create)
+                        : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                            ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData,
+                                Environment.SpecialFolderOption.Create)
+                            :
+                            "./";
 
             return Path.Combine(baseDir, "Capy64");
         }
@@ -92,13 +93,14 @@ public class Capy64 : Game, IGame
     public int TickRate => tickrate;
 
     public Color BorderColor { get; set; } = Color.Black;
-    public Borders Borders = new()
-    {
+
+    public Borders Borders = new() {
         Top = 0,
         Bottom = 0,
         Left = 0,
         Right = 0,
     };
+
     public SpriteBatch SpriteBatch;
 
 
@@ -147,6 +149,7 @@ public class Capy64 : Game, IGame
                 Window.AllowUserResizing = true;
                 break;
         }
+
         UpdateSize(true);
     }
 
@@ -199,14 +202,12 @@ public class Capy64 : Game, IGame
             ResetBorder();
             UpdateSize();
         }
-
     }
 
     private void ResetBorder()
     {
         var size = (int)(Scale * DefaultParameters.BorderMultiplier);
-        Borders = new Borders
-        {
+        Borders = new Borders {
             Top = size,
             Bottom = size,
             Left = size,
@@ -256,6 +257,7 @@ public class Capy64 : Game, IGame
             var instance = (IComponent)ActivatorUtilities.CreateInstance(_serviceProvider, type)!;
             plugins.Add(instance);
         }
+
         return plugins;
     }
 
@@ -272,11 +274,10 @@ public class Capy64 : Game, IGame
         // Register user input
         _inputManager.Update(IsActive);
 
-        EventEmitter.RaiseTick(new()
-        {
+        EventEmitter.RaiseTick(new() {
             GameTime = gameTime,
             TotalTicks = _totalTicks,
-            IsActiveTick = (int)_totalTicks % everyTick  == 0,
+            IsActiveTick = (int)_totalTicks % everyTick == 0,
         });
 
         Drawing.End();
@@ -292,12 +293,13 @@ public class Capy64 : Game, IGame
         GraphicsDevice.Clear(BorderColor);
 
         SpriteBatch.DrawRectangle(renderTarget.Bounds.Location.ToVector2() + new Vector2(Borders.Left, Borders.Top),
-            new Size2(renderTarget.Bounds.Width * Scale, renderTarget.Bounds.Height * Scale), Color.Black, Math.Min(renderTarget.Bounds.Width, renderTarget.Bounds.Height), 0);
+            new Size2(renderTarget.Bounds.Width * Scale, renderTarget.Bounds.Height * Scale), Color.Black,
+            Math.Min(renderTarget.Bounds.Width, renderTarget.Bounds.Height), 0);
 
-        SpriteBatch.Draw(renderTarget, new(Borders.Left, Borders.Top), null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0);
+        SpriteBatch.Draw(renderTarget, new(Borders.Left, Borders.Top), null, Color.White, 0f, Vector2.Zero, Scale,
+            SpriteEffects.None, 0);
 
-        EventEmitter.RaiseOverlay(new()
-        {
+        EventEmitter.RaiseOverlay(new() {
             GameTime = gameTime,
             TotalTicks = _totalTicks,
         });
