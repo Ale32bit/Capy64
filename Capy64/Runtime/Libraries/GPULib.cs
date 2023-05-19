@@ -466,13 +466,107 @@ public class GPULib : IComponent
         var x = (int)L.CheckInteger(2) - 1;
         var y = (int)L.CheckInteger(3) - 1;
 
+        Rectangle? source = null;
+        Color color = Color.White;
+        float rotation = 0;
+        Vector2 origin = Vector2.Zero;
+        Vector2 scale = Vector2.One;
+        SpriteEffects effects = SpriteEffects.None;
+
+        if (L.IsTable(4))
+        {
+            if (L.GetField(-1, "source") == LuaType.Table)
+            {
+                int sx, sy, sw, sh;
+
+                if (L.GetInteger(-1, 1) != LuaType.Number)
+                    L.CheckNumber(-1);
+                sx = (int)L.ToNumber(-1);
+                L.Pop(1);
+
+                if (L.GetInteger(-1, 2) != LuaType.Number)
+                    L.CheckNumber(-1);
+                sy = (int)L.ToNumber(-1);
+                L.Pop(1);
+
+                if (L.GetInteger(-1, 3) != LuaType.Number)
+                    L.CheckNumber(-1);
+                sw = (int)L.ToNumber(-1);
+                L.Pop(1);
+
+                if (L.GetInteger(-1, 4) != LuaType.Number)
+                    L.CheckNumber(-1);
+                sh = (int)L.ToNumber(-1);
+                L.Pop(1);
+
+                source = new(sx, sy, sw, sh);
+            }
+            L.Pop(1);
+
+            if (L.GetField(-1, "color") == LuaType.Number)
+            {
+                var c = (uint)L.ToNumber(-1);
+                GetColor(c, out var r, out var g, out var b);
+                color = new Color(r, g, b);
+            }
+            L.Pop(1);
+
+            if (L.GetField(-1, "rotation") == LuaType.Number)
+            {
+                rotation = (float)L.ToNumber(-1);
+            }
+            L.Pop(1);
+
+            if (L.GetField(-1, "origin") == LuaType.Table)
+            {
+                int ox, oy;
+
+                if (L.GetInteger(-1, 1) != LuaType.Number)
+                    L.CheckNumber(-1);
+                ox = (int)L.ToNumber(-1);
+                L.Pop(1);
+
+                if (L.GetInteger(-1, 2) != LuaType.Number)
+                    L.CheckNumber(-1);
+                oy = (int)L.ToNumber(-1);
+                L.Pop(1);
+
+                origin = new Vector2(ox, oy);
+            }
+            L.Pop(1);
+
+            if(L.GetField(-1, "scale") == LuaType.Table)
+            {
+                float sx = 1;
+                float sy = 1;
+
+                if (L.GetInteger(-1, 1) == LuaType.Number)
+                    sx = (float)L.ToNumber(-1);
+                L.Pop(1);
+
+                if (L.GetInteger(-1, 2) == LuaType.Number)
+                    sy = (float)L.ToNumber(-1);
+                L.Pop(1);
+
+                scale = new(sx, sy);
+            }
+            L.Pop(1);
+
+            if(L.GetField(-1, "effects") == LuaType.Number)
+            {
+                var flags = L.CheckInteger(-1);
+                effects = (SpriteEffects)flags;
+            }
+            L.Pop(1);
+        }
+
         _game.Drawing.DrawBuffer(buffer.Buffer, new()
         {
             X = x,
             Y = y,
             Width = buffer.Width,
             Height = buffer.Height,
-        });
+        }, source, color, rotation, origin, scale, effects);
 
         return 0;
     }

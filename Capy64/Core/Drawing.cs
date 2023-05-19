@@ -201,7 +201,7 @@ public class Drawing : IDisposable
         _spriteBatch.Draw(_whitePixel, position3, null, color, rotation, Vector2.Zero, scale, SpriteEffects.None, layerDepth);
     }
 
-    public void DrawBuffer(uint[] buffer, Rectangle rect, Rectangle? source = null, Color? color = null, float rotation = 0f, Vector2? origin = null, float scale = 1f, SpriteEffects spriteEffects = 0)
+    public void DrawBuffer(uint[] buffer, Rectangle rect, Rectangle? source = null, Color? color = null, float rotation = 0f, Vector2? origin = null, Vector2? scale = null, SpriteEffects spriteEffects = 0)
     {
         var texture = new Texture2D(_graphicsDevice, rect.Width, rect.Height, false, SurfaceFormat.Color);
         texture.SetData(buffer);
@@ -213,7 +213,7 @@ public class Drawing : IDisposable
             color ?? Color.White, // Color
             rotation, // Rotation
             origin ?? Vector2.Zero, // Origin
-            scale, // Scale
+            scale ?? Vector2.One, // Scale
             spriteEffects, // Flip effects
             0f // layer depth
         );
