@@ -29,7 +29,7 @@ public class Audio : IDisposable
         Noise
     }
 
-    public const int SampleRate = 16000;
+    public const int SampleRate = 24000;
     public const int HQSampleRate = 48000;
     public const AudioChannels AudioChannel = AudioChannels.Mono;
     public const int ChannelsCount = 8;
@@ -126,6 +126,7 @@ public class Audio : IDisposable
 
     public TimeSpan SubmitHQ(byte[] buffer)
     {
+        
         HQChannel.SubmitBuffer(buffer);
         return HQChannel.GetSampleDuration(buffer.Length);
     }

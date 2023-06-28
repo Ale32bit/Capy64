@@ -99,6 +99,10 @@ internal class TermLib : IComponent
             name = "setSize",
             function = L_SetSize,
         },
+        new() {
+            name = "isResizable",
+            function = L_IsResizable,
+        },
         new()
         {
             name = "getForeground",
@@ -397,8 +401,7 @@ internal class TermLib : IComponent
 
         if (_game.EngineMode == EngineMode.Classic)
         {
-            L.PushBoolean(false);
-            return 1;
+            return L.Error("Terminal is not resizable");
         }
 
         var w = (int)L.CheckNumber(1);
@@ -416,6 +419,15 @@ internal class TermLib : IComponent
         SetSize(w, h);
 
         L.PushBoolean(true);
+        return 1;
+    }
+
+    private static int L_IsResizable(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        L.PushBoolean(_game.EngineMode != EngineMode.Classic);
+
         return 1;
     }
 

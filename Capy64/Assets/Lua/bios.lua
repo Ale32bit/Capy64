@@ -29,7 +29,9 @@ term.setForeground(fg)
 term.setBackground(bg)
 term.clear()
 
-term.setSize(53, 20)
+if term.isResizable() then
+	term.setSize(53, 20)
+end
 
 local w, h = term.getSize()
 

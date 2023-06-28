@@ -97,17 +97,4 @@ public static class Utils
         }
         return 1;
     }
-
-    [Obsolete("This method does not work as intended and requires more research")]
-    public static void PushManagedObject<T>(this Lua L, T obj)
-    {
-        var type = obj.GetType();
-        var members = type.GetMembers().Where(m => m.MemberType == MemberTypes.Method);
-        L.CreateTable(0, members.Count());
-        foreach (var m in members)
-        {
-            L.PushCFunction(L => (int)type.InvokeMember(m.Name, BindingFlags.InvokeMethod, null, obj, new object[] { L }));
-            L.SetField(-2, m.Name);
-        }
-    }
 }

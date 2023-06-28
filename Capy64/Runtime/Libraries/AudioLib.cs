@@ -103,12 +103,14 @@ public class AudioLib : IComponent
         {
             L.CheckType(1, LuaType.Table);
             var len = L.RawLen(1);
-            buffer = new byte[len];
+            buffer = new byte[len * 2];
             for (int i = 1; i <= len; i++)
             {
                 L.GetInteger(1, i);
-                var value = L.CheckInteger(-1);
-                buffer[i - 1] = (byte)value;
+                // Convert 8bit PCM to 16bit PCM
+                var value = (short)(L.CheckNumber(-1) / sbyte.MaxValue * short.MaxValue);
+                buffer[2 * i - 2] = (byte)(value & 0xff);
+                buffer[2 * i - 1] = (byte)(value >> 8);
                 L.Pop(1);
             }
         }

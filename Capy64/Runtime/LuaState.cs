@@ -60,7 +60,6 @@ public class LuaState : IDisposable
         if (yieldTimedOut)
         {
             L.Error("no yield timeout");
-            Console.WriteLine("tick");
         }
     }
 

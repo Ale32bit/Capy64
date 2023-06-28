@@ -32,16 +32,30 @@ public class ObjectManager : IComponent
         _game.EventEmitter.OnClose += OnClose;
     }
 
-    public static void PushObject<T>(Lua L, T obj)
+    public static nint PushObject<T>(Lua L, T obj)
     {
         if (obj == null)
         {
             L.PushNil();
-            return;
+            return nint.Zero;
         }
 
         var p = L.NewUserData(1);
         _objects[p] = obj;
+        return p;
+    }
+
+    public static T GetObject<T>(nint address, bool freeGCHandle = false)
+    {
+        if (!_objects.ContainsKey(address))
+            return default(T);
+
+        var reference = (T)_objects[address];
+
+        if (freeGCHandle)
+            _objects.Remove(address, out _);
+
+        return reference;
     }
 
     public static T ToObject<T>(Lua L, int index, bool freeGCHandle = true)

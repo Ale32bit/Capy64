@@ -138,7 +138,11 @@ public class EventLib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var task = TaskMeta.CheckTask(L, false);
+        L.CheckType(1, LuaType.Table);
+
+        L.GetField(1, "task");
+
+        var task = TaskMeta.CheckTask(L, -1, false);
         L.CheckAny(2);
         L.ArgumentCheck(!L.IsNil(2), 2, "value cannot be nil");
 
@@ -164,7 +168,11 @@ public class EventLib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var task = TaskMeta.CheckTask(L, false);
+        L.CheckType(1, LuaType.Table);
+
+        L.GetField(1, "task");
+
+        var task = TaskMeta.CheckTask(L, -1, false);
         var error = L.CheckString(2);
 
         if (!task.UserTask)

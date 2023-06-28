@@ -26,7 +26,7 @@ class TimerLib : IComponent
     public class Timer
     {
         public int RemainingTicks = 0;
-        public TaskMeta.RuntimeTask? Task;
+        public TaskMeta.RuntimeTask Task = null!;
     }
 
     private readonly LuaRegister[] Library = new LuaRegister[]

@@ -47,6 +47,11 @@ public class GPULib : IComponent
         },
         new()
         {
+            name = "isResizable",
+            function = L_IsResizable,
+        },
+        new()
+        {
             name = "getPixel",
             function = L_GetPixel,
         },
@@ -117,6 +122,11 @@ public class GPULib : IComponent
         },
         new()
         {
+            name = "bufferFrom",
+            function = L_BufferFrom,
+        },
+        new()
+        {
             name = "drawBuffer",
             function = L_DrawBuffer,
         },
@@ -168,8 +178,7 @@ public class GPULib : IComponent
 
         if (_game.EngineMode == EngineMode.Classic)
         {
-            L.PushBoolean(false);
-            return 1;
+            return L.Error("Screen is not resizable");
         }
 
         var w = L.CheckInteger(1);
@@ -181,6 +190,15 @@ public class GPULib : IComponent
         _game.UpdateSize();
 
         L.PushBoolean(true);
+
+        return 1;
+    }
+
+    private static int L_IsResizable(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        L.PushBoolean(_game.EngineMode != EngineMode.Classic);
 
         return 1;
     }
@@ -457,6 +475,57 @@ public class GPULib : IComponent
         return 1;
     }
 
+    private static int L_BufferFrom(IntPtr state)
+    {
+        var L = Lua.FromIntPtr(state);
+
+        L.CheckType(1, LuaType.Table);
+        var width = (int)L.CheckInteger(2);
+        var height = (int)L.CheckInteger(3);
+
+        if (width <= 0)
+        {
+            return L.ArgumentError(2, "width must be a positive integer.");
+        }
+
+        if (height <= 0)
+        {
+            return L.ArgumentError(3, "height must be a positive integer.");
+        }
+
+        var buffer = new uint[width * height];
+
+        var tableSize = L.RawLen(1);
+        L.ArgumentCheck(tableSize == buffer.Length, 1, "table length does not match buffer size");
+
+        for (int i = 1; i <= tableSize; i++)
+        {
+            L.GetInteger(1, i);
+            var value = (uint)L.CheckInteger(-1);
+            L.Pop(1);
+            // ARGB to ABGR
+            value =
+                (value & 0xFF_00_00_00U) |
+                ((value & 0x00_FF_00_00U) >> 16) | // move R
+                (value & 0x00_00_FF_00U) |       // move G
+                ((value & 0x00_00_00_FFU) << 16); // move B
+
+            buffer[i - 1] = value;
+        }
+
+        var gpuBuffer = new GPUBufferMeta.GPUBuffer
+        {
+            Buffer = buffer,
+            Width = width,
+            Height = height,
+        };
+
+        ObjectManager.PushObject(L, gpuBuffer);
+        L.SetMetaTable(GPUBufferMeta.ObjectType);
+
+        return 1;
+    }
+
     private static int L_DrawBuffer(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
@@ -535,7 +604,7 @@ public class GPULib : IComponent
             }
             L.Pop(1);
 
-            if(L.GetField(-1, "scale") == LuaType.Table)
+            if (L.GetField(-1, "scale") == LuaType.Table)
             {
                 float sx = 1;
                 float sy = 1;
@@ -552,7 +621,7 @@ public class GPULib : IComponent
             }
             L.Pop(1);
 
-            if(L.GetField(-1, "effects") == LuaType.Number)
+            if (L.GetField(-1, "effects") == LuaType.Number)
             {
                 var flags = L.CheckInteger(-1);
                 effects = (SpriteEffects)flags;

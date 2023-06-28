@@ -43,6 +43,7 @@ public class TaskMeta : IComponent
         }
 
         public Guid Guid { get; set; } = Guid.NewGuid();
+        public nint Pointer { get; set; } = nint.Zero;
         public string Name { get; set; }
         public TaskStatus Status { get; set; } = TaskStatus.Running;
         public string Error { get; private set; }
@@ -78,7 +79,6 @@ public class TaskMeta : IComponent
             {
                 DataIndex = tasks.GetTop();
             }
-
 
             _game.LuaRuntime.QueueEvent("task_finish", LK =>
             {
@@ -203,26 +203,58 @@ public class TaskMeta : IComponent
 
         var task = new RuntimeTask(typeName);
 
-        ObjectManager.PushObject(L, task);
+        L.NewTable();
+        task.Pointer = ObjectManager.PushObject(L, task);
+        L.SetMetaTable(ObjectType);
+        L.SetField(-2, "task");
+
         L.SetMetaTable(ObjectType);
 
         return task;
     }
 
-    public static RuntimeTask ToTask(Lua L, bool gc = false)
+    public static RuntimeTask ToTask(Lua L, int index = 1, bool gc = false)
     {
-        return ObjectManager.ToObject<RuntimeTask>(L, 1, gc);
+        RuntimeTask task;
+        if (L.Type(index) != LuaType.Table)
+        {
+            if (L.TestUserData(index, ObjectType) == nint.Zero)
+            {
+                return null;
+            }
+            else
+            {
+                task = ObjectManager.ToObject<RuntimeTask>(L, index, gc);
+
+            }
+        }
+        else
+        {
+            L.GetField(index, "task");
+            task = task = ObjectManager.ToObject<RuntimeTask>(L, -1, gc);
+        }
+        return task;
     }
 
-    public static RuntimeTask CheckTask(Lua L, bool gc = false)
+    public static RuntimeTask CheckTask(Lua L, int index = 1, bool gc = false)
     {
-        var obj = ObjectManager.CheckObject<RuntimeTask>(L, 1, ObjectType, gc);
-        if (obj is null)
+        RuntimeTask task;
+        if (L.Type(index) != LuaType.Table)
+        {
+            task = ObjectManager.CheckObject<RuntimeTask>(L, index, ObjectType, gc);
+        }
+        else
+        {
+            L.GetField(index, "task");
+            task = ObjectManager.CheckObject<RuntimeTask>(L, -1, ObjectType, gc);
+        }
+
+        if (task is null)
         {
             L.Error("attempt to use a closed task");
             return null;
         }
-        return obj;
+        return task;
     }
 
     private static int FindSpot()
@@ -268,7 +300,7 @@ public class TaskMeta : IComponent
 
         L.Warning("Native task awaiter should be avoided", false);
 
-        var task = CheckTask(L, false);
+        var task = CheckTask(L, 1, false);
 
         if (task.Status == TaskStatus.Succeeded)
         {
@@ -295,7 +327,9 @@ public class TaskMeta : IComponent
     private static int LK_Await(IntPtr state, int status, nint ctx)
     {
         var L = Lua.FromIntPtr(state);
-        var task = CheckTask(L, false);
+
+        var task = CheckTask(L, 1, false);
+
         var taskId = L.CheckString(3);
 
         if (task.Guid.ToString() != taskId)
@@ -311,7 +345,7 @@ public class TaskMeta : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var task = CheckTask(L, false);
+        var task = CheckTask(L, 1, false);
 
         L.PushString(task.Guid.ToString());
 
@@ -322,7 +356,7 @@ public class TaskMeta : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var task = CheckTask(L, false);
+        var task = CheckTask(L, 1, false);
 
         L.PushString(task.Name);
 
@@ -333,7 +367,7 @@ public class TaskMeta : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var task = CheckTask(L, false);
+        var task = CheckTask(L, 1, false);
 
         L.PushString(task.Status.ToString().ToLower());
 
@@ -344,7 +378,7 @@ public class TaskMeta : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var task = CheckTask(L, false);
+        var task = CheckTask(L, 1, false);
 
         if (task.Status == TaskStatus.Succeeded)
         {
@@ -364,7 +398,7 @@ public class TaskMeta : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var task = CheckTask(L, false);
+        var task = CheckTask(L, 1, false);
 
         if (task.Status == TaskStatus.Failed)
         {
@@ -382,7 +416,11 @@ public class TaskMeta : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var task = ToTask(L, true);
+        L.CheckType(1, LuaType.Table);
+
+        L.GetField(1, "task");
+
+        var task = CheckTask(L, -1, true);
         if (task is null)
             return 0;
 
@@ -400,7 +438,9 @@ public class TaskMeta : IComponent
     private static int LM_ToString(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
+
         var task = ToTask(L);
+
         L.PushString("Task<{0}>: {1} ({2})", task?.Name, task?.Guid, task?.Status);
 
         return 1;

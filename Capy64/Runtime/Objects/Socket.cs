@@ -29,10 +29,10 @@ public class Socket : IDisposable
 
 public class SocketLib : IComponent
 {
-    private static readonly IGame _game;
+    private static IGame _game = null!;
     public SocketLib(IGame game)
     {
-
+        _game = game;
     }
 
     private static readonly LuaRegister[] Methods = new LuaRegister[] {

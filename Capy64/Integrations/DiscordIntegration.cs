@@ -25,6 +25,7 @@ namespace Capy64.Integrations;
 public class DiscordIntegration : IComponent
 {
     public DiscordRpcClient Client { get; private set; }
+    public readonly bool Enabled;
     private readonly IConfiguration _configuration;
 
     public DiscordIntegration(IConfiguration configuration)
@@ -32,6 +33,8 @@ public class DiscordIntegration : IComponent
         _configuration = configuration;
 
         var discordConfig = _configuration.GetSection("Integrations:Discord");
+        Enabled = discordConfig.GetValue("Enable", false);
+
         Client = new(discordConfig["ApplicationId"])
         {
             Logger = new ConsoleLogger() { Level = LogLevel.Warning }
@@ -41,15 +44,16 @@ public class DiscordIntegration : IComponent
 
         Capy64.Instance.Discord = this;
 
-        if (discordConfig.GetValue("Enable", false))
-        {
+        if (Enabled)
             Client.Initialize();
-        }
     }
 
 #nullable enable
     public void SetPresence(string details, string? state = null)
     {
+        if (!Enabled)
+            return;
+
         Client.SetPresence(new RichPresence()
         {
             Details = details,
