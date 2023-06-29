@@ -89,6 +89,14 @@ public class AudioLib : IComponent
         return 1;
     }
 
+    // Convert 8bit PCM to 16bit PCM
+    private static void PCMTo16bit(Span<byte> buffer, int i, byte value)
+    {
+        var value16bit = value / sbyte.MaxValue * short.MaxValue;
+        buffer[2 * i - 2] = (byte)(value16bit & 0xff);
+        buffer[2 * i - 1] = (byte)(value16bit >> 8);
+    }
+
     private static int L_Play(IntPtr state)
     {
         var L = Lua.FromIntPtr(state);
@@ -97,20 +105,24 @@ public class AudioLib : IComponent
 
         if (L.IsString(1))
         {
-            buffer = L.CheckBuffer(1);
+            var inputBuffer = L.CheckBuffer(1);
+            buffer = new byte[inputBuffer.Length * 2];
+            var span = new Span<byte>(buffer);
+            for (int i = 1; i < inputBuffer.Length; i++)
+            {
+                PCMTo16bit(span, i, inputBuffer[i]);
+            }
         }
         else
         {
             L.CheckType(1, LuaType.Table);
             var len = L.RawLen(1);
             buffer = new byte[len * 2];
+            var span = new Span<byte>(buffer);
             for (int i = 1; i <= len; i++)
             {
                 L.GetInteger(1, i);
-                // Convert 8bit PCM to 16bit PCM
-                var value = (short)(L.CheckNumber(-1) / sbyte.MaxValue * short.MaxValue);
-                buffer[2 * i - 2] = (byte)(value & 0xff);
-                buffer[2 * i - 1] = (byte)(value >> 8);
+                PCMTo16bit(span, i, (byte)L.CheckNumber(-1));
                 L.Pop(1);
             }
         }
@@ -135,7 +147,12 @@ public class AudioLib : IComponent
             L.Error(ex.Message);
         }
 
-        return 0;
+        var playTime = _game.Audio.HQChannel.GetSampleDuration(buffer.Length);
+
+        L.PushBoolean(true);
+        L.PushNumber(playTime.TotalSeconds);
+
+        return 2;
     }
 
     private static int L_Beep(IntPtr state)
