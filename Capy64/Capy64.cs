@@ -43,7 +43,7 @@ public enum EngineMode
 
 public class Capy64 : Game, IGame
 {
-    public const string Version = "1.0.0-beta";
+    public const string Version = "1.1.0-beta";
 
     public static class DefaultParameters
     {

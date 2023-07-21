@@ -14,4 +14,4 @@ end
 local color = colors[math.random(1, #colors)]
 
 term.setForeground(color)
-slowPrint("Hello, World!", 50)
+slowPrint("Hello, World!", 0.05)

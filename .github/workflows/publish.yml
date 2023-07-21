@@ -33,7 +33,7 @@ jobs:
         run: dotnet test --no-build --verbosity normal
 
       - name: Publish for Windows x64
-        run: dotnet publish Capy64/Capy64.csproj -c Release --no-self-contained -a x64 --os win -p:PublishSingleFile=true -o capy64-windows-x64
+        run: dotnet publish Capy64/Capy64.csproj -c Release -a x64 --os win -p:PublishReadyToRun=false -p:PublishSingleFile=true -p:TieredCompilation=false -o capy64-windows-x64 --self-contained
 
       - name: Upload Windows x64 artifact
         uses: actions/upload-artifact@v3.1.2
@@ -64,7 +64,7 @@ jobs:
         run: dotnet test --no-build --verbosity normal
 
       - name: Publish for Linux x64
-        run: dotnet publish Capy64/Capy64.csproj -c Release --no-self-contained -a x64 --os linux -p:PublishSingleFile=true -o capy64-linux-x64
+        run: dotnet publish Capy64/Capy64.csproj -c Release -a x64 --os linux -p:PublishReadyToRun=false -p:PublishSingleFile=true -p:TieredCompilation=false -o capy64-linux-x64 --self-contained
 
       - name: Upload Linux x64 artifact
         uses: actions/upload-artifact@v3.1.2
