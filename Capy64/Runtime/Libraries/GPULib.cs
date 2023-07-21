@@ -157,8 +157,6 @@ public class GPULib : IComponent
 
     public static void GetColor(uint c, out byte r, out byte g, out byte b)
     {
-        /*if (_game.EngineMode == EngineMode.Classic)
-            c = ColorPalette.GetColor(c);*/
         Utils.UnpackRGB(c, out r, out g, out b);
     }
 

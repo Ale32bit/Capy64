@@ -150,6 +150,8 @@ public class Capy64 : Game, IGame
                 break;
         }
 
+        EngineMode = mode;
+
         UpdateSize(true);
     }
 
@@ -179,6 +181,11 @@ public class Capy64 : Game, IGame
 
     private void OnWindowSizeChange(object sender, EventArgs e)
     {
+        if (EngineMode == EngineMode.Classic) {
+            UpdateSize(true);
+            return;
+        }
+
         var bounds = Window.ClientBounds;
 
         Width = (int)(bounds.Width / Scale);

@@ -200,7 +200,7 @@ public class FileHandle : IComponent
             return 2;
         }
 
-        return G_Read(L, stream, 1);
+        return G_Read(L, stream, 2);
     }
 
     private static int G_Read(Lua L, Stream f, int first)
