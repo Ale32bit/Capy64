@@ -54,7 +54,7 @@ public class Drawing : IDisposable
     public Drawing()
     {
         _fontSystem = new FontSystem();
-        _fontSystem.AddFont(File.ReadAllBytes(@"Assets/font.ttf"));
+        _fontSystem.AddFont(File.ReadAllBytes(Path.Combine(Capy64.AssetsPath, "font.ttf")));
     }
 
     public void Begin()
