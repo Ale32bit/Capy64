@@ -14,13 +14,10 @@
 // limitations under the License.
 
 using KeraLua;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Capy64.API;
 
 public interface IComponent
 {
-    void ConfigureServices(IServiceCollection services) { }
     void LuaInit(Lua L) { }
-
 }

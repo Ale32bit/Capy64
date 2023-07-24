@@ -25,8 +25,8 @@ public class ObjectManager : IComponent
 {
     private static readonly ConcurrentDictionary<nint, object> _objects = new();
 
-    private static IGame _game;
-    public ObjectManager(IGame game)
+    private static Capy64 _game;
+    public ObjectManager(Capy64 game)
     {
         _game = game;
         _game.EventEmitter.OnClose += OnClose;

@@ -28,9 +28,9 @@ public class DiscordIntegration : IComponent
     public readonly bool Enabled;
     private readonly IConfiguration _configuration;
 
-    public DiscordIntegration(IConfiguration configuration)
+    public DiscordIntegration(Capy64 game)
     {
-        _configuration = configuration;
+        _configuration = game.Configuration;
 
         var discordConfig = _configuration.GetSection("Integrations:Discord");
         Enabled = discordConfig.GetValue("Enable", false);

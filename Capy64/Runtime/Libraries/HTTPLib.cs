@@ -30,7 +30,7 @@ namespace Capy64.Runtime.Libraries;
 #nullable enable
 public class HTTPLib : IComponent
 {
-    private static IGame _game = null!;
+    private static Capy64 _game = null!;
     private static HttpClient _httpClient = null!;
     private static long _requestId;
     public static readonly HashSet<WebSocketClient.Client> WebSocketConnections = new();
@@ -57,13 +57,13 @@ public class HTTPLib : IComponent
         },
         new(),
     };
-    public HTTPLib(IGame game, IConfiguration configuration)
+    public HTTPLib(Capy64 game)
     {
         _game = game;
         _requestId = 0;
         _httpClient = new();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgent);
-        _configuration = configuration;
+        _configuration = game.Configuration;
     }
 
     public void LuaInit(Lua L)

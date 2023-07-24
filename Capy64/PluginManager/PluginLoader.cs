@@ -14,7 +14,6 @@
 // limitations under the License.
 
 using Capy64.API;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -47,7 +46,7 @@ internal class PluginLoader
             {
                 if (typeof(IComponent).IsAssignableFrom(type))
                 {
-                    IComponent result = ActivatorUtilities.CreateInstance(provider, type) as IComponent;
+                    IComponent result = Activator.CreateInstance(type, Capy64.Instance) as IComponent;
                     plugins.Add(result);
                 }
             }

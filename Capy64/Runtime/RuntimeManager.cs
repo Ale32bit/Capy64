@@ -32,8 +32,8 @@ internal class RuntimeManager : IComponent
     private static bool close = false;
     private static bool inPanic = false;
 
-    private static IGame _game;
-    public RuntimeManager(IGame game)
+    private static Capy64 _game;
+    public RuntimeManager(Capy64 game)
     {
         _game = game;
 

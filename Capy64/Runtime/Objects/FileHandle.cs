@@ -88,6 +88,8 @@ public class FileHandle : IComponent
         new(),
     };
 
+    public FileHandle(Capy64 _) { }
+
     public void LuaInit(Lua L)
     {
         CreateMeta(L);

@@ -21,7 +21,6 @@ using Capy64.Integrations;
 using Capy64.PluginManager;
 using Capy64.Runtime;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -41,7 +40,7 @@ public enum EngineMode
     Free
 }
 
-public class Capy64 : Game, IGame
+public class Capy64 : Game
 {
     public const string Version = "1.1.0-beta";
 
@@ -91,6 +90,7 @@ public class Capy64 : Game, IGame
     public Eventing.EventEmitter EventEmitter { get; private set; }
     public DiscordIntegration Discord { get; set; }
     public int TickRate => tickrate;
+    public IConfiguration Configuration { get; private set; }
 
     public Color BorderColor { get; set; } = Color.Black;
 
@@ -224,11 +224,26 @@ public class Capy64 : Game, IGame
 
     protected override void Initialize()
     {
-        var configuration = _serviceProvider.GetService<IConfiguration>();
+        var configBuilder = new ConfigurationBuilder();
+
+        var settingsPath = Path.Combine(AppDataPath, "settings.json");
+        if (!Directory.Exists(AppDataPath))
+        {
+            Directory.CreateDirectory(AppDataPath);
+        }
+        if (!File.Exists(settingsPath))
+        {
+            File.Copy("Assets/default.json", settingsPath);
+        }
+
+        configBuilder.AddJsonFile("Assets/default.json", false);
+        configBuilder.AddJsonFile(settingsPath, false);
+
+        Configuration = configBuilder.Build();
 
         Window.Title = "Capy64 " + Version;
 
-        Scale = configuration.GetValue("Window:Scale", DefaultParameters.Scale);
+        Scale = Configuration.GetValue("Window:Scale", DefaultParameters.Scale);
 
         ResetBorder();
         UpdateSize();
@@ -238,7 +253,7 @@ public class Capy64 : Game, IGame
 
         InactiveSleepTime = new TimeSpan(0);
 
-        SetEngineMode(configuration.GetValue<EngineMode>("EngineMode", DefaultParameters.EngineMode));
+        SetEngineMode(Configuration.GetValue<EngineMode>("EngineMode", DefaultParameters.EngineMode));
 
         Audio = new Audio();
 
@@ -261,7 +276,8 @@ public class Capy64 : Game, IGame
 
         foreach (var type in types)
         {
-            var instance = (IComponent)ActivatorUtilities.CreateInstance(_serviceProvider, type)!;
+            var instance = (IComponent)Activator.CreateInstance(type, this);
+            //var instance = (IComponent)ActivatorUtilities.CreateInstance(_serviceProvider, type)!;
             plugins.Add(instance);
         }
 

@@ -111,6 +111,8 @@ public class FileSystemLib : IComponent
         new(), // NULL
     };
 
+    public FileSystemLib(Capy64 _) { }
+
     public void LuaInit(Lua state)
     {
         // Add "fs" library to lua, not global (uses require())

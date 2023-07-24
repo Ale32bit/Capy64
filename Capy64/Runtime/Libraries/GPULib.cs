@@ -28,8 +28,8 @@ namespace Capy64.Runtime.Libraries;
 public class GPULib : IComponent
 {
 
-    private static IGame _game;
-    public GPULib(IGame game)
+    private static Capy64 _game;
+    public GPULib(Capy64 game)
     {
         _game = game;
     }

@@ -50,11 +50,11 @@ class TimerLib : IComponent
         new(),
     };
 
-    private static IGame _game;
+    private static Capy64 _game;
     private static uint _timerId = 0;
 
     private static readonly ConcurrentDictionary<uint, Timer> timers = new();
-    public TimerLib(IGame game)
+    public TimerLib(Capy64 game)
     {
         _game = game;
 

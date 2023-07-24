@@ -73,6 +73,8 @@ public class WebSocketClient : IComponent
         new(),
     };
 
+    public WebSocketClient(Capy64 _) { }
+
     public void LuaInit(Lua L)
     {
         CreateMeta(L);

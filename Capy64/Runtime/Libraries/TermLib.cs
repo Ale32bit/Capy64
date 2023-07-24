@@ -49,11 +49,11 @@ internal class TermLib : IComponent
     public static Color BackgroundColor { get; set; }
     private static Char?[] CharGrid;
 
-    private static IGame _game;
+    private static Capy64 _game;
     private static bool cursorState = false;
     private static bool enableCursor = true;
     private static Texture2D cursorTexture;
-    public TermLib(IGame game)
+    public TermLib(Capy64 game)
     {
         _game = game;
 

@@ -25,8 +25,8 @@ public class AudioLib : IComponent
 {
     private const int queueLimit = 8;
 
-    private static IGame _game;
-    public AudioLib(IGame game)
+    private static Capy64 _game;
+    public AudioLib(Capy64 game)
     {
         _game = game;
         _game.EventEmitter.OnClose += OnClose;

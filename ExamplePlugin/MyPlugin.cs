@@ -1,13 +1,12 @@
-﻿using Capy64;
-using Capy64.API;
+﻿using Capy64.API;
 using KeraLua;
 
 namespace ExamplePlugin;
 
 public class MyPlugin : IComponent
 {
-    private static IGame _game;
-    public MyPlugin(IGame game)
+    private static Capy64.Capy64 _game;
+    public MyPlugin(Capy64.Capy64 game)
     {
         _game = game;
     }
