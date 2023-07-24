@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
   <id>me.alexdevs.Capy64</id>
-  
+  <launchable type="desktop-id">me.alexdevs.Capy64.desktop</launchable>
+
   <name>Capy64</name>
   <summary>Lua Fantasy Computer</summary>
-  
+  <developer_name>AlexDevs</developer_name>
+  <url>https://capy64.alexdevs.me/</url>
+
   <metadata_license>MIT</metadata_license>
   <project_license>Apache-2.0</project_license>
-  
+
+  <content_rating type="oars-1.1" />
+
   <supports>
     <control>pointing</control>
     <control>keyboard</control>
     <control>gamepad</control>
   </supports>
-  
+
   <description>
     <p>
       Capy64 is a fantasy console that runs sandbox Lua 5.4.
@@ -22,6 +27,11 @@
       Create anything, from Hello Worlds to games!
     </p>
   </description>
-  
-  <launchable type="desktop-id">me.alexdevs.Capy64.desktop</launchable>
+
+  <releases>
+    <release version="1.1.2" date="2023-07-24" type="beta">
+      <url>https://github.com/Ale32bit/Capy64/releases/tag/v1.1.2-beta</url>
+    </release>
+  </releases>
+
 </component>
