@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+
+Name=Capy64
+Comment=Lua Fantasy Computer
+Categories=Game;Emulator;
+
+Icon=me.alexdevs.Capy64
+Exec=Capy64
+Terminal=false
