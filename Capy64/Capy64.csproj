@@ -46,10 +46,6 @@
 		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 		<PackageReference Include="System.ComponentModel.Composition" Version="7.0.0" />
 	</ItemGroup>
-	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">
-		<Message Text="Restoring dotnet tools" Importance="High" />
-		<Exec Command="dotnet tool restore" />
-	</Target>
 	<ItemGroup>
 		<EditorConfigFiles Remove="C:\Users\Alex\source\repos\Capy64\Capy64\Capy64\.editorconfig" />
 	</ItemGroup>
