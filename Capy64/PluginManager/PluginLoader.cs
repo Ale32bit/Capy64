@@ -32,7 +32,7 @@ internal class PluginLoader
         return loadContext.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(path)));
     }
 
-    public static List<IComponent> LoadAllPlugins(string pluginsPath, IServiceProvider provider)
+    public static List<IComponent> LoadAllPlugins(string pluginsPath)
     {
         if (!Directory.Exists(pluginsPath))
             Directory.CreateDirectory(pluginsPath);

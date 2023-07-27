@@ -1,5 +1,6 @@
 {
   "EngineMode": 0,
+  "SafeMode": false,
   "Window": {
     "Scale": 2
   },

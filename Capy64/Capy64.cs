@@ -112,7 +112,6 @@ public class Capy64 : Game
     private readonly InputManager _inputManager;
     private RenderTarget2D renderTarget;
     private readonly GraphicsDeviceManager _graphics;
-    private IServiceProvider _serviceProvider;
     private ulong _totalTicks = 0;
     private int tickrate = 0;
     private int everyTick => 60 / tickrate;
@@ -122,18 +121,13 @@ public class Capy64 : Game
         Instance = this;
 
         _graphics = new GraphicsDeviceManager(this);
-        Content.RootDirectory = "Content";
+        //Content.RootDirectory = "Content";
         IsMouseVisible = true;
 
         EventEmitter = new();
         _inputManager = new(this, EventEmitter);
 
         Drawing = new();
-    }
-
-    public void ConfigureServices(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
     }
 
     public void SetEngineMode(EngineMode mode)
@@ -265,7 +259,9 @@ public class Capy64 : Game
         Audio = new Audio();
 
         NativePlugins = GetNativePlugins();
-        Plugins = PluginLoader.LoadAllPlugins("plugins", _serviceProvider);
+        var safeMode = Configuration.GetValue("SafeMode", false);
+        if (!safeMode)
+            Plugins = PluginLoader.LoadAllPlugins(Path.Combine(AssetsPath, "plugins"));
 
         EventEmitter.RaiseInit();
 
@@ -284,7 +280,6 @@ public class Capy64 : Game
         foreach (var type in types)
         {
             var instance = (IComponent)Activator.CreateInstance(type, this);
-            //var instance = (IComponent)ActivatorUtilities.CreateInstance(_serviceProvider, type)!;
             plugins.Add(instance);
         }
 
