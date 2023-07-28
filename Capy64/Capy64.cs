@@ -261,7 +261,7 @@ public class Capy64 : Game
         NativePlugins = GetNativePlugins();
         var safeMode = Configuration.GetValue("SafeMode", false);
         if (!safeMode)
-            Plugins = PluginLoader.LoadAllPlugins(Path.Combine(AssetsPath, "plugins"));
+            Plugins = PluginLoader.LoadAllPlugins(Path.Combine(AppDataPath, "plugins"));
 
         EventEmitter.RaiseInit();
 
