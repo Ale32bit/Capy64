@@ -11,7 +11,13 @@ local function slowPrint(text, delay)
     print()
 end
 
+local args = {...}
+local text = "Hello, World!"
+if #args > 0 then
+    text = table.concat(args, " ")
+end
+
 local color = colors[math.random(1, #colors)]
 
 term.setForeground(color)
-slowPrint("Hello, World!", 0.05)
+slowPrint(text, 0.05)

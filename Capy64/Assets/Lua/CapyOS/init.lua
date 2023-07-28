@@ -1,4 +1,4 @@
-local version = "0.0.3"
+local version = "0.1.0"
 local systemDirectory = "/sys"
 
 print("Starting CapyOS")

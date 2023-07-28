@@ -1,0 +1,7 @@
+alias ll "ls -al"
+alias la "ls -a"
+alias rmdir "rm -r"
+alias reboot "shutdown -r"
+
+# Comment or remove the line below to disable the MOTD
+motd

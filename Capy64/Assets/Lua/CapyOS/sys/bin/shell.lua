@@ -2,40 +2,29 @@ local term = require("term")
 local colors = require("colors")
 local fs = require("fs")
 local machine = require("machine")
+local argparser = require("argparser")
+local scheduler = require("scheduler")
 
 local exit = false
+local parentShell = shell
+local isStartupShell = parentShell == nil
 local shell = {}
 
-shell.path = "./?;./?.lua;/bin/?.lua;/sys/bin/?.lua"
-shell.homePath = "/home"
+shell.path = parentShell and parentShell.path or "./?;./?.lua;/bin/?.lua;/sys/bin/?.lua"
+shell.homePath = parentShell and parentShell.home or "/home"
+shell.aliases = parentShell and parentShell.aliases or {}
 
-local currentDir = shell.homePath
+local currentDir = parentShell and parentShell.getDir() or shell.homePath
 
-local function buildEnvironment(path, args)
+local function buildEnvironment(path, args, argf)
     local arg = { table.unpack(args, 2) }
     arg[0] = path
-    
+    arg.string = argf
+
     return setmetatable({
         shell = shell,
-        arg = arg
+        arg = arg,
     }, { __index = _G })
-end
-
-local function tokenise(...)
-    local sLine = table.concat({ ... }, " ")
-    local tWords = {}
-    local bQuoted = false
-    for match in string.gmatch(sLine .. "\"", "(.-)\"") do
-        if bQuoted then
-            table.insert(tWords, match)
-        else
-            for m in string.gmatch(match, "[^ \t]+") do
-                table.insert(tWords, m)
-            end
-        end
-        bQuoted = not bQuoted
-    end
-    return tWords
 end
 
 function shell.getDir()
@@ -72,16 +61,24 @@ function shell.resolveProgram(path)
 end
 
 function shell.run(...)
-    local args = tokenise(...)
+    local args = argparser.tokenize(...)
+    local argf = table.concat({...}, " ")
     local command = args[1]
+
+    argf = argf:sub(#command + 2)
+
     local path = shell.resolveProgram(command)
 
     if not path then
-        io.stderr.print("Command not found: " .. command)
-        return false
+        if shell.aliases[command] then
+            return shell.run(shell.aliases[command], select(2, table.unpack(args)))
+        else
+            io.stderr.print("Command not found: " .. command)
+            return false
+        end
     end
 
-    local env = buildEnvironment(command, args)
+    local env = buildEnvironment(command, args, argf)
 
     local func, err = loadfile(path, "t", env)
 
@@ -90,7 +87,15 @@ function shell.run(...)
         return false
     end
 
-    local ok, err = pcall(func, table.unpack(args, 2))
+    local ok, err
+    local function run()
+        ok, err = pcall(func, table.unpack(args, 2))
+        
+    end
+
+    local programTask = scheduler.spawn(run)
+    coroutine.yield("scheduler_task_end")
+
     if not ok then
         io.stderr.print(err)
         return false
@@ -105,6 +110,21 @@ end
 
 if not fs.exists(shell.homePath) then
     fs.makeDir(shell.homePath)
+end
+
+term.setForeground(colors.white)
+term.setBackground(colors.black)
+
+if isStartupShell then
+    if fs.exists(fs.combine(shell.homePath, ".shrc")) then
+        local f <close> = fs.open(fs.combine(shell.homePath, ".shrc"), "r")
+        for line in f:lines() do
+            if line:match("%S") and not line:match("^%s-#") then
+                shell.run(line)
+            end
+        end
+        f:close()
+    end
 end
 
 local history = {}
