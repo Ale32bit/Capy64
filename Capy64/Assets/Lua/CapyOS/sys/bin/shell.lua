@@ -6,6 +6,7 @@ local argparser = require("argparser")
 local scheduler = require("scheduler")
 local createPackageEnvironment = require("shell.package")
 
+local useScheduler = false
 local exit = false
 local parentShell = shell
 local isStartupShell = parentShell == nil
@@ -97,10 +98,14 @@ function shell.run(...)
         ok, err = pcall(func, table.unpack(args, 2))
     end
 
-    local programTask, yielded = scheduler.spawn(run)
+    if useScheduler then
+        local programTask, yielded = scheduler.spawn(run)
 
-    if yielded then
-        coroutine.yield("scheduler_task_end")
+        if yielded then
+            coroutine.yield("scheduler_task_end")
+        end
+    else
+        run()
     end
 
     if not ok then
