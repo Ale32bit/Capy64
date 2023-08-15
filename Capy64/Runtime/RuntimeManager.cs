@@ -136,6 +136,7 @@ internal class RuntimeManager : IComponent
         luaState = new LuaState();
         _game.LuaRuntime = luaState;
         luaState.Init();
+        CopyHostLibraries();
 
         emitter = new(_game.EventEmitter, luaState);
 
@@ -162,11 +163,31 @@ internal class RuntimeManager : IComponent
         }
     }
 
+    private void CopyHostLibraries()
+    {
+        // table that will contain host libraries
+        luaState.Thread.NewTable();
+
+        luaState.Thread.GetGlobal("package");
+        luaState.Thread.GetField(-1, "loaded");
+
+        luaState.Thread.PushNil();
+        while (luaState.Thread.Next(-2))
+        {
+            var libname = luaState.Thread.ToString(-2);
+            luaState.Thread.SetField(1, libname);
+        }
+
+        luaState.Thread.Rotate(1, -1);
+        luaState.Thread.SetField(1, "_host");
+        luaState.Thread.SetTop(0);
+    }
+
     private void LoadFirmware()
     {
         var firmwareContent = File.ReadAllText(Path.Combine(Capy64.AssetsPath, "Lua/firmware.lua"));
         var errored = luaState.Thread.DoString(firmwareContent);
-        if(errored)
+        if (errored)
         {
             throw new LuaException(luaState.Thread.ToString(-1));
         }

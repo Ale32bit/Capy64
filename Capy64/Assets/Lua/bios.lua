@@ -177,7 +177,7 @@ local function bootScreen()
 	term.setPos(1,2)
 	writeCenter("Capy64")
 	term.setPos(1,4)
-	writeCenter("Powered by Capybaras")
+	writeCenter("(c) 2023 AlexDevs")
 
 	term.setPos(1, h - 1)
 	writeCenter("Press F2 to open setup")

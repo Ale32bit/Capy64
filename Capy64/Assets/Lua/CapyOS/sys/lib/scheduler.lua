@@ -55,39 +55,6 @@ local function findParent()
     return nil
 end
 
-function scheduler.spawn(func, options)
-    expect(1, func, "function")
-    expect(2, options, "nil", "table")
-
-    options = options or {}
-    options.args = options.args or {}
-
-    local source = debug.getinfo(2)
-
-    local task = newTask()
-    local pid = #tasks + 1
-    task.pid = pid
-    task.options = options
-    task.source = source.source
-    task.uuid = tostring(func)
-    task.thread = coroutine.create(func)
-    task.started = false
-    local parent = findParent()
-    if parent then
-        task.parent = parent.pid
-        table.insert(parent.children, pid)
-    end
-    task.filters = {}
-    task.children = {}
-    task.eventQueue = {}
-
-    tasks[pid] = task
-
-    processes = processes + 1
-
-    return task
-end
-
 local function cascadeKill(pid, err)
     local task = tasks[pid]
     if not task then
@@ -114,6 +81,50 @@ local function cascadeKill(pid, err)
         tasks[pid] = nil
         processes = processes - 1
     end
+end
+
+local function resumeTask(task, yieldPars)
+    local pars = table.pack(coroutine.resume(task.thread, table.unpack(yieldPars)))
+    if pars[1] then
+        task.filters = table.pack(table.unpack(pars, 2))
+        return coroutine.status(task.thread) ~= "dead"
+    else
+        cascadeKill(task.pid, pars[2])
+        return false
+    end
+end
+
+function scheduler.spawn(func, options)
+    expect(1, func, "function")
+    expect(2, options, "nil", "table")
+
+    options = options or {}
+    options.args = options.args or {}
+
+    local source = debug.getinfo(2)
+
+    local task = newTask()
+    local pid = #tasks + 1
+    task.pid = pid
+    task.options = options
+    task.source = source.source
+    task.uuid = tostring(func)
+    task.thread = coroutine.create(func)
+    local parent = findParent()
+    if parent then
+        task.parent = parent.pid
+        table.insert(parent.children, pid)
+    end
+    task.filters = {}
+    task.children = {}
+    task.eventQueue = {}
+    task.skip = true
+
+    tasks[pid] = task
+
+    processes = processes + 1
+
+    return task, resumeTask(task, task.options.args)
 end
 
 function scheduler.kill(pid)
@@ -146,15 +157,10 @@ function scheduler.init()
                 yieldPars = table.pack(table.unpack(ev, 3))
             end
             if yieldPars[1] ~= "scheduler" and not task.filters or #task.filters == 0 or contains(task.filters, yieldPars[1]) or yieldPars[1] == "interrupt" then
-                if not task.started then
-                    yieldPars = task.options.args
-                    task.started = true
-                end
-                local pars = table.pack(coroutine.resume(task.thread, table.unpack(yieldPars)))
-                if pars[1] then
-                    task.filters = table.pack(table.unpack(pars, 2))
+                if task.skip then
+                    task.skip = false
                 else
-                    cascadeKill(pid, pars[2])
+                    resumeTask(task, yieldPars)
                 end
             end
 

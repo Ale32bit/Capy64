@@ -4,6 +4,7 @@ local fs = require("fs")
 local machine = require("machine")
 local argparser = require("argparser")
 local scheduler = require("scheduler")
+local createPackageEnvironment = require("shell.package")
 
 local exit = false
 local parentShell = shell
@@ -16,15 +17,19 @@ shell.aliases = parentShell and parentShell.aliases or {}
 
 local currentDir = parentShell and parentShell.getDir() or shell.homePath
 
-local function buildEnvironment(path, args, argf)
+local function buildEnvironment(command, filepath, args, argf)
     local arg = { table.unpack(args, 2) }
-    arg[0] = path
+    arg[0] = command
     arg.string = argf
+
+    local envPackage = createPackageEnvironment(filepath)
+    envPackage.loaded.scheduler = scheduler
 
     return setmetatable({
         shell = shell,
         arg = arg,
-    }, { __index = _G })
+        scheduler = scheduler,
+    }, { __index = envPackage.loaded._G })
 end
 
 function shell.getDir()
@@ -78,7 +83,7 @@ function shell.run(...)
         end
     end
 
-    local env = buildEnvironment(command, args, argf)
+    local env = buildEnvironment(command, path, args, argf)
 
     local func, err = loadfile(path, "t", env)
 
@@ -90,11 +95,13 @@ function shell.run(...)
     local ok, err
     local function run()
         ok, err = pcall(func, table.unpack(args, 2))
-        
     end
 
-    local programTask = scheduler.spawn(run)
-    coroutine.yield("scheduler_task_end")
+    local programTask, yielded = scheduler.spawn(run)
+
+    if yielded then
+        coroutine.yield("scheduler_task_end")
+    end
 
     if not ok then
         io.stderr.print(err)
