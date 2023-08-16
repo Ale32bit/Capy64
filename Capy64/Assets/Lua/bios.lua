@@ -1,4 +1,4 @@
-﻿-- This file is part of Capy64 - https://github.com/Capy64/Capy64
+-- This file is part of Capy64 - https://github.com/Capy64/Capy64
 -- Copyright 2023 Alessandro "AlexDevs" Proto
 --
 -- Licensed under the Apache License, Version 2.0 (the "License").
@@ -24,6 +24,9 @@ local event = require("event")
 local bootSleep = 2
 local bg = 0x0
 local fg = 0xffffff
+local setupbg = 0x0608a6
+local setupfg = 0xffffff
+local accent = 0xffea00
 
 term.setForeground(fg)
 term.setBackground(bg)
@@ -97,11 +100,60 @@ local function promptKey()
 	event.pull("key_down")
 end
 
+local function alert(...)
+	local args = {...}
+	table.insert(args, "[ OK ]")
+	local lines = {}
+	local width = 0
+	local padding = 1
+	for k, v in ipairs(args) do
+		lines[k] = tostring(v)
+		width = math.max(width, #tostring(v))
+	end
+
+	lines[#lines] = nil
+
+	local okPad = string.rep(" ", (width - #args[#args]) // 2)
+	local okLine = string.format("%s%s", okPad, args[#args])
+
+	local w, h = term.getSize()
+	local cx, cy = w//2, h//2
+	local dx, dy = cx - (width + padding * 2) // 2, cy - #lines//2 - 1
+
+	local pad = string.rep(" ", padding)
+	local emptyLine = string.format("\u{258C}%s%s%s\u{2590}", pad, string.rep(" ", width), pad)
+
+	term.setPos(dx, dy)
+	print("\u{259B}" .. string.rep("\u{2580}", width + padding * 2) .. "\u{259C}")
+	for k, v in ipairs(lines) do
+		term.setPos(dx, dy + k)
+		local space = string.rep(" ", width - #v)
+		print(string.format("\u{258C}%s%s%s%s\u{2590}", pad, v, space, pad))
+	end
+	term.setPos(dx, dy + #lines + 1)
+	print(emptyLine)
+	term.setPos(dx, dy + #lines + 2)
+	local space = string.rep(" ", width - #okLine)
+	term.write(string.format("\u{258C}%s", pad))
+	term.setForeground(accent)
+	term.write(okLine)
+	term.setForeground(setupfg)
+	print(string.format("%s%s\u{2590}", space, pad))
+	term.setPos(dx, dy + #lines + 3)
+	print("\u{2599}" .. string.rep("\u{2584}", width + padding * 2) .. "\u{259F}")
+
+	local _, key, keyname
+	repeat
+		_, key, keyname = event.pull("key_down")
+	until keyname == "enter" or keyname == "escape"
+end
+
 local function installDefaultOS()
 	if fs.exists("/sys") then
 		fs.delete("/sys", true)
 	end
 	installOS()
+	alert("Default OS installed!")
 end
 
 term.setBlink(false)
@@ -116,6 +168,7 @@ local function setupScreen()
 			"Install default OS",
 			installDefaultOS,
 		},
+		{},
 		{
 			"Exit setup",
 			exit,
@@ -127,26 +180,40 @@ local function setupScreen()
 	}
 
 	local selection = 1
-	local function redraw()
-		term.setForeground(fg)
-		term.setBackground(bg)
+	local function redraw(noDrawSel)
+		local w, h = term.getSize()
+		term.setForeground(setupfg)
+		term.setBackground(setupbg)
 		term.clear()
 		term.setPos(1,2)
 		writeCenter("Capy64 Setup")
 
 		term.setPos(1,3)
 
+		term.setForeground(accent)
+
 		for k, v in ipairs(options) do
 			local _, y = term.getPos()
 			term.setPos(1, y + 1)
 			term.clearLine()
 
-			if selection == k then
-				writeCenter("[ " .. v[1] .. " ]")
-			else
-				writeCenter(v[1])
+			if #v > 0 then
+				if selection == k and not noDrawSel then
+					writeCenter("[ " .. v[1] .. " ]")
+				else
+					writeCenter(v[1])
+				end
 			end
 		end
+
+		term.setForeground(setupfg)
+
+		term.setPos(1, h - 2)
+		term.write("\u{2190}\u{2191}\u{2192}\u{2193}: Move")
+		term.setPos(1, h - 1)
+		term.write("Escape: Exit")
+		term.setPos(1, h)
+		term.write("Enter: Select")
 	end
 
 	while true do
@@ -154,9 +221,16 @@ local function setupScreen()
 		local ev = { coroutine.yield("key_down") }
 		if ev[3] == "up" then
 			selection = selection - 1
+			if options[selection] and #options[selection] == 0 then
+				selection = selection - 1
+			end
 		elseif ev[3] == "down" then
 			selection = selection + 1
+			if options[selection] and #options[selection] == 0 then
+				selection = selection + 1
+			end
 		elseif ev[3] == "enter" then
+			redraw(true)
 			options[selection][2]()
 		elseif ev[3] == "escape" then
 			exit()
