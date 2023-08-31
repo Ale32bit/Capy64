@@ -108,7 +108,7 @@ public class InputManager
         UpdateGamePad(GamePad.GetState(PlayerIndex.One), IsActive);
     }
 
-    private void UpdateMouse(MouseState state, bool isActive)
+    public void UpdateMouse(MouseState state, bool isActive)
     {
         if (!isActive)
             return;
@@ -217,7 +217,7 @@ public class InputManager
         mouseButtonStates[MouseButton.Button5] = state.XButton2;
     }
 
-    private void UpdateKeyboard(KeyboardState state, bool isActive)
+    public void UpdateKeyboard(KeyboardState state, bool isActive)
     {
         var keys = state.GetPressedKeys();
 
@@ -306,7 +306,7 @@ public class InputManager
     }
 
     private GamePadState oldGamePadState = new();
-    private void UpdateGamePad(GamePadState state, bool isActive)
+    public void UpdateGamePad(GamePadState state, bool isActive)
     {
         if (!isActive)
             return;

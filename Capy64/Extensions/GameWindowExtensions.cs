@@ -58,12 +58,14 @@ public static class GameWindowExtensions
 
     public static WindowFlags GetWindowFlags(this GameWindow window)
     {
-        return (WindowFlags)SDL2.SDL_GetWindowFlags(window.Handle);
+        return (WindowFlags)SDL2.SDL.SDL_GetWindowFlags(window.Handle);
+        //return (WindowFlags)SDL2.SDL_GetWindowFlags(window.Handle);
     }
 
     public static void MaximizeWindow(this GameWindow window)
     {
-        SDL2.SDL_MaximizeWindow(window.Handle);
+        SDL2.SDL.SDL_MaximizeWindow(window.Handle);
+        //SDL2.SDL_MaximizeWindow(window.Handle);
     }
     public static bool IsMaximized(this GameWindow window)
     {

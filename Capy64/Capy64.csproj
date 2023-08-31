@@ -54,6 +54,9 @@
 	<ItemGroup>
 		<Folder Include="Assets\Lua\" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\SDL2-CS\SDL2-CS.Core.csproj" />
+	</ItemGroup>
 
 	<PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
 		<DefineConstants>_WINDOWS</DefineConstants>

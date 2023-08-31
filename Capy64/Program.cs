@@ -17,9 +17,9 @@ using Capy64;
 
 if (args.Length > 0 && args[0] == "sdl")
 {
-    var entry = new SDLEntry();
+    using var game = new SDLEntry();
 
-    entry.Run();
+    game.Run();
 }
 else
 {

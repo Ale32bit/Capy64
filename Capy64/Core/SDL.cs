@@ -21,16 +21,19 @@ public class SDL
 {
     public static string GetClipboardText()
     {
-        return SDL2.UTF8_ToManaged(SDL2.Native_SDL_GetClipboardText(), true);
+        return SDL2.SDL.SDL_GetClipboardText();
+        //return SDL2.UTF8_ToManaged(SDL2.Native_SDL_GetClipboardText(), true);
     }
 
     public static void SetClipboardText(string contents)
     {
-        SDL2.Native_SDL_SetClipboardText(contents);
+        SDL2.SDL.SDL_SetClipboardText(contents);
+        //SDL2.Native_SDL_SetClipboardText(contents);
     }
 
     public static bool HasClipboardText()
     {
-        return SDL2.SDL_HasClipboardText() == 1;
+        return SDL2.SDL.SDL_HasClipboardText() == SDL2.SDL.SDL_bool.SDL_TRUE;
+        //return SDL2.SDL_HasClipboardText() == 1;
     }
 }
