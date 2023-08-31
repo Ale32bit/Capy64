@@ -134,6 +134,9 @@ public class FileSystemLib : IComponent
         // Get drive root (C:\ for Windows, / for *nix)
         var rootPath = Path.GetFullPath(Path.GetPathRoot("/") ?? "/");
 
+        var invalidPathChars = Path.GetInvalidPathChars();
+        path = invalidPathChars.Aggregate(path, (current, invalidChar) => current.Replace(invalidChar, ' '));
+
         // Join path to rootPath and resolves to absolute path
         // Relative paths are resolved here (es. ../ and ./)
         var absolutePath = Path.GetFullPath(path, rootPath);
