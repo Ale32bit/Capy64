@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Capy64", "Capy64\Capy64.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExamplePlugin", "ExamplePlugin\ExamplePlugin.csproj", "{7176CC2D-BB9E-4512-B216-CC49E9F8A89D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDL2-CS.Core", "SDL2-CS\SDL2-CS.Core.csproj", "{0553E50B-571B-4EF5-9A94-9B94612DBB59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{7176CC2D-BB9E-4512-B216-CC49E9F8A89D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7176CC2D-BB9E-4512-B216-CC49E9F8A89D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7176CC2D-BB9E-4512-B216-CC49E9F8A89D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0553E50B-571B-4EF5-9A94-9B94612DBB59}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{0553E50B-571B-4EF5-9A94-9B94612DBB59}.Debug|Any CPU.Build.0 = Debug|x64
+		{0553E50B-571B-4EF5-9A94-9B94612DBB59}.Release|Any CPU.ActiveCfg = Release|x64
+		{0553E50B-571B-4EF5-9A94-9B94612DBB59}.Release|Any CPU.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
