@@ -88,7 +88,7 @@ public class FileHandle : IComponent
         new(),
     };
 
-    public FileHandle(Capy64 _) { }
+    public FileHandle(LegacyEntry _) { }
 
     public void LuaInit(Lua L)
     {

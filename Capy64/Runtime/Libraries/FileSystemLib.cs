@@ -26,7 +26,7 @@ namespace Capy64.Runtime.Libraries;
 
 public class FileSystemLib : IComponent
 {
-    public static string DataPath = Path.Combine(Capy64.AppDataPath, "data");
+    public static string DataPath = Path.Combine(LegacyEntry.AppDataPath, "data");
 
     public FileSystemLib()
     {
@@ -111,7 +111,7 @@ public class FileSystemLib : IComponent
         new(), // NULL
     };
 
-    public FileSystemLib(Capy64 _) { }
+    public FileSystemLib(LegacyEntry _) { }
 
     public void LuaInit(Lua state)
     {

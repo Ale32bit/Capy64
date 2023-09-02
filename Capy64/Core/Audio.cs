@@ -53,7 +53,7 @@ public class Audio : IDisposable
 
     private static void EnqueueAudioNeedEvent(int i, int pending)
     {
-        Capy64.Instance.LuaRuntime.QueueEvent("audio_need", LK =>
+        LegacyEntry.Instance.LuaRuntime.QueueEvent("audio_need", LK =>
         {
             LK.PushInteger(i);
             LK.PushInteger(pending);

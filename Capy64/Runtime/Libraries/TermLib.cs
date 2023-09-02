@@ -49,11 +49,11 @@ internal class TermLib : IComponent
     public static Color BackgroundColor { get; set; }
     private static Char?[] CharGrid;
 
-    private static Capy64 _game;
+    private static LegacyEntry _game;
     private static bool cursorState = false;
     private static bool enableCursor = true;
     private static Texture2D cursorTexture;
-    public TermLib(Capy64 game)
+    public TermLib(LegacyEntry game)
     {
         _game = game;
 
@@ -317,7 +317,7 @@ internal class TermLib : IComponent
         {
             var realpos = ToRealPos(CursorPosition - Vector2.One);
             var charpos = (realpos * _game.Scale) + ((CharOffset + new Vector2(0, 2)) * _game.Scale);
-            charpos += new Vector2(Capy64.Instance.Borders.Left, Capy64.Instance.Borders.Top);
+            charpos += new Vector2(LegacyEntry.Instance.Borders.Left, LegacyEntry.Instance.Borders.Top);
             _game.Game.SpriteBatch.Draw(cursorTexture, charpos, null, ForegroundColor, 0f, Vector2.Zero, _game.Scale, SpriteEffects.None, 0);
         }
     }

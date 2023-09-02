@@ -19,6 +19,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SDL2;
 
 namespace Capy64.Eventing;
 
@@ -74,7 +75,7 @@ public class InputManager
     };
 
     public Texture2D Texture { get; set; }
-    public static float WindowScale => Capy64.Instance.Scale;
+    public static float WindowScale => LegacyEntry.Instance.Scale;
     public const int MouseScrollDelta = 120;
 
     private Point mousePosition;
@@ -84,17 +85,17 @@ public class InputManager
     private Modifiers keyboardMods = 0;
     private readonly HashSet<Keys> pressedKeys = new();
 
-    private readonly Game _game;
+    private readonly Capy64 _game;
     private readonly EventEmitter _eventEmitter;
-    public InputManager(Game game, EventEmitter eventManager)
+    public InputManager(Capy64 game, EventEmitter eventManager)
 
     {
         _game = game;
         _eventEmitter = eventManager;
 
-        _game.Window.KeyDown += OnKeyDown;
+        /*_game.Window.KeyDown += OnKeyDown;
         _game.Window.KeyUp += OnKeyUp;
-        _game.Window.TextInput += OnTextInput;
+        _game.Window.TextInput += OnTextInput;*/
 
         var mouseState = Mouse.GetState();
         vMouseScroll = mouseState.ScrollWheelValue;
@@ -108,12 +109,36 @@ public class InputManager
         UpdateGamePad(GamePad.GetState(PlayerIndex.One), IsActive);
     }
 
-    public void UpdateMouse(MouseState state, bool isActive)
+    public void UpdateMouseSDL(SDL.SDL_Event ev)
+    {
+        var position = new Point(ev.button.x, ev.button.y);
+        var rawPosition = position - new Point(LegacyEntry.Instance.Borders.Left, LegacyEntry.Instance.Borders.Top);
+        var pos = new Point((int)(rawPosition.X / WindowScale), (int)(rawPosition.Y / WindowScale)) + new Point(1, 1);
+
+        if (pos.X < 1 || pos.Y < 1 || pos.X > (_game.Width) || pos.Y > _game.Height)
+            return;
+        
+        if (pos != mousePosition)
+        {
+            mousePosition = pos;
+            _eventEmitter.RaiseMouseMove(new()
+            {
+                Position = mousePosition,
+                PressedButtons = mouseButtonStates
+                    .Where(q => q.Value == ButtonState.Pressed)
+                    .Select(q => (int)q.Key)
+                    .ToArray()
+            });
+        }
+        
+    }
+
+    private void UpdateMouse(MouseState state, bool isActive)
     {
         if (!isActive)
             return;
 
-        var rawPosition = state.Position - new Point(Capy64.Instance.Borders.Left, Capy64.Instance.Borders.Top);
+        var rawPosition = state.Position - new Point(LegacyEntry.Instance.Borders.Left, LegacyEntry.Instance.Borders.Top);
         var pos = new Point((int)(rawPosition.X / WindowScale), (int)(rawPosition.Y / WindowScale)) + new Point(1, 1);
 
         if (pos.X < 1 || pos.Y < 1 || pos.X > Texture.Width || pos.Y > Texture.Height)

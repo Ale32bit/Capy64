@@ -50,11 +50,11 @@ class TimerLib : IComponent
         new(),
     };
 
-    private static Capy64 _game;
+    private static LegacyEntry _game;
     private static uint _timerId = 0;
 
     private static readonly ConcurrentDictionary<uint, Timer> timers = new();
-    public TimerLib(Capy64 game)
+    public TimerLib(LegacyEntry game)
     {
         _game = game;
 
@@ -122,7 +122,7 @@ class TimerLib : IComponent
 
         timers[timerId] = new Timer
         {
-            RemainingTicks = (int)(delay * Capy64.Instance.TickRate)
+            RemainingTicks = (int)(delay * LegacyEntry.Instance.TickRate)
         };
 
         L.PushInteger(timerId);
@@ -141,7 +141,7 @@ class TimerLib : IComponent
 
         timers[timerId] = new Timer
         {
-            RemainingTicks = (int)(delay * Capy64.Instance.TickRate),
+            RemainingTicks = (int)(delay * LegacyEntry.Instance.TickRate),
             Task = task,
         };
 

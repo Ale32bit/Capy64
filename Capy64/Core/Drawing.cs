@@ -54,7 +54,7 @@ public class Drawing : IDisposable
     public Drawing()
     {
         _fontSystem = new FontSystem();
-        _fontSystem.AddFont(File.ReadAllBytes(Path.Combine(Capy64.AssetsPath, "font.ttf")));
+        _fontSystem.AddFont(File.ReadAllBytes(Path.Combine(LegacyEntry.AssetsPath, "font.ttf")));
     }
 
     public void Begin()
@@ -184,7 +184,7 @@ public class Drawing : IDisposable
     public void Clear(Color? color = default)
     {
         Color finalColor = color ?? Color.Black;
-        Capy64.Instance.BorderColor = finalColor;
+        LegacyEntry.Instance.BorderColor = finalColor;
         _graphicsDevice.Clear(finalColor);
     }
 

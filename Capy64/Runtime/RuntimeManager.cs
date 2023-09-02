@@ -32,8 +32,8 @@ internal class RuntimeManager : IComponent
     private static bool close = false;
     private static bool inPanic = false;
 
-    private static Capy64 _game;
-    public RuntimeManager(Capy64 game)
+    private static LegacyEntry _game;
+    public RuntimeManager(LegacyEntry game)
     {
         _game = game;
 
@@ -124,7 +124,7 @@ internal class RuntimeManager : IComponent
         luaState.Thread.PushCFunction(L_Exit);
         luaState.Thread.SetGlobal("exit");
 
-        var status = luaState.Thread.LoadFile(Path.Combine(Capy64.AssetsPath, "Lua/bios.lua"));
+        var status = luaState.Thread.LoadFile(Path.Combine(LegacyEntry.AssetsPath, "Lua/bios.lua"));
         if (status != LuaStatus.OK)
         {
             throw new LuaException(luaState.Thread.ToString(-1));
@@ -185,7 +185,7 @@ internal class RuntimeManager : IComponent
 
     private void LoadFirmware()
     {
-        var firmwareContent = File.ReadAllText(Path.Combine(Capy64.AssetsPath, "Lua/firmware.lua"));
+        var firmwareContent = File.ReadAllText(Path.Combine(LegacyEntry.AssetsPath, "Lua/firmware.lua"));
         var errored = luaState.Thread.DoString(firmwareContent);
         if (errored)
         {
@@ -212,10 +212,10 @@ internal class RuntimeManager : IComponent
 
     public static void InstallOS(bool force = false)
     {
-        var installedFilePath = Path.Combine(Capy64.AppDataPath, ".installed");
+        var installedFilePath = Path.Combine(LegacyEntry.AppDataPath, ".installed");
         if (!File.Exists(installedFilePath) || force)
         {
-            FileSystemLib.CopyDirectory(Path.Combine(Capy64.AssetsPath, "Lua/CapyOS"), FileSystemLib.DataPath, true, true);
+            FileSystemLib.CopyDirectory(Path.Combine(LegacyEntry.AssetsPath, "Lua/CapyOS"), FileSystemLib.DataPath, true, true);
             File.Create(installedFilePath).Dispose();
         }
     }

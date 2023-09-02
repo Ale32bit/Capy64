@@ -28,7 +28,7 @@ public class DiscordIntegration : IComponent
     public readonly bool Enabled;
     private readonly IConfiguration _configuration;
 
-    public DiscordIntegration(Capy64 game)
+    public DiscordIntegration(LegacyEntry game)
     {
         _configuration = game.Configuration;
 
@@ -42,7 +42,7 @@ public class DiscordIntegration : IComponent
 
         Client.OnReady += OnReady;
 
-        Capy64.Instance.Discord = this;
+        LegacyEntry.Instance.Discord = this;
 
         if (Enabled)
             Client.Initialize();
@@ -62,7 +62,7 @@ public class DiscordIntegration : IComponent
             Assets = new Assets()
             {
                 LargeImageKey = "image_large",
-                LargeImageText = "Capy64 " + Capy64.Version,
+                LargeImageText = "Capy64 " + LegacyEntry.Version,
                 SmallImageKey = "image_small"
             }
         });

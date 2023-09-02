@@ -30,12 +30,12 @@ namespace Capy64.Runtime.Libraries;
 #nullable enable
 public class HTTPLib : IComponent
 {
-    private static Capy64 _game = null!;
+    private static LegacyEntry _game = null!;
     private static HttpClient _httpClient = null!;
     private static long _requestId;
     public static readonly HashSet<WebSocketClient.Client> WebSocketConnections = new();
 
-    public static readonly string UserAgent = $"Capy64/{Capy64.Version}";
+    public static readonly string UserAgent = $"Capy64/{LegacyEntry.Version}";
 
     private static IConfiguration _configuration = null!;
     private readonly LuaRegister[] Library = new LuaRegister[]
@@ -57,7 +57,7 @@ public class HTTPLib : IComponent
         },
         new(),
     };
-    public HTTPLib(Capy64 game)
+    public HTTPLib(LegacyEntry game)
     {
         _game = game;
         _requestId = 0;

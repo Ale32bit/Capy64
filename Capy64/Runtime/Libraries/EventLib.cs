@@ -29,8 +29,8 @@ public class EventLib : IComponent
 
     private static bool FrozenTaskAwaiter = false;
 
-    private static Capy64 _game;
-    public EventLib(Capy64 game)
+    private static LegacyEntry _game;
+    public EventLib(LegacyEntry game)
     {
         _game = game;
     }

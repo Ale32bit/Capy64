@@ -17,13 +17,13 @@ using Capy64;
 
 if (args.Length > 0 && args[0] == "sdl")
 {
-    using var game = new SDLEntry();
+    using var game = new Capy64.Capy64();
 
     game.Run();
 }
 else
 {
-    using var game = new Capy64.Capy64();
+    using var game = new Capy64.LegacyEntry();
 
     game.Run();
 }

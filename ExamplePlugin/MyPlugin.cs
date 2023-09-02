@@ -5,8 +5,8 @@ namespace ExamplePlugin;
 
 public class MyPlugin : IComponent
 {
-    private static Capy64.Capy64 _game;
-    public MyPlugin(Capy64.Capy64 game)
+    private static Capy64.LegacyEntry _game;
+    public MyPlugin(Capy64.LegacyEntry game)
     {
         _game = game;
     }

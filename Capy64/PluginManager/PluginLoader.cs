@@ -46,7 +46,7 @@ internal class PluginLoader
             {
                 if (typeof(IComponent).IsAssignableFrom(type))
                 {
-                    IComponent result = Activator.CreateInstance(type, Capy64.Instance) as IComponent;
+                    IComponent result = Activator.CreateInstance(type, LegacyEntry.Instance) as IComponent;
                     plugins.Add(result);
                 }
             }

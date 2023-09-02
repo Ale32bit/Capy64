@@ -73,7 +73,7 @@ public class WebSocketClient : IComponent
         new(),
     };
 
-    public WebSocketClient(Capy64 _) { }
+    public WebSocketClient(LegacyEntry _) { }
 
     public void LuaInit(Lua L)
     {
@@ -146,7 +146,7 @@ public class WebSocketClient : IComponent
             .ContinueWith(async task =>
             {
                 await task;
-                Capy64.Instance.LuaRuntime.QueueEvent("websocket_close", LK =>
+                LegacyEntry.Instance.LuaRuntime.QueueEvent("websocket_close", LK =>
                 {
                     LK.PushInteger(client.RequestId);
 

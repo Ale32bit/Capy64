@@ -28,8 +28,8 @@ namespace Capy64.Runtime.Libraries;
 public class GPULib : IComponent
 {
 
-    private static Capy64 _game;
-    public GPULib(Capy64 game)
+    private static LegacyEntry _game;
+    public GPULib(LegacyEntry game)
     {
         _game = game;
     }
@@ -657,7 +657,7 @@ public class GPULib : IComponent
         Texture2D texture;
         try
         {
-            texture = Texture2D.FromFile(Capy64.Instance.Drawing.Canvas.GraphicsDevice, path);
+            texture = Texture2D.FromFile(LegacyEntry.Instance.Drawing.Canvas.GraphicsDevice, path);
         }
         catch (Exception e)
         {

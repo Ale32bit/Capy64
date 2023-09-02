@@ -24,8 +24,8 @@ namespace Capy64.Runtime.Libraries;
 
 public class MachineLib : IComponent
 {
-    private static Capy64 _game;
-    public MachineLib(Capy64 game)
+    private static LegacyEntry _game;
+    public MachineLib(LegacyEntry game)
     {
         _game = game;
     }
@@ -109,7 +109,7 @@ public class MachineLib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        var currentTitle = Capy64.Instance.Window.Title;
+        var currentTitle = LegacyEntry.Instance.Window.Title;
 
         if (!L.IsNoneOrNil(1))
         {
@@ -117,12 +117,12 @@ public class MachineLib : IComponent
 
             if (string.IsNullOrEmpty(newTitle))
             {
-                newTitle = "Capy64 " + Capy64.Version;
+                newTitle = "Capy64 " + LegacyEntry.Version;
             }
 
             newTitle = newTitle[..Math.Min(newTitle.Length, 256)];
 
-            Capy64.Instance.Window.Title = newTitle;
+            LegacyEntry.Instance.Window.Title = newTitle;
         }
 
         L.PushString(currentTitle);
@@ -157,7 +157,7 @@ public class MachineLib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        L.PushString("Capy64 " + Capy64.Version);
+        L.PushString("Capy64 " + LegacyEntry.Version);
 
         return 1;
     }
@@ -171,7 +171,7 @@ public class MachineLib : IComponent
 
         try
         {
-            Capy64.Instance.Discord.SetPresence(details, dstate);
+            LegacyEntry.Instance.Discord.SetPresence(details, dstate);
             L.PushBoolean(true);
         }
         catch (Exception e)

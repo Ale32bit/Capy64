@@ -66,8 +66,8 @@ public class GPUBufferMeta : IComponent
         new(),
     };
 
-    private static Capy64 _game;
-    public GPUBufferMeta(Capy64 game)
+    private static LegacyEntry _game;
+    public GPUBufferMeta(LegacyEntry game)
     {
         _game = game;
     }
