@@ -111,7 +111,7 @@ public class FileSystemLib : IComponent
         new(), // NULL
     };
 
-    public FileSystemLib(LegacyEntry _) { }
+    public FileSystemLib(Game _) { }
 
     public void LuaInit(Lua state)
     {

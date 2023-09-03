@@ -72,8 +72,8 @@ public class LuaState : IDisposable
 
     private void InitPlugins()
     {
-        var allPlugins = new List<IComponent>(LegacyEntry.Instance.NativePlugins);
-        allPlugins.AddRange(LegacyEntry.Instance.Plugins);
+        var allPlugins = new List<IComponent>(Game.Instance.NativePlugins);
+        allPlugins.AddRange(Game.Instance.Plugins);
         foreach (var plugin in allPlugins)
         {
             plugin.LuaInit(Thread);

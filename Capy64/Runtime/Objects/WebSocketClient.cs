@@ -73,7 +73,7 @@ public class WebSocketClient : IComponent
         new(),
     };
 
-    public WebSocketClient(LegacyEntry _) { }
+    public WebSocketClient(Game _) { }
 
     public void LuaInit(Lua L)
     {

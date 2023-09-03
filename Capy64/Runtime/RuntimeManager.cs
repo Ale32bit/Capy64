@@ -32,8 +32,8 @@ internal class RuntimeManager : IComponent
     private static bool close = false;
     private static bool inPanic = false;
 
-    private static LegacyEntry _game;
-    public RuntimeManager(LegacyEntry game)
+    private static Game _game;
+    public RuntimeManager(Game game)
     {
         _game = game;
 
@@ -95,7 +95,7 @@ internal class RuntimeManager : IComponent
 
     private void InitBIOS()
     {
-        _game.Discord.SetPresence("Booting up...");
+        //_game.Discord.SetPresence("Booting up...");
 
         InstallOS(false);
 
@@ -207,7 +207,7 @@ internal class RuntimeManager : IComponent
     public static void Shutdown()
     {
         close = true;
-        _game.Exit();
+        //_game.Exit();
     }
 
     public static void InstallOS(bool force = false)

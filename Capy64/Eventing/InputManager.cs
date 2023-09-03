@@ -20,19 +20,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SDL2;
+using Newtonsoft.Json.Linq;
 
 namespace Capy64.Eventing;
 
 public class InputManager
 {
+    // SDL inverts Right and Middle (2 and 3)
     public enum MouseButton
     {
         Left = 1,
-        Right = 2,
-        Middle = 3,
+        Right = 3,
+        Middle = 2,
         Button4 = 4,
         Button5 = 5,
     }
+
+    private Dictionary<MouseButton, int> MouseMap = new()
+    {
+        [MouseButton.Left] = 1,
+        [MouseButton.Right] = 2,
+        [MouseButton.Middle] = 3,
+        [MouseButton.Button4] = 4,
+        [MouseButton.Button5] = 5,
+    };
 
     [Flags]
     public enum Modifiers
@@ -75,7 +86,6 @@ public class InputManager
     };
 
     public Texture2D Texture { get; set; }
-    public static float WindowScale => LegacyEntry.Instance.Scale;
     public const int MouseScrollDelta = 120;
 
     private Point mousePosition;
@@ -85,9 +95,9 @@ public class InputManager
     private Modifiers keyboardMods = 0;
     private readonly HashSet<Keys> pressedKeys = new();
 
-    private readonly Capy64 _game;
+    private readonly Game _game;
     private readonly EventEmitter _eventEmitter;
-    public InputManager(Capy64 game, EventEmitter eventManager)
+    public InputManager(Game game, EventEmitter eventManager)
 
     {
         _game = game;
@@ -109,18 +119,26 @@ public class InputManager
         UpdateGamePad(GamePad.GetState(PlayerIndex.One), IsActive);
     }
 
-    public void UpdateMouseSDL(SDL.SDL_Event ev)
+    private Point GetMouseCoords(int x, int y)
     {
-        var position = new Point(ev.button.x, ev.button.y);
-        var rawPosition = position - new Point(LegacyEntry.Instance.Borders.Left, LegacyEntry.Instance.Borders.Top);
-        var pos = new Point((int)(rawPosition.X / WindowScale), (int)(rawPosition.Y / WindowScale)) + new Point(1, 1);
+        var position = new Point(x, y);
+        var rawPosition = position - new Point(_game.Borders.Left, _game.Borders.Top);
+        return new Point((int)(rawPosition.X / _game.Scale), (int)(rawPosition.Y / _game.Scale)) + new Point(1, 1);
+    }
+
+    public void UpdateMouseMove(SDL.SDL_Event ev)
+    {
+        var pos = GetMouseCoords(ev.button.x, ev.button.y);
 
         if (pos.X < 1 || pos.Y < 1 || pos.X > (_game.Width) || pos.Y > _game.Height)
             return;
-        
+
         if (pos != mousePosition)
         {
             mousePosition = pos;
+
+            Console.WriteLine("MOTION {0} {1} {2}", pos.X, pos.Y, ev.button.state);
+
             _eventEmitter.RaiseMouseMove(new()
             {
                 Position = mousePosition,
@@ -130,7 +148,36 @@ public class InputManager
                     .ToArray()
             });
         }
-        
+    }
+
+    public void UpdateMouseClick(SDL.SDL_Event ev)
+    {
+        var pos = GetMouseCoords(ev.button.x, ev.button.y);
+
+        if (pos.X < 1 || pos.Y < 1 || pos.X > (_game.Width) || pos.Y > _game.Height)
+            return;
+
+        mouseButtonStates[(MouseButton)ev.button.button] = (ButtonState)ev.button.state;
+
+        Console.WriteLine("MCLICK {0} {1} {2} {3}", pos.X, pos.Y, ev.button.button, ev.button.state);
+        _eventEmitter.RaiseMouseButton(new()
+        {
+            Position = pos,
+            Button = (MouseButton)ev.button.button,
+            State = (ButtonState)ev.button.state,
+        });
+    }
+
+    public void UpdateMouseScroll(SDL.SDL_Event ev)
+    {
+
+        Console.WriteLine("MWHEEL {0} {1} {2} {3}", mousePosition.X, mousePosition.Y, ev.wheel.x, ev.wheel.y);
+        _eventEmitter.RaiseMouseWheelEvent(new()
+        {
+            Position = mousePosition,
+            VerticalValue = ev.wheel.x,
+            HorizontalValue = ev.wheel.x,
+        });
     }
 
     private void UpdateMouse(MouseState state, bool isActive)
@@ -138,8 +185,8 @@ public class InputManager
         if (!isActive)
             return;
 
-        var rawPosition = state.Position - new Point(LegacyEntry.Instance.Borders.Left, LegacyEntry.Instance.Borders.Top);
-        var pos = new Point((int)(rawPosition.X / WindowScale), (int)(rawPosition.Y / WindowScale)) + new Point(1, 1);
+        var rawPosition = state.Position - new Point(_game.Borders.Left, _game.Borders.Top);
+        var pos = new Point((int)(rawPosition.X / _game.Scale), (int)(rawPosition.Y / _game.Scale)) + new Point(1, 1);
 
         if (pos.X < 1 || pos.Y < 1 || pos.X > Texture.Width || pos.Y > Texture.Height)
             return;

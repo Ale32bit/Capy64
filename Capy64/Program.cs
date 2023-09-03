@@ -17,7 +17,7 @@ using Capy64;
 
 if (args.Length > 0 && args[0] == "sdl")
 {
-    using var game = new Capy64.Capy64();
+    using var game = new Capy64.Game();
 
     game.Run();
 }

@@ -50,11 +50,11 @@ class TimerLib : IComponent
         new(),
     };
 
-    private static LegacyEntry _game;
+    private static Game _game;
     private static uint _timerId = 0;
 
     private static readonly ConcurrentDictionary<uint, Timer> timers = new();
-    public TimerLib(LegacyEntry game)
+    public TimerLib(Game game)
     {
         _game = game;
 

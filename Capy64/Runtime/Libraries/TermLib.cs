@@ -15,11 +15,9 @@
 
 using Capy64.API;
 using Capy64.Eventing.Events;
+using Capy64.Utils;
 using KeraLua;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
-using static Capy64.Utils;
 
 namespace Capy64.Runtime.Libraries;
 
@@ -49,11 +47,11 @@ internal class TermLib : IComponent
     public static Color BackgroundColor { get; set; }
     private static Char?[] CharGrid;
 
-    private static LegacyEntry _game;
+    private static Game _game;
     private static bool cursorState = false;
     private static bool enableCursor = true;
-    private static Texture2D cursorTexture;
-    public TermLib(LegacyEntry game)
+    //private static Texture2D cursorTexture;
+    public TermLib(Game game)
     {
         _game = game;
 
@@ -61,10 +59,10 @@ internal class TermLib : IComponent
         ForegroundColor = Color.White;
         BackgroundColor = Color.Black;
 
-        cursorTexture = new(_game.Game.GraphicsDevice, 1, CharHeight - 3);
-        var textureData = new Color[CharHeight - 3];
-        Array.Fill(textureData, Color.White);
-        cursorTexture.SetData(textureData);
+        //cursorTexture = new(_game.Game.GraphicsDevice, 1, CharHeight - 3);
+        //var textureData = new Color[CharHeight - 3];
+        //Array.Fill(textureData, Color.White);
+        //cursorTexture.SetData(textureData);
 
         UpdateSize();
 
@@ -182,7 +180,9 @@ internal class TermLib : IComponent
     {
         /*if (_game.EngineMode == EngineMode.Classic)
             c = ColorPalette.GetColor(c);*/
-        UnpackRGB(c, out r, out g, out b);
+        var color = new Color(c);
+        //UnpackRGB(c, out r, out g, out b);
+        r = color.R; g = color.G; b = color.B;
     }
 
     public static void UpdateSize(bool resize = true)
@@ -212,22 +212,24 @@ internal class TermLib : IComponent
 
         var realpos = ToRealPos(pos);
         var charpos = realpos + CharOffset;
-        _game.Drawing.DrawRectangle(realpos, new(CharWidth, CharHeight), bg, Math.Min(CharWidth, CharHeight));
-        //_game.Drawing.DrawRectangle(realpos, new(CharWidth, CharHeight), Color.Red, 1);
+        _game.Canvas.DrawFilledRectangle(realpos, new(CharWidth, CharHeight), bg);
+        //_game.Drawing.DrawRectangle(realpos, new(CharWidth, CharHeight), bg, Math.Min(CharWidth, CharHeight));
 
         try
         {
-            _game.Drawing.DrawString(charpos, ch.ToString(), fg);
+            _game.Canvas.DrawString(charpos, ch.ToString(), fg);
+            //_game.Drawing.DrawString(charpos, ch.ToString(), fg);
 
         }
         catch (ArgumentException) // UTF-16 fuckery
         {
-            _game.Drawing.DrawString(charpos, "\xFFFD", fg);
+            _game.Canvas.DrawString(charpos, "\xFFFD", fg);
+            //_game.Drawing.DrawString(charpos, "\xFFFD", fg);
         }
 
         if (underline)
         {
-            _game.Drawing.DrawLine(charpos + new Vector2(0, CharHeight), charpos + new Vector2(CharWidth, CharHeight), fg);
+            //_game.Drawing.DrawLine(charpos + new Vector2(0, CharHeight), charpos + new Vector2(CharWidth, CharHeight), fg);
         }
 
         if (!save)
@@ -318,14 +320,14 @@ internal class TermLib : IComponent
             var realpos = ToRealPos(CursorPosition - Vector2.One);
             var charpos = (realpos * _game.Scale) + ((CharOffset + new Vector2(0, 2)) * _game.Scale);
             charpos += new Vector2(LegacyEntry.Instance.Borders.Left, LegacyEntry.Instance.Borders.Top);
-            _game.Game.SpriteBatch.Draw(cursorTexture, charpos, null, ForegroundColor, 0f, Vector2.Zero, _game.Scale, SpriteEffects.None, 0);
+            //_game.Game.SpriteBatch.Draw(cursorTexture, charpos, null, ForegroundColor, 0f, Vector2.Zero, _game.Scale, SpriteEffects.None, 0);
         }
     }
 
     private static void ClearGrid()
     {
         CharGrid = new Char?[CharGrid.Length];
-        _game.Drawing.Clear(BackgroundColor);
+        _game.Canvas.Clear(BackgroundColor);
     }
 
     public static void Write(string text)
@@ -399,10 +401,12 @@ internal class TermLib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        if (_game.EngineMode == EngineMode.Classic)
-        {
-            return L.Error("Terminal is not resizable");
-        }
+        return 0;
+
+        //if (_game.EngineMode == EngineMode.Classic)
+        //{
+        //    return L.Error("Terminal is not resizable");
+        //}
 
         var w = (int)L.CheckNumber(1);
         var h = (int)L.CheckNumber(2);
@@ -426,7 +430,8 @@ internal class TermLib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        L.PushBoolean(_game.EngineMode != EngineMode.Classic);
+        //L.PushBoolean(_game.EngineMode != EngineMode.Classic);
+        L.PushBoolean(false);
 
         return 1;
     }
@@ -435,7 +440,7 @@ internal class TermLib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        L.PushInteger(PackRGB(ForegroundColor));
+        L.PushInteger(ForegroundColor.PackedRGB);
 
         return 1;
     }
@@ -477,7 +482,7 @@ internal class TermLib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        L.PushInteger(PackRGB(BackgroundColor));
+        L.PushInteger(ForegroundColor.PackedRGB);
 
         return 1;
     }

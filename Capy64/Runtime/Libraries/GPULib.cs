@@ -15,9 +15,8 @@
 
 using Capy64.API;
 using Capy64.Runtime.Objects;
+using Capy64.Utils;
 using KeraLua;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,8 +27,8 @@ namespace Capy64.Runtime.Libraries;
 public class GPULib : IComponent
 {
 
-    private static LegacyEntry _game;
-    public GPULib(LegacyEntry game)
+    private static Game _game;
+    public GPULib(Game game)
     {
         _game = game;
     }
@@ -157,7 +156,9 @@ public class GPULib : IComponent
 
     public static void GetColor(uint c, out byte r, out byte g, out byte b)
     {
-        Utils.UnpackRGB(c, out r, out g, out b);
+        var color = new Color(c);
+        //Utils.UnpackRGB(c, out r, out g, out b);
+        r = color.R; g = color.G; b = color.B;
     }
 
     private static int L_GetSize(IntPtr state)
@@ -174,10 +175,12 @@ public class GPULib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        if (_game.EngineMode == EngineMode.Classic)
+        return 0;
+
+        /*if (_game.EngineMode == EngineMode.Classic)
         {
             return L.Error("Screen is not resizable");
-        }
+        }*/
 
         var w = L.CheckInteger(1);
         var h = L.CheckInteger(2);
@@ -196,7 +199,8 @@ public class GPULib : IComponent
     {
         var L = Lua.FromIntPtr(state);
 
-        L.PushBoolean(_game.EngineMode != EngineMode.Classic);
+        //L.PushBoolean(_game.EngineMode != EngineMode.Classic);
+        L.PushBoolean(false);
 
         return 1;
     }
@@ -208,9 +212,11 @@ public class GPULib : IComponent
         var x = (int)L.CheckNumber(1) - 1;
         var y = (int)L.CheckNumber(2) - 1;
 
-        var c = _game.Drawing.GetPixel(new(x, y));
+        var c = _game.Canvas.GetPixel(new(x, y));
 
-        L.PushInteger(Utils.PackRGB(c));
+        //var c = _game.Drawing.GetPixel(new(x, y));
+
+        L.PushInteger(c.PackedRGB);
 
         return 1;
     }
@@ -224,7 +230,7 @@ public class GPULib : IComponent
         var c = L.CheckInteger(3);
 
         GetColor((uint)c, out var r, out var g, out var b);
-        _game.Drawing.Plot(new Point(x, y), new Color(r, g, b));
+        _game.Canvas.SetPixel(new Point(x, y), new Color(r, g, b));
 
         return 0;
     }
@@ -259,7 +265,7 @@ public class GPULib : IComponent
         }
 
         GetColor((uint)c, out var r, out var g, out var b);
-        _game.Drawing.Plot(pts, new(r, g, b));
+        _game.Canvas.SetPixels(pts, new(r, g, b));
 
         return 0;
     }
@@ -274,7 +280,7 @@ public class GPULib : IComponent
         var s = (int)L.OptNumber(4, 1);
 
         GetColor((uint)c, out var r, out var g, out var b);
-        _game.Drawing.DrawPoint(new(x, y), new Color(r, g, b), s);
+        //_game.Drawing.DrawPoint(new(x, y), new Color(r, g, b), s);
 
         return 0;
     }
@@ -291,7 +297,7 @@ public class GPULib : IComponent
         var s = (int)L.OptInteger(6, -1);
 
         GetColor((uint)c, out var r, out var g, out var b);
-        _game.Drawing.DrawCircle(new(x, y), rad, new Color(r, g, b), t, s);
+        //_game.Drawing.DrawCircle(new(x, y), rad, new Color(r, g, b), t, s);
 
         return 0;
     }
@@ -308,7 +314,7 @@ public class GPULib : IComponent
         var s = (int)L.OptNumber(6, 1);
 
         GetColor((uint)c, out var r, out var g, out var b);
-        _game.Drawing.DrawLine(new(x1, y1), new(x2, y2), new Color(r, g, b), s);
+        //_game.Drawing.DrawLine(new(x1, y1), new(x2, y2), new Color(r, g, b), s);
 
         return 0;
     }
@@ -325,7 +331,7 @@ public class GPULib : IComponent
         var s = (int)L.OptNumber(6, 1);
 
         GetColor((uint)c, out var r, out var g, out var b);
-        _game.Drawing.DrawRectangle(new(x, y), new(w, h), new Color(r, g, b), s);
+        //_game.Drawing.DrawRectangle(new(x, y), new(w, h), new Color(r, g, b), s);
 
         return 0;
     }
@@ -361,7 +367,7 @@ public class GPULib : IComponent
         }
 
         GetColor((uint)c, out var r, out var g, out var b);
-        _game.Drawing.DrawPolygon(new(x, y), pts.ToArray(), new(r, g, b), s);
+        //_game.Drawing.DrawPolygon(new(x, y), pts.ToArray(), new(r, g, b), s);
 
         return 0;
     }
@@ -378,7 +384,7 @@ public class GPULib : IComponent
         var s = (int)L.OptNumber(6, 1);
 
         GetColor((uint)c, out var r, out var g, out var b);
-        _game.Drawing.DrawEllipse(new(x, y), new(rx, ry), new Color(r, g, b), s);
+        //_game.Drawing.DrawEllipse(new(x, y), new(rx, ry), new Color(r, g, b), s);
 
         return 0;
     }
@@ -395,7 +401,7 @@ public class GPULib : IComponent
         GetColor((uint)c, out var r, out var g, out var b);
         try
         {
-            _game.Drawing.DrawString(new Vector2(x, y), t, new Color(r, g, b));
+            //_game.Drawing.DrawString(new Vector2(x, y), t, new Color(r, g, b));
         }
         catch (ArgumentException ex) // UTF-16 fuckery
         {
@@ -411,10 +417,10 @@ public class GPULib : IComponent
 
         var t = L.CheckString(1);
 
-        var sizes = _game.Drawing.MeasureString(t);
+        //var sizes = _game.Drawing.MeasureString(t);
 
-        L.PushNumber((int)sizes.X);
-        L.PushNumber((int)sizes.Y);
+        //L.PushNumber((int)sizes.X);
+        //L.PushNumber((int)sizes.Y);
 
         return 2;
     }
@@ -425,7 +431,7 @@ public class GPULib : IComponent
 
 
         var buffer = new uint[_game.Width * _game.Height];
-        _game.Drawing.Canvas.GetData(buffer);
+        //_game.Drawing.Canvas.GetData(buffer);
 
         var gpuBuffer = new GPUBufferMeta.GPUBuffer
         {
@@ -446,7 +452,7 @@ public class GPULib : IComponent
 
         var buffer = GPUBufferMeta.CheckBuffer(L, false);
 
-        _game.Drawing.Canvas.SetData(buffer.Buffer);
+        //_game.Drawing.Canvas.SetData(buffer.Buffer);
 
         return 0;
     }
@@ -533,7 +539,7 @@ public class GPULib : IComponent
         var x = (int)L.CheckInteger(2) - 1;
         var y = (int)L.CheckInteger(3) - 1;
 
-        Rectangle? source = null;
+        /*Rectangle? source = null;
         Color color = Color.White;
         float rotation = 0;
         Vector2 origin = Vector2.Zero;
@@ -634,7 +640,7 @@ public class GPULib : IComponent
             Width = buffer.Width,
             Height = buffer.Height,
         }, source, color, rotation, origin, scale, effects);
-
+        */
         return 0;
     }
 
@@ -654,10 +660,10 @@ public class GPULib : IComponent
 
         var task = TaskMeta.Push(L, GPUBufferMeta.ObjectType);
 
-        Texture2D texture;
+        //Texture2D texture;
         try
         {
-            texture = Texture2D.FromFile(LegacyEntry.Instance.Drawing.Canvas.GraphicsDevice, path);
+            //texture = Texture2D.FromFile(LegacyEntry.Instance.Drawing.Canvas.GraphicsDevice, path);
         }
         catch (Exception e)
         {
@@ -665,8 +671,8 @@ public class GPULib : IComponent
             return 1;
         }
 
-        var data = new uint[texture.Width * texture.Height];
-        texture.GetData(data);
+        //var data = new uint[texture.Width * texture.Height];
+        //texture.GetData(data);
 
         Task.Run(() =>
         {
@@ -695,7 +701,7 @@ public class GPULib : IComponent
                 }
             }*/
 
-            var buffer = new GPUBufferMeta.GPUBuffer
+            /*var buffer = new GPUBufferMeta.GPUBuffer
             {
                 Buffer = data,
                 Height = texture.Height,
@@ -708,7 +714,7 @@ public class GPULib : IComponent
                 lk.SetMetaTable(GPUBufferMeta.ObjectType);
             });
 
-            texture.Dispose();
+            texture.Dispose();*/
         });
 
         return 1;
@@ -721,7 +727,7 @@ public class GPULib : IComponent
         var c = L.OptInteger(1, 0x000000);
 
         GetColor((uint)c, out var r, out var g, out var b);
-        _game.Drawing.Clear(new Color(r, g, b));
+        _game.Canvas.Clear(new Color(r, g, b));
 
         return 0;
     }

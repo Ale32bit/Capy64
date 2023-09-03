@@ -21,8 +21,8 @@ namespace Capy64.Runtime.Objects;
 
 public class TaskMeta : IComponent
 {
-    private static LegacyEntry _game;
-    public TaskMeta(LegacyEntry game)
+    private static Game _game;
+    public TaskMeta(Game game)
     {
         _game = game;
     }

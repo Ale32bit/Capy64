@@ -24,11 +24,12 @@ namespace Capy64.Integrations;
 
 public class DiscordIntegration : IComponent
 {
+    public static DiscordIntegration Instance { get; private set; }
     public DiscordRpcClient Client { get; private set; }
     public readonly bool Enabled;
     private readonly IConfiguration _configuration;
 
-    public DiscordIntegration(LegacyEntry game)
+    public DiscordIntegration(Game game)
     {
         _configuration = game.Configuration;
 
@@ -42,7 +43,7 @@ public class DiscordIntegration : IComponent
 
         Client.OnReady += OnReady;
 
-        LegacyEntry.Instance.Discord = this;
+        Instance = this;
 
         if (Enabled)
             Client.Initialize();

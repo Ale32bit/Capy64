@@ -30,7 +30,7 @@ namespace Capy64.Runtime.Libraries;
 #nullable enable
 public class HTTPLib : IComponent
 {
-    private static LegacyEntry _game = null!;
+    private static Game _game = null!;
     private static HttpClient _httpClient = null!;
     private static long _requestId;
     public static readonly HashSet<WebSocketClient.Client> WebSocketConnections = new();
@@ -57,7 +57,7 @@ public class HTTPLib : IComponent
         },
         new(),
     };
-    public HTTPLib(LegacyEntry game)
+    public HTTPLib(Game game)
     {
         _game = game;
         _requestId = 0;

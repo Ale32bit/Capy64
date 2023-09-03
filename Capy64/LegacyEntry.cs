@@ -20,6 +20,7 @@ using Capy64.Extensions;
 using Capy64.Integrations;
 using Capy64.PluginManager;
 using Capy64.Runtime;
+using Capy64.Utils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -31,7 +32,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using static Capy64.Utils;
 
 namespace Capy64;
 
@@ -41,7 +41,7 @@ public enum EngineMode
     Free
 }
 
-public class LegacyEntry : Game
+public class LegacyEntry : Microsoft.Xna.Framework.Game
 {
     public const string Version = "1.1.0-beta";
 
@@ -96,7 +96,7 @@ public class LegacyEntry : Game
     public int TickRate => tickrate;
     public IConfiguration Configuration { get; private set; }
 
-    public Color BorderColor { get; set; } = Color.Black;
+    public Microsoft.Xna.Framework.Color BorderColor { get; set; } = Microsoft.Xna.Framework.Color.Black;
 
     public Borders Borders = new()
     {
@@ -315,7 +315,7 @@ public class LegacyEntry : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
+        /*SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
         GraphicsDevice.Clear(BorderColor);
 
         SpriteBatch.DrawRectangle(renderTarget.Bounds.Location.ToVector2() + new Vector2(Borders.Left, Borders.Top),
@@ -333,6 +333,6 @@ public class LegacyEntry : Game
 
         SpriteBatch.End();
 
-        base.Draw(gameTime);
+        base.Draw(gameTime);*/
     }
 }

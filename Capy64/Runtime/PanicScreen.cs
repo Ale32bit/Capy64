@@ -14,7 +14,7 @@
 // limitations under the License.
 
 using Capy64.Runtime.Libraries;
-using Microsoft.Xna.Framework;
+using Capy64.Utils;
 
 namespace Capy64.Runtime;
 

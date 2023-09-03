@@ -13,33 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.Xna.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Capy64;
+namespace Capy64.Utils;
 
-public static class Utils
+public struct Borders
 {
-    public struct Borders
-    {
-        public int Top, Bottom, Left, Right;
-    }
-
-    /// <summary>
-    /// Return the sane 0xRRGGBB format
-    /// </summary>
-    /// <param name="color"></param>
-    public static int PackRGB(Color color)
-    {
-        return
-            (color.R << 16) +
-            (color.G << 8) +
-            color.B;
-    }
-
-    public static void UnpackRGB(uint packed, out byte r, out byte g, out byte b)
-    {
-        b = (byte)(packed & 0xff);
-        g = (byte)((packed >> 8) & 0xff);
-        r = (byte)((packed >> 16) & 0xff);
-    }
+    public int Top { get; set; }
+    public int Bottom { get; set; }
+    public int Left { get; set; }
+    public int Right { get; set; }
+    public Color Color { get; set; }
+    public float Size { get; set; }
 }

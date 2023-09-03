@@ -24,8 +24,8 @@ namespace Capy64.Runtime.Libraries;
 
 public class MachineLib : IComponent
 {
-    private static LegacyEntry _game;
-    public MachineLib(LegacyEntry game)
+    private static Game _game;
+    public MachineLib(Game game)
     {
         _game = game;
     }

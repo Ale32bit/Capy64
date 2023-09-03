@@ -88,7 +88,7 @@ public class FileHandle : IComponent
         new(),
     };
 
-    public FileHandle(LegacyEntry _) { }
+    public FileHandle(Game _) { }
 
     public void LuaInit(Lua L)
     {

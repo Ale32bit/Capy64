@@ -29,8 +29,8 @@ public class Socket : IDisposable
 
 public class SocketLib : IComponent
 {
-    private static LegacyEntry _game = null!;
-    public SocketLib(LegacyEntry game)
+    private static Game _game = null!;
+    public SocketLib(Game game)
     {
         _game = game;
     }
