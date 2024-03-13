@@ -38,15 +38,19 @@ local function iter(cr, ci)
 end
 
 local function draw()
-    local buffer <close> = gpu.newBuffer()
+    local size = w * h
+    local canvas = { string.unpack(("B"):rep(size), ("\0"):rep(size)) }
+    canvas[#canvas] = nil
+
 
     for y = 0, h - 1 do
         for x = 0, w - 1 do
             local _, _, i = iter((x - cx + dx * pscale) * px, (y - cy + dy * pscale) * px)
-            buffer[y * w + x] = colorUnit * (iterations - i)
+            canvas[y * w + x] = colorUnit * (iterations - i)
         end
     end
 
+    local buffer <close> = gpu.bufferFrom(canvas, w, h)
     gpu.setBuffer(buffer)
 end
 

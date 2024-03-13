@@ -1,8 +1,3 @@
-Please do not use this software to flash firmwares.
-Now with bitwise operators!
-Writing to _G is a war crime.
-Tampering with _G in any way is also a war crime.
-No, Wojbie, stop! STOP TOUCHING _G!
-Stop! You've violated the law!
-That's 65% more bullet per bullet.
-This software is not responsible for collapses of spacetime.
+You can get started with Lua by following this manual: https://www.lua.org/manual/
+Learn more about Capy64 by following the documentation: https://capy64.alexdevs.me/
+Found a bug or would like to suggest a feature? https://github.com/Ale32bit/Capy64/issues
