@@ -19,6 +19,8 @@ if not http.checkURL(args[1]) then
     error("Invalid URL", 0)
 end
 
+print("Connecting...")
+
 local response, err = http.get(args[1], nil, {
     binary = true,
 })
@@ -27,8 +29,8 @@ if not response then
 end
 
 local file <close> = fs.open(outputPath, "wb")
-file:write(response:readAll())
+file:write(response.content:read("a"))
 file:close()
-response:close()
+response.content:close()
 
-print("File written to " .. outputPath)
+print("Downloaded to " .. outputPath)
